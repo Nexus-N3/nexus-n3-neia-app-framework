@@ -1,0 +1,5 @@
+- name: NEIA master deployment
+  hosts: master
+  become: true
+  roles:
+    - neia_release

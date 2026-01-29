@@ -1,0 +1,77 @@
+{
+  "version": "0.1.0",
+  "steps": [
+    {
+      "id": "check_readiness",
+      "name": "Check Server Readiness",
+      "command": "is_server_ready",
+      "expects_event": "server_ready"
+    },
+    {
+      "id": "who_session",
+      "name": "Who + Session Label"
+    },
+    {
+      "id": "subjects",
+      "name": "Subjects"
+    },
+    {
+      "id": "sensors",
+      "name": "Sensors"
+    },
+    {
+      "id": "locations",
+      "name": "Locations"
+    },
+    {
+      "id": "algorithms",
+      "name": "Algorithms"
+    },
+    {
+      "id": "init_system",
+      "name": "Init System",
+      "command": "init_system",
+      "expects_event": "system_initialized"
+    },
+    {
+      "id": "discover_sensors",
+      "name": "Discover Sensors",
+      "command": "discover_sensors",
+      "expects_event": "sensors_discovered"
+    },
+    {
+      "id": "connect_sensors",
+      "name": "Connect Sensors",
+      "command": "connect_all",
+      "expects_event": "sensor_connected"
+    },
+    {
+      "id": "identify_sensors",
+      "name": "Identify Sensors (Assign Locations)",
+      "command": "identify_sensor",
+      "expects_event": "sensor_identified"
+    },
+    {
+      "id": "start_stream",
+      "name": "Start Stream",
+      "command": "start_stream_for_all",
+      "expects_event": "stream_started"
+    },
+    {
+      "id": "stop_stream",
+      "name": "Stop Stream",
+      "command": "stop_stream_for_all",
+      "expects_event": "stream_stopped"
+    },
+    {
+      "id": "final_results",
+      "name": "View Final Results"
+    },
+    {
+      "id": "disconnect",
+      "name": "Disconnect Sensors",
+      "command": "disconnect_all",
+      "expects_event": "sensor_disconnected"
+    }
+  ]
+}

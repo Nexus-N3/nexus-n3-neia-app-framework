@@ -1,0 +1,8 @@
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Restart neia service
+  ansible.builtin.systemd:
+    name: "{{ neia_service_name }}"
+    state: restarted

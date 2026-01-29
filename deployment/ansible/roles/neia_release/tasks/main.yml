@@ -1,0 +1,70 @@
+- name: Check local NEIA repo
+  ansible.builtin.stat:
+    path: "{{ neia_repo_local_path }}"
+  delegate_to: localhost
+  run_once: true
+  become: false
+  register: neia_repo_local_stat
+
+- name: Fail if local NEIA repo is missing
+  ansible.builtin.fail:
+    msg: "Missing local repo at {{ neia_repo_local_path }}"
+  when: not neia_repo_local_stat.stat.exists
+
+- name: Check local NEIA UI dist
+  ansible.builtin.stat:
+    path: "{{ neia_local_ui_dist }}"
+  delegate_to: localhost
+  run_once: true
+  become: false
+  register: neia_ui_dist_stat
+
+- name: Fail if local NEIA UI dist is missing
+  ansible.builtin.fail:
+    msg: "Missing {{ neia_local_ui_dist }}. Build neia-ui before deployment."
+  when: not neia_ui_dist_stat.stat.exists
+
+- name: Ensure NEIA install root exists
+  ansible.builtin.file:
+    path: "{{ neia_install_root }}"
+    state: directory
+    owner: "{{ neia_service_user }}"
+    group: "{{ neia_service_group }}"
+    mode: "0755"
+
+- name: Sync NEIA repo to target
+  ansible.builtin.synchronize:
+    src: "{{ neia_repo_local_path }}/"
+    dest: "{{ neia_install_root }}/"
+    delete: "{{ neia_sync_delete | bool }}"
+    rsync_opts: "{{ neia_sync_excludes | map('regex_replace', '^', '--exclude=') | list }}"
+  delegate_to: localhost
+  become: false
+
+- name: Ensure NEIA API virtualenv exists
+  ansible.builtin.command: >
+    python3 -m venv {{ neia_venv_path }}
+  args:
+    creates: "{{ neia_venv_path }}/bin/activate"
+
+- name: Install NEIA API requirements
+  ansible.builtin.pip:
+    requirements: "{{ neia_api_dir }}/requirements.txt"
+    virtualenv: "{{ neia_venv_path }}"
+    virtualenv_command: "python3 -m venv"
+    state: present
+
+- name: Install NEIA systemd service
+  ansible.builtin.template:
+    src: neia-api.service.j2
+    dest: "/etc/systemd/system/{{ neia_service_name }}.service"
+    mode: "0644"
+  notify:
+    - Reload systemd
+    - Restart neia service
+
+- name: Enable NEIA service
+  ansible.builtin.systemd:
+    name: "{{ neia_service_name }}"
+    enabled: true
+    state: started

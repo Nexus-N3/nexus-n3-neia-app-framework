@@ -1,0 +1,19 @@
+neia_repo_local_path: "{{ inventory_dir }}/../../.."
+neia_install_root: /opt/rs-nexus-neia
+neia_api_dir: "{{ neia_install_root }}/neia-api"
+neia_venv_path: "{{ neia_api_dir }}/.venv"
+neia_service_name: rs-nexus-neia
+neia_service_user: "{{ ansible_user }}"
+neia_service_group: "{{ ansible_user }}"
+neia_host: 0.0.0.0
+neia_port: 8050
+neia_dev: 0
+neia_sync_delete: false
+neia_sync_excludes:
+  - ".venv"
+  - "neia-api/.venv"
+  - "neia-ui/node_modules"
+  - "apps/registry/app_template/ui/node_modules"
+  - "apps/registry/app_react_template/ui/node_modules"
+  - "**/.DS_Store"
+neia_local_ui_dist: "{{ neia_repo_local_path }}/neia-ui/dist"

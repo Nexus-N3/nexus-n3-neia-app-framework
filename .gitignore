@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.python-version
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+neia-api/.venv/
+
+# Node / frontend
+node_modules/
+neia-ui/node_modules/
+apps/registry/app_template/ui/node_modules/
+apps/registry/app_react_template/ui/node_modules/
+.vite/
+
+# Env files
+.env
+.env.*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
