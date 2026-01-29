@@ -1076,7 +1076,16 @@
         count: state.sensor_count || 1
       };
       var locations = state.subject_locations[subjectId] || [];
-      var options = locations.length ? locations : [];
+      var options = locations.filter(Boolean);
+      if (options.length) {
+        var uniqueOptions = [];
+        options.forEach(function (loc) {
+          if (uniqueOptions.indexOf(loc) === -1) {
+            uniqueOptions.push(loc);
+          }
+        });
+        options = uniqueOptions;
+      }
 
       if (!options.length) {
         content.appendChild(createEl("p", "note", "No locations assigned for this subject. Set locations first."));

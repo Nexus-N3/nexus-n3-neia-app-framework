@@ -1,6 +1,16 @@
 import React, { useEffect, useMemo, useState } from "react";
+import LiveResults from "./components/LiveResults";
+import StepList from "./components/StepList";
+import TemplateHeader from "./components/TemplateHeader";
+import UiOnlyStep from "./components/UiOnlyStep";
 
-const FALLBACK_STEPS = [
+type Step = {
+  id: string;
+  name: string;
+  command?: string;
+};
+
+const FALLBACK_STEPS: Step[] = [
   { id: "check_readiness", name: "Check Server Readiness", command: "is_server_ready" },
   { id: "who_session", name: "Who + Session Label" },
   { id: "subjects", name: "Subjects" },
@@ -65,7 +75,7 @@ function Stepper({ value, onChange }: { value: number; onChange: (val: number) =
 }
 
 export default function App() {
-  const [steps, setSteps] = useState(FALLBACK_STEPS);
+  const [steps, setSteps] = useState<Step[]>(FALLBACK_STEPS);
   const [index, setIndex] = useState(0);
   const [events, setEvents] = useState<any[]>([]);
   const [completed, setCompleted] = useState<Record<string, boolean>>({});
@@ -350,36 +360,18 @@ export default function App() {
 
   return (
     <div className="neia-react-template-app">
-      <div className="header">
-        <h2>
-          NEIA React App Template{siteLabel ? ` - connected to ${siteLabel}` : ""}
-        </h2>
-        <p className="hint">This template mirrors the vanilla flow but uses React and components.</p>
-      </div>
+      <TemplateHeader siteLabel={siteLabel} />
       <div className="layout">
-        <div className="steps">
-          {steps.map((s, idx) => {
-            const isActive = idx === index;
-            const isComplete = !!completed[s.id];
-            const canEnter = idx <= index || isComplete || isPrevStepsComplete(idx);
-            const typeClass = s.command ? " command-step" : " input-step";
-            const completeClass = isComplete ? (s.command ? " done-command" : " done-input") : "";
-            const className = `step${typeClass}${isActive ? " active" : ""}${completeClass}${!canEnter ? " locked" : ""}`;
-            return (
-              <div
-                key={s.id}
-                className={className}
-                onClick={() => {
-                  if (!canEnter) return;
-                  setIndex(idx);
-                  setEvents([]);
-                }}
-              >
-                {s.name}
-              </div>
-            );
-          })}
-        </div>
+        <StepList
+          steps={steps}
+          activeIndex={index}
+          completed={completed}
+          isPrevStepsComplete={isPrevStepsComplete}
+          onSelect={(idx) => {
+            setIndex(idx);
+            setEvents([]);
+          }}
+        />
         <div className="content">
           <h3>{step?.name}</h3>
 
@@ -723,36 +715,7 @@ export default function App() {
           ) : null}
 
           {!step?.command && step?.id === "final_results" ? (
-            <>
-              <p className="note">Latest compute results per subject.</p>
-              <div className="field">
-                <label className="label">Subject:</label>
-                <select
-                  className="select-input third"
-                  value={String(resultViewSubjectIndex)}
-                  onChange={(e) => setResultViewSubjectIndex(parseInt(e.target.value, 10) || 0)}
-                >
-                  {subjectIds.map((id, idx) => (
-                    <option key={id} value={String(idx)}>
-                      {id}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="result-grid">
-                <div className="result-box">
-                  <h4>Compute Results</h4>
-                  <p>Count: {resultCounts[subjectIds[resultViewSubjectIndex]]?.compute || 0}</p>
-                  <pre>{lastCompute[subjectIds[resultViewSubjectIndex]] ? jsonString(lastCompute[subjectIds[resultViewSubjectIndex]]) : "No results yet"}</pre>
-                </div>
-                <div className="result-box">
-                  <h4>Intermediate Results</h4>
-                  <p>Count: {resultCounts[subjectIds[resultViewSubjectIndex]]?.intermediate || 0}</p>
-                  <pre>{lastIntermediate[subjectIds[resultViewSubjectIndex]] ? jsonString(lastIntermediate[subjectIds[resultViewSubjectIndex]]) : "No results yet"}</pre>
-                </div>
-              </div>
-              <button className="primary mark-complete" onClick={() => markComplete("final_results")}>Mark Step Complete</button>
-            </>
+            <UiOnlyStep onComplete={() => markComplete("final_results")} />
           ) : null}
 
           {step?.command ? (
@@ -900,9 +863,10 @@ export default function App() {
                   </div>
                   {(() => {
                     const subjectId = subjectIds[identifySubjectIndex] || subjectIds[0];
-                    const locationOptions = subjectLocations[subjectId] || [];
-                    const selectedLocation = locationOptions.includes(identifyLocation) ? identifyLocation : locationOptions[0] || "";
-                    if (!locationOptions.length) {
+                    const assignedLocations = (subjectLocations[subjectId] || []).filter(Boolean);
+                    const uniqueLocations = Array.from(new Set(assignedLocations));
+                    const selectedLocation = uniqueLocations.includes(identifyLocation) ? identifyLocation : uniqueLocations[0] || "";
+                    if (!uniqueLocations.length) {
                       return <p className="note">No locations assigned for this subject. Set locations first.</p>;
                     }
                     return (
@@ -913,7 +877,7 @@ export default function App() {
                           value={selectedLocation}
                           onChange={(e) => setIdentifyLocation(e.target.value)}
                         >
-                          {locationOptions.map((opt) => (
+                          {uniqueLocations.map((opt) => (
                             <option key={opt} value={opt}>
                               {opt}
                             </option>
@@ -928,8 +892,9 @@ export default function App() {
                       onClick={() => {
                         setEvents([]);
                         const subjectId = subjectIds[identifySubjectIndex] || subjectIds[0];
-                        const locationOptions = subjectLocations[subjectId] || [];
-                        const location = locationOptions.includes(identifyLocation) ? identifyLocation : locationOptions[0];
+                        const assignedLocations = (subjectLocations[subjectId] || []).filter(Boolean);
+                        const uniqueLocations = Array.from(new Set(assignedLocations));
+                        const location = uniqueLocations.includes(identifyLocation) ? identifyLocation : uniqueLocations[0];
                         if (!location) {
                           setIdentifyError("No locations assigned for this subject.");
                           return;
@@ -991,6 +956,18 @@ export default function App() {
                     </button>
                     {startError ? <div className="error">{startError}</div> : null}
                   </div>
+
+                  <LiveResults
+                    subjectIds={subjectIds}
+                    resultViewSubjectIndex={resultViewSubjectIndex}
+                    onSubjectChange={setResultViewSubjectIndex}
+                    resultCounts={resultCounts}
+                    lastCompute={lastCompute}
+                    lastIntermediate={lastIntermediate}
+                    subjectSensors={subjectSensors}
+                    defaultSensorCount={sensorCount}
+                    jsonString={jsonString}
+                  />
                 </>
               ) : null}
 
