@@ -28,15 +28,14 @@ body {
 .shell {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 32px 20px 60px;
+
 }
 
 .shell-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 10px;
+
 }
 
 .shell-header.app-header {
@@ -60,7 +59,7 @@ body {
 
 .shell-header h1 {
   margin: 0 0 6px;
-  font-size: 32px;
+  font-size: 24px;
 }
 
 .shell-header p {
@@ -93,6 +92,7 @@ body {
 
 .muted {
   color: var(--muted);
+  font-size: 13px;
 }
 
 .shell-tabs {
@@ -282,7 +282,6 @@ button.secondary {
   .shell-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
   }
 }
 
@@ -296,7 +295,7 @@ button.secondary {
   }
 
   .shell-header h1 {
-    font-size: 22px;
+    font-size: 18px;
   }
 
   .shell-header {
@@ -308,7 +307,7 @@ button.secondary {
   }
 
   .panel h2 {
-    font-size: 20px;
+    font-size: 14px;
     margin-top: 4px;
   }
 
@@ -329,7 +328,7 @@ button.secondary {
 
   .app-section h3 {
     margin: 16px 0 8px;
-    font-size: 18px;
+    font-size: 14px;
   }
 
   .app-grid {
