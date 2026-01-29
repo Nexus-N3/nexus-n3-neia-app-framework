@@ -68,3 +68,16 @@
     name: "{{ neia_service_name }}"
     enabled: true
     state: started
+
+- name: Check ufw status for ui port
+  ansible.builtin.command: ufw status
+  register: neia_release_ufw_status
+  changed_when: false
+  failed_when: false
+
+- name: Allow ui port (TCP {{ neia_port }}) through ufw
+  ansible.builtin.command: ufw allow {{ neia_port }}/tcp
+  register: neia_release_ufw_allow_router
+  changed_when: "'Skipping' not in neia_release_ufw_allow_router.stdout"
+  when:
+    - "'Status: active' in neia_release_ufw_status.stdout"
