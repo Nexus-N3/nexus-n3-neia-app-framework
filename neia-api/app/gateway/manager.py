@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from typing import Callable, List
 
 from fastapi import WebSocket
@@ -38,6 +39,8 @@ class GatewayManager:
         self._client = client
         self._loop: asyncio.AbstractEventLoop | None = None
         self.broadcaster = EventBroadcaster()
+        self._event_listeners: List[Callable[[dict], None]] = []
+        self._logger = logging.getLogger("uvicorn.error")
 
     @property
     def gateway_type(self) -> str:
@@ -50,6 +53,11 @@ class GatewayManager:
     def _on_event(self, event: dict) -> None:
         if not self._loop:
             return
+        for listener in list(self._event_listeners):
+            try:
+                listener(event)
+            except Exception:
+                self._logger.exception("Gateway event listener failed")
         asyncio.run_coroutine_threadsafe(self.broadcaster.broadcast(event), self._loop)
 
     async def stop(self) -> None:
@@ -57,6 +65,14 @@ class GatewayManager:
 
     def send_command(self, command: dict) -> None:
         self._client.send_command(command)
+
+    def broadcast_event(self, event: dict) -> None:
+        if not self._loop:
+            return
+        asyncio.run_coroutine_threadsafe(self.broadcaster.broadcast(event), self._loop)
+
+    def add_event_listener(self, listener: Callable[[dict], None]) -> None:
+        self._event_listeners.append(listener)
 
     def purge_queues(self) -> None:
         self._client.purge_queues()

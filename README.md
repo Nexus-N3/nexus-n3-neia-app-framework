@@ -21,7 +21,8 @@ API (FastAPI):
 ```bash
 cd neia-api
 python -m venv .venv
-source .venv/bin/activate
+
+
 pip install -r requirements.txt
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8050
 ```
@@ -44,6 +45,51 @@ Optional API env vars:
 - `NEIA_GATEWAY=zeromq|lavinmq`
 - `NEIA_SITE=<site_name>`
 - `AMQP_URL=<amqp_url>` (when using LavinMQ)
+- `NEIA_VOICE_ENABLED=1` to start the offline voice worker
+- `NEIA_VOICE_WAKEWORD=nexus`
+- `NEIA_VOICE_WAKEWORD_ALIASES=next us,neck sus,nekksus`
+- `NEIA_VOICE_MODEL_PATH=/path/to/vosk/model`
+- `NEIA_VOICE_DEVICE=<device index>`
+- `NEIA_VOICE_SAMPLE_RATE=16000`
+- `NEIA_VOICE_DEBUG=1` to emit partial transcripts
+- `NEIA_VOICE_TTS_ENABLED=1` to enable spoken confirmations (espeak-ng)
+- `NEIA_VOICE_TTS_ENGINE=espeak|piper`
+- `NEIA_VOICE_TTS_BIN=espeak-ng`
+- `NEIA_VOICE_TTS_VOICE=en-us`
+- `NEIA_VOICE_TTS_PIPER_BIN=piper`
+- `NEIA_VOICE_TTS_PIPER_MODEL=/path/to/piper.onnx`
+- `NEIA_VOICE_TTS_PIPER_PLAYER=aplay`
+- `NEIA_VOICE_DEVICE_AUTO=1` to auto-pick a USB mic (prefers Sennheiser/USB Audio)
+
+For TTS on Linux:
+```
+sudo apt-get install espeak-ng
+```
+
+Example (local dev with voice + TTS):
+```bash
+NEIA_VOICE_ENABLED=1 \
+NEIA_VOICE_WAKEWORD="nexus" \
+NEIA_VOICE_WAKEWORD_ALIASES="next us,neck sus,nekksus" \
+NEIA_VOICE_DEVICE="Sennheiser XS LAV USB-C: Audio (hw:1,0)" \
+NEIA_VOICE_DEBUG=1 \
+NEIA_VOICE_TTS_ENABLED=1 \
+NEIA_VOICE_TTS_ENGINE=piper \
+NEIA_VOICE_TTS_PIPER_MODEL="/home/mike/Desktop/apps/dev/rs-nexus-project/rs-nexus-neia/models/piper/en_GB-southern_english_female-low.onnx" \
+NEIA_DEV=1 \
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8050 --log-level info
+```
+
+Piper setup (download a model + binary):
+```bash
+# Install Piper (Python package) and download a model into the repo.
+pip install piper-tts
+python3 -m piper.download_voices --data-dir rs-nexus-neia/models/piper en_US-lessac-medium
+
+# Models will be placed under:
+# rs-nexus-neia/models/piper/en_US-lessac-medium.onnx
+# rs-nexus-neia/models/piper/en_US-lessac-medium.onnx.json
+```
 
 ## App templates
 - `apps/registry/app_template` (vanilla JS)
