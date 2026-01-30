@@ -89,6 +89,11 @@ python3 -m piper.download_voices --data-dir rs-nexus-neia/models/piper en_US-les
 # Models will be placed under:
 # rs-nexus-neia/models/piper/en_US-lessac-medium.onnx
 # rs-nexus-neia/models/piper/en_US-lessac-medium.onnx.json
+
+# To fetch additional voices:
+python3 -m piper.download_voices --list
+python3 -m piper.download_voices --data-dir rs-nexus-neia/models/piper en_US-amy-medium
+python3 -m piper.download_voices --data-dir rs-nexus-neia/models/piper en_GB-southern_english_female-low
 ```
 
 ## App templates
