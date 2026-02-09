@@ -41,6 +41,33 @@ npm install
 npm run dev
 ```
 
+### UI display profiles (explicit, non-media-query)
+
+Both `neia-ui` and `neia_voice_assistant` support an explicit display profile class on
+`<body>` so screen tuning is deterministic.
+
+Resolution priority:
+1. URL query: `?display_profile=1920x1080`
+2. Runtime global: `window.__NEXUS_DISPLAY_PROFILE`
+3. Build/dev env: `VITE_DISPLAY_PROFILE`
+4. Local storage cache: `nexus_display_profile`
+
+Examples:
+```bash
+# NEIA shell
+cd rs-nexus-neia/neia-ui
+VITE_DISPLAY_PROFILE=1920x1080 npm run dev
+
+# Voice assistant UI (standalone dev server)
+cd rs-nexus-neia/apps/registry/neia_voice_assistant/ui
+VITE_DISPLAY_PROFILE=1920x1080 npm run dev
+```
+
+Or override from browser URL:
+```text
+http://localhost:3000/?display_profile=1920x1080
+```
+
 ### Dev mode with `neia_voice_assistant`
 
 `neia_voice_assistant` uses a separate dev UI entry (`http://localhost:3002/src/main.tsx`), so run 3 processes:
@@ -141,6 +168,8 @@ Optional API env vars:
 - `NEIA_VOICE_STT_LANGUAGE=en`
 - `NEIA_VOICE_STT_CHUNK_SECONDS=1.2`
 - `NEIA_VOICE_FLOW_MODE=ui|backend` (`ui` default; `neia_voice_assistant` flow control runs in UI)
+- `VITE_DISPLAY_PROFILE=1920x1080` (applies when building/running the React UI bundles)
+- `VITE_GATEWAY_WS_URL=ws://<host>:<port>/api/v1/gateway/events` (optional WS endpoint override for UI)
 
 Use a `.env` file in `rs-nexus-neia/neia-api/` to avoid long command lines:
 ```bash

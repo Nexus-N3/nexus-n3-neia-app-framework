@@ -105,6 +105,12 @@ Guidelines:
 - Provide a "full-screen app" path in the shell so apps can run with minimal
   chrome on small displays.
 
+Deterministic profile override:
+- Use `display_profile` (URL), `window.__NEXUS_DISPLAY_PROFILE`, or `VITE_DISPLAY_PROFILE`
+  to apply an explicit body class (`display-profile-<value>`).
+- Keep media queries as fallback, but ship tuned profile classes for known hardware
+  (for example `1920x1080`, `800x400`) to avoid browser/device reporting variance.
+
 If specific edge hardware differs (e.g., 800x480 or 720p), update these targets
 and re-validate the dashboard + app templates.
 

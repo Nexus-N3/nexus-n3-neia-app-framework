@@ -430,3 +430,92 @@ body {
     font-size: 12px;
   }
 }
+
+body.display-profile-1920x1080 .voice-app {
+  padding: 28px;
+}
+
+body.display-profile-1920x1080 .event-counter {
+  top: 24px;
+  left: 24px;
+  min-width: 320px;
+  max-width: 36vw;
+  padding: 16px 18px;
+  border-radius: 14px;
+}
+
+body.display-profile-1920x1080 .event-counter-title {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+body.display-profile-1920x1080 .event-counter-line {
+  font-size: 18px;
+  line-height: 1.45;
+}
+
+body.display-profile-1920x1080 .voice-center {
+  margin-top: 20px;
+  gap: 40px;
+}
+
+body.display-profile-1920x1080 .assistant-robot {
+  width: min(96vw, 1660px);
+  height: min(74vh, 980px);
+}
+
+body.display-profile-1920x1080 .assistant-head {
+  gap: clamp(154px, 16.5vmin, 350px);
+}
+
+body.display-profile-1920x1080 .assistant-eyes {
+  gap: clamp(196px, 29vmin, 620px);
+}
+
+body.display-profile-1920x1080 .assistant-eye {
+  width: clamp(144px, 18vmin, 320px);
+  height: clamp(72px, 9.4vmin, 156px);
+}
+
+body.display-profile-1920x1080 .assistant-mouth {
+  margin-top: clamp(52px, 6.4vmin, 122px);
+  width: clamp(112px, 13vmin, 248px);
+  height: clamp(44px, 5.6vmin, 98px);
+}
+
+body.display-profile-1920x1080 .transcript {
+  font-size: 30px;
+  line-height: 1.4;
+  max-width: min(94vw, 1700px);
+}
+
+body.display-profile-1920x1080 .command-label,
+body.display-profile-1920x1080 .prompt-label {
+  font-size: 22px;
+  line-height: 1.35;
+}
+
+body.display-profile-1920x1080 .payload-label {
+  font-size: 18px;
+  max-width: min(94vw, 1700px);
+}
+
+body.display-profile-1920x1080 .flow-status {
+  margin-top: 12px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  font-size: 18px;
+}
+
+body.display-profile-1920x1080 .flow-line {
+  margin: 4px 0;
+}
+
+body.display-profile-1920x1080 .wakeword {
+  font-size: 19px;
+  padding: 8px 16px;
+}
+
+body.display-profile-1920x1080 .error {
+  font-size: 22px;
+}

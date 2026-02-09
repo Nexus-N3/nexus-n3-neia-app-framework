@@ -232,7 +232,7 @@ body::-webkit-scrollbar,
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 12px;
+  gap: 18px;
 }
 
 .app-developer {
@@ -266,6 +266,9 @@ li {
 .actions {
   display: flex;
   gap: 8px;
+  align-items: center;
+  margin-top: 6px;
+  width: 100%;
 }
 
 button {
@@ -281,6 +284,33 @@ button {
 button.secondary {
   background: #e5e0fb;
   color: #3d2f7a;
+}
+
+.actions .launch-btn {
+  width: 108px;
+  height: 72px;
+  padding: 0;
+  border-radius: 12px;
+  font-size: 16px;
+  line-height: 1.1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.actions .square-btn {
+  width: 72px;
+  height: 72px;
+  padding: 0;
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 1.1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin-left: auto;
 }
 
 .app-mount {
@@ -359,11 +389,13 @@ button.secondary {
   }
 
   .app-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 
   .app-card {
     padding: 10px 12px;
+    gap: 12px;
   }
 
   .app-icon {
@@ -382,6 +414,20 @@ button.secondary {
   button {
     padding: 6px 10px;
     font-size: 13px;
+  }
+
+  .actions .launch-btn {
+    width: 96px;
+    height: 52px;
+    border-radius: 10px;
+    font-size: 12px;
+  }
+
+  .actions .square-btn {
+    width: 52px;
+    height: 52px;
+    border-radius: 10px;
+    font-size: 10px;
   }
 
   .app-mount.full {
@@ -704,4 +750,138 @@ button.secondary {
   55% {
     transform: scale(1.22);
   }
+}
+
+body.display-profile-1920x1080::after {
+  content: "PROFILE: 1920x1080";
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 2200;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: #d0d0d0;
+  border: 1px solid #2f2f2f;
+  background: rgba(0, 0, 0, 0.78);
+  pointer-events: none;
+}
+
+body.display-profile-1920x1080 .shell {
+  max-width: 1780px;
+  padding: 30px 30px 72px;
+}
+
+body.display-profile-1920x1080 .shell-logo {
+  height: 170px;
+}
+
+body.display-profile-1920x1080 .shell-header h1 {
+  font-size: 38px;
+}
+
+body.display-profile-1920x1080 .shell-header p {
+  font-size: 22px;
+}
+
+body.display-profile-1920x1080 .shell-tabs {
+  margin: 18px 0 34px;
+  gap: 20px;
+}
+
+body.display-profile-1920x1080 .shell-tabs .tab {
+  font-size: 22px;
+  padding: 15px 30px;
+}
+
+body.display-profile-1920x1080 .shell-body {
+  gap: 26px;
+  margin-bottom: 28px;
+}
+
+body.display-profile-1920x1080 .panel {
+  border-radius: 20px;
+  padding: 26px 28px 30px;
+}
+
+body.display-profile-1920x1080 .app-section h3 {
+  margin: 30px 0 18px;
+  font-size: 34px;
+}
+
+body.display-profile-1920x1080 .app-grid {
+  gap: 24px;
+}
+
+body.display-profile-1920x1080 .app-card {
+  border-radius: 20px;
+  padding: 22px 24px;
+  gap: 14px;
+}
+
+body.display-profile-1920x1080 .app-icon {
+  width: 84px;
+  height: 84px;
+}
+
+body.display-profile-1920x1080 .app-card-title strong {
+  font-size: 28px;
+}
+
+body.display-profile-1920x1080 .app-card-desc {
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+body.display-profile-1920x1080 .app-developer {
+  font-size: 17px;
+}
+
+body.display-profile-1920x1080 button {
+  padding: 14px 20px;
+  font-size: 19px;
+  border-radius: 12px;
+}
+
+body.display-profile-1920x1080 .actions .launch-btn {
+  width: 156px;
+  height: 104px;
+  border-radius: 16px;
+  font-size: 24px;
+}
+
+body.display-profile-1920x1080 .actions .square-btn {
+  width: 104px;
+  height: 104px;
+  border-radius: 16px;
+  font-size: 17px;
+}
+
+body.display-profile-1920x1080 .app-topbar {
+  min-height: 88px;
+  padding: 16px 20px;
+}
+
+body.display-profile-1920x1080 .app-mount.takeover {
+  min-height: calc(100vh - 88px);
+  padding: 0 22px 22px;
+}
+
+body.display-profile-1920x1080 .app-stage {
+  width: min(100%, 1820px);
+  padding-top: 24px;
+}
+
+body.display-profile-1920x1080 .startup-overlay {
+  gap: clamp(36px, 4.8vh, 62px);
+}
+
+body.display-profile-1920x1080 .startup-robot {
+  width: min(96vw, 1760px);
+  height: min(84vh, 1080px);
+}
+
+body.display-profile-1920x1080 .startup-status {
+  font-size: clamp(24px, 2.7vmin, 40px);
 }

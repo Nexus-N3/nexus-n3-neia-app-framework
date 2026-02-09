@@ -31,6 +31,20 @@ const ACTIVE_INSTANCE_KEY = "__neia_voice_active_instance_v1";
 const IDENTIFY_CONFIRM_DELAY_MS = 2000;
 const NO_CATCH_COOLDOWN_MS = 2500;
 
+function resolveGatewayEventsWsUrl(): string {
+  const fromWindow = String((window as any).__NEIA_GATEWAY_WS_URL || "").trim();
+  if (fromWindow) return fromWindow;
+  const fromEnv = String(import.meta.env.VITE_GATEWAY_WS_URL || "").trim();
+  if (fromEnv) return fromEnv;
+
+  const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+  const { hostname, port } = window.location;
+  const devPorts = new Set(["3000", "3002", "5173", "5174"]);
+  const targetPort = devPorts.has(port) ? "8050" : port;
+  const portSuffix = targetPort ? `:${targetPort}` : "";
+  return `${wsProtocol}://${hostname}${portSuffix}/api/v1/gateway/events`;
+}
+
 function shouldAnnounceIdlePromptNow() {
   if (typeof window === "undefined") return true;
   const key = "__neia_voice_idle_prompt_at";
@@ -838,8 +852,7 @@ export default function App() {
   }, [eventCounts]);
 
   useEffect(() => {
-    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-    const ws = new WebSocket(`${protocol}://${window.location.host}/api/v1/gateway/events`);
+    const ws = new WebSocket(resolveGatewayEventsWsUrl());
     ws.onmessage = (msg) => {
       try {
         if (!isActiveInstance()) return;

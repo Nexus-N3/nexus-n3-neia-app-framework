@@ -500,8 +500,8 @@ export default function App() {
                       renderAppCard(
                         app,
                         <>
-                          <button onClick={() => launch(app)}>Launch</button>
-                          <button className="secondary" onClick={() => uninstall(app.manifest.id)}>
+                          <button className="launch-btn" onClick={() => launch(app)}>Launch</button>
+                          <button className="secondary square-btn" onClick={() => uninstall(app.manifest.id)}>
                             Uninstall
                           </button>
                         </>
@@ -518,8 +518,8 @@ export default function App() {
                       renderAppCard(
                         app,
                         <>
-                          <button onClick={() => launch(app)}>Launch</button>
-                          <button className="secondary" onClick={() => uninstall(app.manifest.id)}>
+                          <button className="launch-btn" onClick={() => launch(app)}>Launch</button>
+                          <button className="secondary square-btn" onClick={() => uninstall(app.manifest.id)}>
                             Uninstall
                           </button>
                         </>
