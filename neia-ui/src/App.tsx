@@ -1,6 +1,16 @@
 import { useEffect, useState } from "react";
 import "./styles.css";
 
+type StartupStage = "booting" | "waking" | "preSpeak" | "speaking" | "postSpeak" | "done";
+
+const STARTUP_GREETING = "Hello, I am NEIA your edge intelligence agent. Welcome to Nexus.";
+const HOLD_ON_STARTUP_SCREEN_FOR_TESTING = false;
+const STARTUP_API_MOUTH_DELAY_MS = 0;
+const STARTUP_BOOTING_MS = 450;
+const STARTUP_WAKING_MS = 600;
+let startupSequenceDone = false;
+let startupGreetingSpoken = false;
+
 type AppManifest = {
   id: string;
   name: string;
@@ -104,6 +114,137 @@ async function fetchApp(appId: string): Promise<AppInfo> {
   return resp.json();
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
+function speakInBrowser(text: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") {
+      reject(new Error("Browser speech synthesis is unavailable"));
+      return;
+    }
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.95;
+    utterance.pitch = 1.02;
+    utterance.volume = 1;
+    const cleanup = () => {
+      utterance.onend = null;
+      utterance.onerror = null;
+    };
+    const timeout = window.setTimeout(() => {
+      cleanup();
+      resolve();
+    }, 12000);
+    utterance.onend = () => {
+      window.clearTimeout(timeout);
+      cleanup();
+      resolve();
+    };
+    utterance.onerror = () => {
+      window.clearTimeout(timeout);
+      cleanup();
+      reject(new Error("Browser speech synthesis failed"));
+    };
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  });
+}
+
+type StartupSpeechMode = "api" | "browser" | "none";
+
+async function speakStartupGreeting(): Promise<StartupSpeechMode> {
+  if (startupGreetingSpoken) {
+    return "none";
+  }
+  startupGreetingSpoken = true;
+  try {
+    // Startup should be able to speak even when voice is normally disabled by default.
+    await fetch("/api/v1/voice/enable", { method: "POST" });
+    const resp = await fetch("/api/v1/voice/speak", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: STARTUP_GREETING, wait: false })
+    });
+    if (!resp.ok) {
+      throw new Error("Failed to speak startup greeting");
+    }
+    return "api";
+  } catch (_error) {
+    // Cloud/remote API may not have local speakers; use client-side speech fallback.
+  }
+  try {
+    await speakInBrowser(STARTUP_GREETING);
+    return "browser";
+  } catch (_error) {
+    // The intro should continue even if all speech options are unavailable.
+  }
+  return "none";
+}
+
+async function readApiSpeaking(): Promise<boolean | null> {
+  try {
+    const resp = await fetch("/api/v1/voice/status");
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    return !!data?.is_speaking;
+  } catch (_error) {
+    return null;
+  }
+}
+
+async function disableVoicePipeline(): Promise<void> {
+  try {
+    await fetch("/api/v1/voice/deactivate", { method: "POST" });
+  } catch (_error) {
+    // best effort
+  }
+  try {
+    await fetch("/api/v1/voice/disable", { method: "POST" });
+  } catch (_error) {
+    // best effort
+  }
+}
+
+async function waitForApiSpeaking(target: boolean, timeoutMs: number): Promise<boolean> {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    const speaking = await readApiSpeaking();
+    if (speaking === target) {
+      return true;
+    }
+    await sleep(120);
+  }
+  return false;
+}
+
+function StartupSequence({ stage, exiting }: { stage: StartupStage; exiting: boolean }) {
+  const statusText =
+    stage === "booting"
+      ? "Initializing edge systems..."
+      : stage === "waking"
+        ? "NEIA waking up..."
+        : stage === "preSpeak" || stage === "speaking"
+          ? "Voice online."
+          : "Welcome to Nexus.";
+  return (
+    <div className={`startup-overlay stage-${stage}${exiting ? " exiting" : ""}`}>
+      <div className="startup-robot" aria-hidden="true">
+        <div className="robot-head">
+          <div className="robot-eyes">
+            <span className="robot-eye" />
+            <span className="robot-eye" />
+          </div>
+          <div className="robot-mouth" />
+        </div>
+      </div>
+      <p className="startup-status">{statusText}</p>
+    </div>
+  );
+}
+
 export default function App() {
   const { installed, available, loading, refresh } = useApps();
   const [launchError, setLaunchError] = useState<string | null>(null);
@@ -111,6 +252,12 @@ export default function App() {
   const [appViewError, setAppViewError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"installed" | "available">("installed");
   const route = useHashRoute();
+  const isAppRoute = /^\/app\/[^/]+$/.test(route);
+  const [startupStage, setStartupStage] = useState<StartupStage>(
+    startupSequenceDone || isAppRoute ? "done" : "booting"
+  );
+  const [showStartup, setShowStartup] = useState(!startupSequenceDone && !isAppRoute);
+  const [startupExiting, setStartupExiting] = useState(false);
 
   const install = async (appId: string) => {
     await fetch(`/api/v1/apps/install/${appId}`, { method: "POST" });
@@ -124,6 +271,13 @@ export default function App() {
 
   const launch = (appInfo: AppInfo) => {
     window.location.hash = `/app/${appInfo.manifest.id}`;
+  };
+
+  const backToDashboard = async () => {
+    if (appView?.manifest.id === "neia_voice_assistant") {
+      await disableVoicePipeline();
+    }
+    window.location.hash = "/";
   };
 
   useEffect(() => {
@@ -144,6 +298,77 @@ export default function App() {
         setAppViewError("App not found or not installed.");
       });
   }, [route]);
+
+  useEffect(() => {
+    if (isAppRoute || startupSequenceDone) {
+      setStartupStage("done");
+      setShowStartup(false);
+      setStartupExiting(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    void (async () => {
+      setShowStartup(true);
+      setStartupExiting(false);
+      setStartupStage("booting");
+      await sleep(STARTUP_BOOTING_MS);
+      if (cancelled) return;
+
+      setStartupStage("waking");
+      await sleep(STARTUP_WAKING_MS);
+      if (cancelled) return;
+
+      setStartupStage("preSpeak");
+      const speechMode = await speakStartupGreeting();
+      if (cancelled) return;
+      if (speechMode === "api") {
+        // Start mouth movement when backend reports actual speech start.
+        if (STARTUP_API_MOUTH_DELAY_MS > 0) {
+          await sleep(STARTUP_API_MOUTH_DELAY_MS);
+          if (cancelled) return;
+        }
+        const started = await waitForApiSpeaking(true, 5000);
+        if (cancelled) return;
+        setStartupStage("speaking");
+        if (started) {
+          await waitForApiSpeaking(false, 18000);
+        } else {
+          // Fallback if backend speaking transition was missed.
+          await sleep(900);
+        }
+      } else if (speechMode === "browser") {
+        // Browser speech completed in speakStartupGreeting.
+        setStartupStage("speaking");
+        await sleep(300);
+      } else {
+        setStartupStage("speaking");
+        await sleep(900);
+      }
+      if (cancelled) return;
+      setStartupStage("postSpeak");
+      await sleep(1200);
+      if (cancelled) return;
+      if (HOLD_ON_STARTUP_SCREEN_FOR_TESTING) {
+        return;
+      }
+
+      startupSequenceDone = true;
+      await disableVoicePipeline();
+      if (cancelled) return;
+      setStartupStage("done");
+      setStartupExiting(true);
+      await sleep(680);
+      if (cancelled) return;
+      setShowStartup(false);
+      setStartupExiting(false);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAppRoute]);
 
   useEffect(() => {
     if (!appView) {
@@ -184,19 +409,17 @@ export default function App() {
 
   if (appView || appViewError) {
     return (
-      <div className="app-shell">
-        <header className="shell-header app-header">
-          <button className="secondary" onClick={() => (window.location.hash = "/")}>
+      <div className="app-shell takeover">
+        <header className="app-topbar">
+          <button className="secondary" onClick={() => void backToDashboard()}>
             Back to Dashboard
           </button>
-          <div>
-            <h1>{appView?.manifest.name || "App"}</h1>
-            <p>{appView?.manifest.description || " "}</p>
-          </div>
         </header>
         {appViewError ? <p className="error">{appViewError}</p> : null}
         {launchError ? <p className="error">{launchError}</p> : null}
-        <div id="app-mount" className="app-mount full" />
+        <div className="app-mount takeover">
+          <div id="app-mount" className="app-stage" />
+        </div>
       </div>
     );
   }
@@ -230,8 +453,11 @@ export default function App() {
     );
   };
 
+  const dashboardClass = showStartup && !startupExiting ? "shell dashboard-pre" : "shell dashboard-enter";
+
   return (
-    <div className="shell">
+    <>
+      <div className={dashboardClass}>
       <header className="shell-header">
         <div className="shell-brand">
           <h1>NEIA Dashboard</h1>
@@ -345,6 +571,8 @@ export default function App() {
         )}
       </section>
 
-    </div>
+      </div>
+      {showStartup ? <StartupSequence stage={startupStage} exiting={startupExiting} /> : null}
+    </>
   );
 }

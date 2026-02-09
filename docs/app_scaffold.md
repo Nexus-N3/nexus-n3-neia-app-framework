@@ -103,3 +103,4 @@ Then install by adding the app id to `apps/installed.json`.
 - Apps should run fully without the NEIA shell during development.
 - The shell dashboard is only a launcher/installer.
 - No persistence across runs (for now).
+- UI must be responsive down to ~480px width to support small edge displays.

@@ -1,10 +1,28 @@
 import React from "react";
-import { createRoot } from "react-dom/client";
+import { createRoot, type Root } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 
+declare global {
+  interface Window {
+    __NeiaVoiceRoot?: Root;
+    __NeiaVoiceRootEl?: HTMLElement;
+  }
+}
+
 export function NeiaVoiceMount(el: HTMLElement) {
+  if (window.__NeiaVoiceRoot) {
+    try {
+      window.__NeiaVoiceRoot.unmount();
+    } catch {
+      // ignore stale root errors
+    }
+    window.__NeiaVoiceRoot = undefined;
+    window.__NeiaVoiceRootEl = undefined;
+  }
   const root = createRoot(el);
+  window.__NeiaVoiceRoot = root;
+  window.__NeiaVoiceRootEl = el;
   root.render(<App />);
 }
 
