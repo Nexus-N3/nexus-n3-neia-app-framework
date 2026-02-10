@@ -8,11 +8,13 @@ from fastapi.staticfiles import StaticFiles
 
 from .config import BASE_DIR
 from .gateway.manager import create_gateway_manager
+from .help import HelpManager
 from .registry import AppRegistry
 from .voice import create_voice_manager
 
 registry = AppRegistry()
 gateway_manager = create_gateway_manager()
+help_manager = HelpManager(BASE_DIR)
 voice_manager = create_voice_manager(
     BASE_DIR,
     send_command=gateway_manager.send_command,
@@ -155,6 +157,38 @@ def voice_speak(payload: dict):
     if error:
         raise HTTPException(status_code=500, detail=error)
     return {"status": "spoken", "wait": wait}
+
+
+@api_v1.get("/help/status")
+def help_status():
+    return help_manager.status()
+
+
+@api_v1.post("/help/reindex")
+def help_reindex():
+    return help_manager.reindex()
+
+
+@api_v1.post("/help/ask")
+def help_ask(payload: dict):
+    if not isinstance(payload, dict):
+        raise HTTPException(status_code=400, detail="Invalid payload")
+    question = str(payload.get("question") or "").strip()
+    if not question:
+        raise HTTPException(status_code=400, detail="Missing question")
+    top_k_raw = payload.get("top_k")
+    top_k = None
+    if top_k_raw is not None:
+        try:
+            top_k = int(top_k_raw)
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid top_k")
+    result = help_manager.ask(question, top_k=top_k)
+    if result.get("error"):
+        if result.get("error") == "Help is disabled":
+            raise HTTPException(status_code=503, detail=result["error"])
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
 
 
 @api_v1.websocket("/gateway/events")
