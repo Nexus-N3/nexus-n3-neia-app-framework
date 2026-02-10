@@ -396,13 +396,13 @@ export default function App() {
       }).catch(() => null);
       if (!resp) {
         setHelpError("Help service is unreachable.");
-        await speak("I cannot reach help right now.", true);
+        await speak("I cannot reach help right now. Please try again.", true);
         return;
       }
       if (!resp.ok) {
         const details = await resp.text().catch(() => "");
         setHelpError(details || `Help request failed (${resp.status}).`);
-        await speak("I could not find anything for that question.", true);
+        await speak("I could not find that in local docs.", true);
         return;
       }
       const payload = await resp.json().catch(() => ({}));
@@ -414,6 +414,7 @@ export default function App() {
       if (answer) {
         const plain = answer.replace(/\[[0-9]+\]/g, "").trim();
         if (plain) {
+          await speak("Here is what I found.", true);
           const chunks = plain.match(/.{1,260}(?:\s+|$)/g) || [plain];
           for (const chunk of chunks) {
             const line = chunk.trim();
@@ -421,14 +422,14 @@ export default function App() {
             await speak(line, true);
           }
         } else {
-          await speak("I could not find anything for that question.", true);
+          await speak("I could not find that in local docs.", true);
         }
       } else {
-        await speak("I could not find anything for that question.", true);
+        await speak("I could not find that in local docs.", true);
       }
     } catch {
       setHelpError("Help request failed.");
-      await speak("I could not find anything for that question.", true);
+      await speak("I could not find that in local docs.", true);
     } finally {
       setHelpPending(false);
       helpInputLockRef.current = false;
@@ -1263,7 +1264,7 @@ export default function App() {
             if (idleState && helpMode) {
               const question = extractHelpQuestion(recognizedText);
               if (!question) {
-                void speak("Please ask a help question.", true);
+                void speak("Please ask a help question, for example: how do I run the API in dev mode?", true);
                 return;
               }
               void askHelpQuestion(question);
