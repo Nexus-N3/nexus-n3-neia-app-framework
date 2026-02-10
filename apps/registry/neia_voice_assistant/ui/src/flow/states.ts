@@ -7,6 +7,7 @@ export type FlowState =
   | "awaiting_sensor_setup"
   | "awaiting_sensor_locations"
   | "awaiting_algorithm"
+  | "awaiting_input_confirm"
   | "initializing"
   | "awaiting_sensors_on"
   | "discovering"
@@ -65,6 +66,7 @@ export function flowStatusText(state: FlowState) {
   if (state === "awaiting_sensor_setup") return "Which sensors are you using and how many?";
   if (state === "awaiting_sensor_locations") return "Where are the sensors being placed?";
   if (state === "awaiting_algorithm") return "What algorithm should I use?";
+  if (state === "awaiting_input_confirm") return "Please confirm. Say yes or no.";
   if (state === "initializing") return "Initializing system...";
   if (state === "awaiting_sensors_on") return "Are sensors turned on?";
   if (state === "discovering") return "Discovering sensors...";
@@ -102,6 +104,7 @@ export function flowPromptText(state: FlowState) {
   if (state === "awaiting_sensor_setup") return "Which sensors are you using and how many?";
   if (state === "awaiting_sensor_locations") return "Where are the sensors being placed?";
   if (state === "awaiting_algorithm") return "What algorithm should I use?";
+  if (state === "awaiting_input_confirm") return "Is that correct? Say yes or no.";
   if (state === "awaiting_sensors_on") return "Are sensors turned on?";
   if (state === "awaiting_identify_confirm") return "Is the sensor placed?";
   if (state === "awaiting_start_stream") return 'Please provide a tag, for example: "test one".';

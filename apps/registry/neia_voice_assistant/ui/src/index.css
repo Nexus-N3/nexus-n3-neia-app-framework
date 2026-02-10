@@ -101,17 +101,17 @@ body {
 
 .voice-center {
   max-height: 100%;
-  margin-top: 20px;
+  margin-top: -6px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 22px;
+  gap: 10px;
   overflow: hidden;
 }
 
 .assistant-robot {
   width: min(94vw, 980px);
-  height: min(56vh, 520px);
+  height: min(42vh, 360px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -208,6 +208,24 @@ body {
 
 .transcript.empty {
   color: #9f96ce;
+}
+
+.heard-label {
+  margin: 0;
+  color: #d8fff8;
+  font-size: 14px;
+  line-height: 1.3;
+  text-align: center;
+  max-width: min(92vw, 920px);
+  word-break: break-word;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(88, 255, 231, 0.45);
+  background: rgba(6, 6, 12, 0.6);
+}
+
+.heard-label.empty {
+  opacity: 0.7;
 }
 
 .command-label {
@@ -455,13 +473,13 @@ body.display-profile-1920x1080 .event-counter-line {
 }
 
 body.display-profile-1920x1080 .voice-center {
-  margin-top: 20px;
-  gap: 40px;
+  margin-top: 6px;
+  gap: 20px;
 }
 
 body.display-profile-1920x1080 .assistant-robot {
   width: min(96vw, 1660px);
-  height: min(74vh, 980px);
+  height: min(52vh, 680px);
 }
 
 body.display-profile-1920x1080 .assistant-head {

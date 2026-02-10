@@ -752,22 +752,6 @@ button.secondary {
   }
 }
 
-body.display-profile-1920x1080::after {
-  content: "PROFILE: 1920x1080";
-  position: fixed;
-  right: 16px;
-  bottom: 16px;
-  z-index: 2200;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  color: #d0d0d0;
-  border: 1px solid #2f2f2f;
-  background: rgba(0, 0, 0, 0.78);
-  pointer-events: none;
-}
-
 body.display-profile-1920x1080 .shell {
   max-width: 1780px;
   padding: 30px 30px 72px;

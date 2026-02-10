@@ -9,3 +9,4 @@ python-dotenv>=1.0
 zeroconf>=0.136
 piper-tts>=1.2
 pathvalidate>=3.2
+faster-whisper

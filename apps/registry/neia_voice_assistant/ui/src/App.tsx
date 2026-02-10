@@ -31,11 +31,23 @@ const ACTIVE_INSTANCE_KEY = "__neia_voice_active_instance_v1";
 const IDENTIFY_CONFIRM_DELAY_MS = 2000;
 const NO_CATCH_COOLDOWN_MS = 2500;
 
+type ConfirmField =
+  | "session_owner"
+  | "session_label"
+  | "subject_count"
+  | "sensor_setup"
+  | "sensor_locations"
+  | "algorithm";
+
+type PendingInputConfirm = {
+  field: ConfirmField;
+  value: any;
+  ctx: FlowContext;
+};
+
 function resolveGatewayEventsWsUrl(): string {
   const fromWindow = String((window as any).__NEIA_GATEWAY_WS_URL || "").trim();
   if (fromWindow) return fromWindow;
-  const fromEnv = String(import.meta.env.VITE_GATEWAY_WS_URL || "").trim();
-  if (fromEnv) return fromEnv;
 
   const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
   const { hostname, port } = window.location;
@@ -98,6 +110,7 @@ export default function App() {
   const [recentWake, setRecentWake] = useState(false);
   const [wakewordHeard, setWakewordHeard] = useState(false);
   const [displayTranscript, setDisplayTranscript] = useState("");
+  const [heardText, setHeardText] = useState("");
   const [awaitingCommand, setAwaitingCommand] = useState(false);
   const [robotSpeaking, setRobotSpeaking] = useState(false);
   const [eventCounts, setEventCounts] = useState<Record<string, number>>({});
@@ -112,6 +125,7 @@ export default function App() {
   const instanceIdRef = useRef<string>(`inst-${Math.random().toString(36).slice(2)}`);
   const apiTtsEnabledRef = useRef<boolean>(true);
   const pendingIdentifyRef = useRef<Array<Record<string, any>>>([]);
+  const pendingInputConfirmRef = useRef<PendingInputConfirm | null>(null);
   const currentIdentifyRef = useRef<Record<string, any> | null>(null);
   const lastGatewayCommandRef = useRef<Record<string, any> | null>(null);
   const serverReadyHandledRef = useRef<boolean>(false);
@@ -189,6 +203,17 @@ export default function App() {
     return false;
   }, []);
 
+  const showTranscript = useCallback((text: string) => {
+    if (!text) return;
+    setDisplayTranscript(text);
+    setHeardText(text);
+    if (transcriptClearRef.current) window.clearTimeout(transcriptClearRef.current);
+    transcriptClearRef.current = window.setTimeout(() => {
+      setDisplayTranscript("");
+      setHeardText("");
+    }, 9000);
+  }, []);
+
   const updateFlow = (next: FlowState, awaiting = "", nextCtx?: FlowContext) => {
     const prev = flowStateRef.current;
     flowStateRef.current = next;
@@ -196,7 +221,6 @@ export default function App() {
     gatewayStepLockRef.current = "";
     userStepConsumedRef.current = false;
     if (next !== prev) {
-      setDisplayTranscript("");
       setWakewordHeard(false);
       setRecentWake(false);
       if (next !== "identifying") {
@@ -207,6 +231,9 @@ export default function App() {
       }
       if (next !== "idle") {
         setAwaitingCommand(false);
+      }
+      if (next === "idle") {
+        setHeardText("");
       }
     }
     void awaiting;
@@ -330,6 +357,7 @@ export default function App() {
   const resetFlow = useCallback(
     async (spokenText?: string) => {
       pendingIdentifyRef.current = [];
+      pendingInputConfirmRef.current = null;
       currentIdentifyRef.current = null;
       if (identifyConfirmTimerRef.current) {
         window.clearTimeout(identifyConfirmTimerRef.current);
@@ -380,12 +408,42 @@ export default function App() {
     return true;
   }, [sendGatewayCommand, speak]);
 
+  const listToSpeech = useCallback((items: string[]) => {
+    const labels = items.map((item) => item.replace(/_/g, " ").toLowerCase());
+    if (!labels.length) return "";
+    if (labels.length === 1) return labels[0];
+    if (labels.length === 2) return `${labels[0]} and ${labels[1]}`;
+    return `${labels.slice(0, -1).join(", ")}, and ${labels[labels.length - 1]}`;
+  }, []);
+
+  const isAffirmative = useCallback((intentName: string, text: string) => {
+    if (intentName === "affirm") return true;
+    return /\b(yes|yeah|yep|correct|right|affirmative|continue|okay|ok)\b/.test(text);
+  }, []);
+
+  const isNegative = useCallback((intentName: string, text: string) => {
+    if (intentName === "deny") return true;
+    return /\b(no|nope|negative|wrong|incorrect|change|again)\b/.test(text);
+  }, []);
+
+  const requestInputConfirmation = useCallback(async (
+    field: ConfirmField,
+    value: any,
+    ctx: FlowContext,
+    confirmSpeech: string
+  ) => {
+    pendingInputConfirmRef.current = { field, value, ctx: { ...ctx } };
+    updateFlow("awaiting_input_confirm", "input_confirm", { ...ctx });
+    await speak(confirmSpeech, true);
+  }, [speak]);
+
   const handleIntent = useCallback(
     async (intent: VoiceIntent) => {
       const name = (intent.intent || "").toLowerCase();
       const state = flowStateRef.current;
       const ctx = { ...flowContextRef.current };
       const rawText = String(intent.text || intent._raw_text || intent.label || intent.name || "").trim();
+      const loweredRawText = rawText.toLowerCase();
 
       const isUserStep = (
         state === "awaiting_session_owner"
@@ -394,6 +452,7 @@ export default function App() {
         || state === "awaiting_sensor_setup"
         || state === "awaiting_sensor_locations"
         || state === "awaiting_algorithm"
+        || state === "awaiting_input_confirm"
         || state === "awaiting_sensors_on"
         || state === "awaiting_identify_confirm"
         || state === "awaiting_start_stream"
@@ -410,14 +469,119 @@ export default function App() {
         return;
       }
 
+      if (state === "awaiting_input_confirm") {
+        const pending = pendingInputConfirmRef.current;
+        if (!pending) {
+          await speak("I did not catch that. Please repeat.", true);
+          return;
+        }
+        if (isAffirmative(name, loweredRawText)) {
+          userStepConsumedRef.current = true;
+          pendingInputConfirmRef.current = null;
+          const confirmedCtx = { ...pending.ctx };
+          if (pending.field === "session_owner") {
+            confirmedCtx.session_owner = String(pending.value);
+            flowContextRef.current = confirmedCtx;
+            await speak("What is the session called?", true);
+            updateFlow("awaiting_session_label", "session_label", confirmedCtx);
+            return;
+          }
+          if (pending.field === "session_label") {
+            confirmedCtx.init_label = String(pending.value);
+            flowContextRef.current = confirmedCtx;
+            await speak(`Thank you. How many subjects for ${confirmedCtx.init_label}?`, true);
+            updateFlow("awaiting_subject_count", "subject_count", confirmedCtx);
+            return;
+          }
+          if (pending.field === "subject_count") {
+            confirmedCtx.subject_count = Number(pending.value);
+            flowContextRef.current = confirmedCtx;
+            await speak("Which sensors are you using and how many? For example: two movella dots.", true);
+            updateFlow("awaiting_sensor_setup", "sensor_setup", confirmedCtx);
+            return;
+          }
+          if (pending.field === "sensor_setup") {
+            const setup = pending.value as {
+              sensor_name: string;
+              sensor_count: number;
+              locations: string[];
+            };
+            confirmedCtx.sensor_name = setup.sensor_name;
+            confirmedCtx.sensor_count = setup.sensor_count;
+            confirmedCtx.locations = setup.locations || [];
+            flowContextRef.current = confirmedCtx;
+            if (!confirmedCtx.locations.length) {
+              await speak("Where are the sensors being placed? For example: left ankle and right ankle.", true);
+              updateFlow("awaiting_sensor_locations", "locations", confirmedCtx);
+              return;
+            }
+            await speak("What algorithm should I use?", true);
+            updateFlow("awaiting_algorithm", "algorithm", confirmedCtx);
+            return;
+          }
+          if (pending.field === "sensor_locations") {
+            confirmedCtx.locations = [...(pending.value as string[])];
+            flowContextRef.current = confirmedCtx;
+            await speak("What algorithm should I use?", true);
+            updateFlow("awaiting_algorithm", "algorithm", confirmedCtx);
+            return;
+          }
+          if (pending.field === "algorithm") {
+            const algo = pending.value as { name: string; inputs: Record<string, any> };
+            confirmedCtx.algorithm_name = algo.name;
+            confirmedCtx.algorithm_inputs = algo.inputs;
+            flowContextRef.current = confirmedCtx;
+            await speak("Got it. Initializing the system.", true);
+            updateFlow("initializing", "", confirmedCtx);
+            await sendGatewayCommand(
+              { type: "init_system", payload: { subjects: buildSubjects(confirmedCtx), init_label: confirmedCtx.init_label } }
+            );
+            return;
+          }
+        }
+        if (isNegative(name, loweredRawText)) {
+          userStepConsumedRef.current = true;
+          pendingInputConfirmRef.current = null;
+          if (pending.field === "session_owner") {
+            await speak("Okay. Who is running the session?", true);
+            updateFlow("awaiting_session_owner", "session_owner", { ...pending.ctx });
+            return;
+          }
+          if (pending.field === "session_label") {
+            await speak("Okay. What is the session called?", true);
+            updateFlow("awaiting_session_label", "session_label", { ...pending.ctx });
+            return;
+          }
+          if (pending.field === "subject_count") {
+            await speak("Okay. How many subjects?", true);
+            updateFlow("awaiting_subject_count", "subject_count", { ...pending.ctx });
+            return;
+          }
+          if (pending.field === "sensor_setup") {
+            await speak("Okay. Which sensors are you using and how many?", true);
+            updateFlow("awaiting_sensor_setup", "sensor_setup", { ...pending.ctx });
+            return;
+          }
+          if (pending.field === "sensor_locations") {
+            await speak("Okay. Where are the sensors being placed?", true);
+            updateFlow("awaiting_sensor_locations", "locations", { ...pending.ctx });
+            return;
+          }
+          if (pending.field === "algorithm") {
+            await speak("Okay. What algorithm should I use?", true);
+            updateFlow("awaiting_algorithm", "algorithm", { ...pending.ctx });
+            return;
+          }
+        }
+        await speak("Please say yes or no.", true);
+        return;
+      }
+
       if (state === "awaiting_session_owner") {
         const owner = String(intent.name || intent.text || intent.label || "").trim();
         if (owner.length >= 2) {
           userStepConsumedRef.current = true;
-          ctx.session_owner = owner;
-          flowContextRef.current = ctx;
-          await speak("What is the session called?", true);
-          updateFlow("awaiting_session_label", "session_label", ctx);
+          await requestInputConfirmation("session_owner", owner, ctx, `I heard ${owner}. Is that correct?`);
         } else {
           await speak("I did not catch the name. Who is running the session?", true);
         }
@@ -428,10 +592,7 @@ export default function App() {
         const label = String(intent.label || intent.text || "").trim();
         if (label.length >= 2) {
           userStepConsumedRef.current = true;
-          ctx.init_label = label;
-          flowContextRef.current = ctx;
-          await speak(`Thank you. How many subjects for ${label}?`, true);
-          updateFlow("awaiting_subject_count", "subject_count", ctx);
+          await requestInputConfirmation("session_label", label, ctx, `I heard ${label}. Is that correct?`);
         } else {
           await speak("I did not catch the session name. What is the session called?", true);
         }
@@ -442,10 +603,7 @@ export default function App() {
         const count = typeof intent.count === "number" ? intent.count : parseSimpleCount(rawText);
         if (count && count > 0) {
           userStepConsumedRef.current = true;
-          ctx.subject_count = count;
-          flowContextRef.current = ctx;
-          await speak("Which sensors are you using and how many? For example: two movella dots.", true);
-          updateFlow("awaiting_sensor_setup", "sensor_setup", ctx);
+          await requestInputConfirmation("subject_count", count, ctx, `I heard ${count} subjects. Is that correct?`);
         } else {
           await speak("Please tell me the number of subjects, for example: two subjects.", true);
         }
@@ -473,13 +631,15 @@ export default function App() {
           return;
         }
         userStepConsumedRef.current = true;
-        if (!ctx.locations.length) {
-          await speak("Where are the sensors being placed? For example: left ankle and right ankle.", true);
-          updateFlow("awaiting_sensor_locations", "locations", ctx);
-          return;
-        }
-        await speak("What algorithm should I use?", true);
-        updateFlow("awaiting_algorithm", "algorithm", ctx);
+        const setupSpeech = ctx.locations.length
+          ? `I heard ${ctx.sensor_count} ${ctx.sensor_name} sensors at ${listToSpeech(ctx.locations)}. Is that correct?`
+          : `I heard ${ctx.sensor_count} ${ctx.sensor_name} sensors. Is that correct?`;
+        await requestInputConfirmation(
+          "sensor_setup",
+          { sensor_name: ctx.sensor_name, sensor_count: ctx.sensor_count, locations: [...ctx.locations] },
+          ctx,
+          setupSpeech
+        );
         return;
       }
 
@@ -487,10 +647,12 @@ export default function App() {
         const locations = parseLocations(rawText);
         if (locations.length) {
           userStepConsumedRef.current = true;
-          ctx.locations = locations;
-          flowContextRef.current = ctx;
-          await speak("What algorithm should I use?", true);
-          updateFlow("awaiting_algorithm", "algorithm", ctx);
+          await requestInputConfirmation(
+            "sensor_locations",
+            locations,
+            ctx,
+            `I heard sensor locations ${listToSpeech(locations)}. Is that correct?`
+          );
         } else {
           await speak("Please specify locations like left ankle and right ankle.", true);
         }
@@ -498,14 +660,20 @@ export default function App() {
       }
 
       if (state === "awaiting_algorithm") {
+        const algorithmName = String(intent.name || "").trim() || ctx.algorithm_name;
+        const algorithmInputs = (intent.inputs && typeof intent.inputs === "object")
+          ? intent.inputs
+          : ctx.algorithm_inputs;
+        if (!algorithmName) {
+          await speak("I did not catch the algorithm. What algorithm should I use?", true);
+          return;
+        }
         userStepConsumedRef.current = true;
-        if (intent.name) ctx.algorithm_name = intent.name;
-        if (intent.inputs && typeof intent.inputs === "object") ctx.algorithm_inputs = intent.inputs;
-        flowContextRef.current = ctx;
-        await speak("Got it. Initializing the system.", true);
-        updateFlow("initializing", "", ctx);
-        await sendGatewayCommand(
-          { type: "init_system", payload: { subjects: buildSubjects(ctx), init_label: ctx.init_label } }
+        await requestInputConfirmation(
+          "algorithm",
+          { name: algorithmName, inputs: algorithmInputs },
+          ctx,
+          `I heard algorithm ${algorithmName}. Is that correct?`
         );
         return;
       }
@@ -606,7 +774,17 @@ export default function App() {
         await speakNoCatch();
       }
     },
-    [resetFlow, sendGatewayCommand, speak, speakNoCatch, startNextIdentify]
+    [
+      isAffirmative,
+      isNegative,
+      listToSpeech,
+      requestInputConfirmation,
+      resetFlow,
+      sendGatewayCommand,
+      speak,
+      speakNoCatch,
+      startNextIdentify
+    ]
   );
 
   const handleGatewayEvent = useCallback(
@@ -725,8 +903,7 @@ export default function App() {
 
   const ensureVoiceEnabled = useCallback(async (attempts = 4) => {
     for (let i = 0; i < attempts; i += 1) {
-      await fetch("/api/v1/voice/deactivate", { method: "POST" }).catch(() => null);
-      await fetch("/api/v1/voice/enable", { method: "POST" }).catch(() => null);
+      await fetch("/api/v1/voice/activate", { method: "POST" }).catch(() => null);
       const statusResp = await fetch("/api/v1/voice/status").catch(() => null);
       if (statusResp?.ok) {
         const next = (await statusResp.json()) as VoiceStatus;
@@ -786,6 +963,7 @@ export default function App() {
         const raw = window.localStorage.getItem(CONTROLLER_LOCK_KEY);
         const lock = raw ? JSON.parse(raw) as { id?: string } : null;
         if (String(lock?.id || "") === controllerIdRef.current) {
+          void fetch("/api/v1/voice/deactivate", { method: "POST", keepalive: true }).catch(() => null);
           window.localStorage.removeItem(CONTROLLER_LOCK_KEY);
         }
       } catch {
@@ -867,6 +1045,7 @@ export default function App() {
           setWakewordHeard(true);
           setRecentWake(true);
           setAwaitingCommand(true);
+          showTranscript(String(event.payload?.text || "nexus"));
           wakeSessionOpenRef.current = true;
           playWakeTone();
           if (wakeTimeoutRef.current) window.clearTimeout(wakeTimeoutRef.current);
@@ -893,20 +1072,18 @@ export default function App() {
           return;
         }
         if (event.type === "voice_transcript" && event.payload?.text) {
-          if (isSpeechBlocked()) {
+          if (isSpeechBlocked() && flowStateRef.current === "idle") {
             return;
           }
           if (wakeAutoAdvanceRef.current) {
             window.clearTimeout(wakeAutoAdvanceRef.current);
             wakeAutoAdvanceRef.current = null;
           }
-          setDisplayTranscript(event.payload?.raw || event.payload.text);
-          if (transcriptClearRef.current) window.clearTimeout(transcriptClearRef.current);
-          transcriptClearRef.current = window.setTimeout(() => setDisplayTranscript(""), 9000);
+          showTranscript(event.payload?.raw || event.payload.text);
           return;
         }
         if (event.type === "voice_command") {
-          if (isSpeechBlocked()) {
+          if (isSpeechBlocked() && flowStateRef.current === "idle") {
             return;
           }
           if (flowStateRef.current === "idle" && !wakeSessionOpenRef.current) {
@@ -919,7 +1096,12 @@ export default function App() {
           setAwaitingCommand(false);
           if (commandWindowRef.current) window.clearTimeout(commandWindowRef.current);
           if (event.payload?.status === "matched" && event.payload?.command) {
-            void handleIntent(event.payload.command as VoiceIntent);
+            const recognizedText = String(event.payload?.text || "").trim()
+              || String(event.payload?.command?.text || event.payload?.command?._raw_text || "").trim();
+            showTranscript(recognizedText);
+            void (async () => {
+              await handleIntent(event.payload.command as VoiceIntent);
+            })();
           }
           return;
         }
@@ -949,9 +1131,10 @@ export default function App() {
       if (wakeAutoAdvanceRef.current) window.clearTimeout(wakeAutoAdvanceRef.current);
       if (identifyConfirmTimerRef.current) window.clearTimeout(identifyConfirmTimerRef.current);
     };
-  }, [applyStatusEvent, handleGatewayEvent, handleIntent, isActiveInstance, isController, isSpeechBlocked, sendGatewayCommand]);
+  }, [applyStatusEvent, handleGatewayEvent, handleIntent, isActiveInstance, isController, isSpeechBlocked, sendGatewayCommand, showTranscript]);
 
   const flowText = flowStatusText(flowState);
+  const visibleTranscript = displayTranscript || heardText;
   const actionText = flowState === "identifying" && identifyActionText
     ? identifyActionText
     : flowActionText(flowState);
@@ -983,12 +1166,13 @@ export default function App() {
           {showFlowText ? (
             <>
               {actionText ? <p className="transcript empty">{actionText}</p> : null}
-              {promptText ? <p className="transcript">{promptText}</p> : null}
-              {displayTranscript ? <p className="transcript">“{displayTranscript}”</p> : null}
+              {promptText ? (
+                <p className="transcript">
+                  {promptText}
+                </p>
+              ) : null}
               {!actionText && !promptText && flowText ? <p className="transcript empty">{flowText}</p> : null}
             </>
-          ) : displayTranscript ? (
-            <p className="transcript">“{displayTranscript}”</p>
           ) : flowState === "streaming" ? (
             <p className="transcript empty">Listening for stop stream...</p>
           ) : apiSpeaking ? (
@@ -1002,6 +1186,9 @@ export default function App() {
           ) : (
             <p className="transcript empty">Voice assistant offline.</p>
           )}
+          <p className={`heard-label${visibleTranscript ? "" : " empty"}`}>
+            You said: {visibleTranscript || "—"}
+          </p>
           {visibleVoiceError ? <p className="error">Voice error: {visibleVoiceError}</p> : null}
           {!isController ? <p className="error">Voice control is active in another tab/window.</p> : null}
         </div>
