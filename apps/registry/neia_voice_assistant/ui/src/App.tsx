@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { buildSubjects, extractComputeLocation, parseLocations, parseSimpleCount } from "./flow/commands";
 import { buildServerReadySpeech } from "./flow/prompts";
 import {
@@ -30,6 +30,7 @@ const CONTROLLER_STALE_MS = 4000;
 const ACTIVE_INSTANCE_KEY = "__neia_voice_active_instance_v1";
 const IDENTIFY_CONFIRM_DELAY_MS = 2000;
 const NO_CATCH_COOLDOWN_MS = 2500;
+const WAKE_AUTO_ADVANCE_DELAY_MS = 3500;
 
 type ConfirmField =
   | "session_owner"
@@ -43,6 +44,12 @@ type PendingInputConfirm = {
   field: ConfirmField;
   value: any;
   ctx: FlowContext;
+};
+
+type HelpSource = {
+  path?: string;
+  heading?: string;
+  score?: number;
 };
 
 function resolveGatewayEventsWsUrl(): string {
@@ -118,6 +125,13 @@ export default function App() {
   const [flowContext, setFlowContext] = useState<FlowContext>(defaultFlowContext());
   const [identifyActionText, setIdentifyActionText] = useState("");
   const [identifyPromptText, setIdentifyPromptText] = useState("");
+  const [helpMode, setHelpMode] = useState(false);
+  const [helpPending, setHelpPending] = useState(false);
+  const [helpQuestion, setHelpQuestion] = useState("");
+  const [helpAnswer, setHelpAnswer] = useState("");
+  const [helpError, setHelpError] = useState("");
+  const [helpSources, setHelpSources] = useState<HelpSource[]>([]);
+  const [helpInput, setHelpInput] = useState("");
 
   const flowStateRef = useRef<FlowState>("idle");
   const flowContextRef = useRef<FlowContext>(defaultFlowContext());
@@ -144,6 +158,7 @@ export default function App() {
   const wakeSessionOpenRef = useRef<boolean>(false);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const idlePromptSpokenRef = useRef<boolean>(false);
+  const helpInputLockRef = useRef<boolean>(false);
 
   const isListening = !!status?.enabled && !!status?.running;
   const apiSpeaking = !!status?.is_speaking;
@@ -336,6 +351,127 @@ export default function App() {
     lastNoCatchAtRef.current = now;
     await speak("I did not catch that. Please repeat.", true);
   }, [speak]);
+
+  const isHelpExitPhrase = useCallback((text: string) => {
+    const normalized = text.toLowerCase().trim();
+    return normalized === "stop help"
+      || normalized === "exit help"
+      || normalized === "cancel help"
+      || normalized === "close help";
+  }, []);
+
+  const extractHelpQuestion = useCallback((text: string) => {
+    const normalized = text.toLowerCase().trim().replace(/\s+/g, " ");
+    if (!normalized) return "";
+    const prefixes = [
+      "nexus help",
+      "help",
+      "can you help me with",
+      "can you help with",
+      "can you help",
+    ];
+    for (const prefix of prefixes) {
+      if (normalized === prefix) return "";
+      if (normalized.startsWith(`${prefix} `)) {
+        return normalized.slice(prefix.length).trim();
+      }
+    }
+    return normalized;
+  }, []);
+
+  const askHelpQuestion = useCallback(async (question: string) => {
+    const trimmed = question.trim();
+    if (!trimmed) return;
+    helpInputLockRef.current = true;
+    setHelpQuestion(trimmed);
+    setHelpPending(true);
+    setHelpError("");
+    setHelpAnswer("");
+    setHelpSources([]);
+    try {
+      const resp = await fetch("/api/v1/help/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: trimmed, top_k: 6 }),
+      }).catch(() => null);
+      if (!resp) {
+        setHelpError("Help service is unreachable.");
+        await speak("I cannot reach help right now.", true);
+        return;
+      }
+      if (!resp.ok) {
+        const details = await resp.text().catch(() => "");
+        setHelpError(details || `Help request failed (${resp.status}).`);
+        await speak("I could not find anything for that question.", true);
+        return;
+      }
+      const payload = await resp.json().catch(() => ({}));
+      const answer = String(payload?.answer || "").trim();
+      const sources = Array.isArray(payload?.sources) ? payload.sources : [];
+      setHelpAnswer(answer || "No answer returned.");
+      setHelpSources(sources);
+      setHelpPending(false);
+      if (answer) {
+        const plain = answer.replace(/\[[0-9]+\]/g, "").trim();
+        if (plain) {
+          const chunks = plain.match(/.{1,260}(?:\s+|$)/g) || [plain];
+          for (const chunk of chunks) {
+            const line = chunk.trim();
+            if (!line) continue;
+            await speak(line, true);
+          }
+        } else {
+          await speak("I could not find anything for that question.", true);
+        }
+      } else {
+        await speak("I could not find anything for that question.", true);
+      }
+    } catch {
+      setHelpError("Help request failed.");
+      await speak("I could not find anything for that question.", true);
+    } finally {
+      setHelpPending(false);
+      helpInputLockRef.current = false;
+    }
+  }, [speak]);
+
+  const enterHelpMode = useCallback(async (question = "") => {
+    setHelpMode(true);
+    setHelpPending(false);
+    setHelpError("");
+    setHelpAnswer("");
+    setHelpSources([]);
+    setHelpQuestion("");
+    if (question.trim()) {
+      await askHelpQuestion(question);
+      return;
+    }
+    await speak("Help mode is active. Ask your question.", true);
+  }, [askHelpQuestion, speak]);
+
+  const exitHelpMode = useCallback(async () => {
+    setHelpMode(false);
+    setHelpPending(false);
+    setHelpQuestion("");
+    setHelpAnswer("");
+    setHelpError("");
+    setHelpSources([]);
+    await speak("Exiting help mode.", true);
+  }, [speak]);
+
+  const submitTypedHelp = useCallback(async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (helpPending) return;
+    const question = helpInput.trim();
+    if (!question) return;
+    setHelpInput("");
+    if (flowStateRef.current !== "idle") return;
+    if (helpMode) {
+      await askHelpQuestion(question);
+      return;
+    }
+    await enterHelpMode(question);
+  }, [askHelpQuestion, enterHelpMode, helpInput, helpMode, helpPending]);
 
   const sendGatewayCommand = useCallback(
     async (command: Record<string, any>, spokenText?: string, spokenWait = true) => {
@@ -765,7 +901,7 @@ export default function App() {
       }
 
       if (name === "status") {
-        await speak(flowStatusText(state) || "Idle. Say nexus to begin.");
+        await speak(flowStatusText(state) || "Idle. Say nexus or nexus help to begin.");
         return;
       }
 
@@ -863,7 +999,7 @@ export default function App() {
       }
 
       if (type === "sensor_disconnected") {
-        await resetFlow("All sensors disconnected. Say nexus to begin.");
+        await resetFlow("All sensors disconnected. Say nexus or nexus help to begin.");
         return;
       }
 
@@ -923,6 +1059,17 @@ export default function App() {
   useEffect(() => {
     apiSpeakingRef.current = !!status?.is_speaking;
   }, [status?.is_speaking]);
+
+  useEffect(() => {
+    if (flowState !== "idle" && helpMode) {
+      setHelpMode(false);
+      setHelpPending(false);
+      setHelpQuestion("");
+      setHelpAnswer("");
+      setHelpError("");
+      setHelpSources([]);
+    }
+  }, [flowState, helpMode]);
 
   useEffect(() => {
     try {
@@ -1013,15 +1160,16 @@ export default function App() {
     if (!shouldAnnounceIdlePromptNow()) return;
     idlePromptSpokenRef.current = true;
     playWakeTone();
-    void speak("Say nexus to begin.", true);
+    void speak("Say nexus or nexus help to begin.", true);
   }, [booting, isActiveInstance, isController, isListening, speak]);
 
   const robotState = useMemo<RobotState>(() => {
     if (!isListening) return "idle";
     if (robotSpeaking || apiSpeaking) return "speaking";
+    if (helpPending) return "active";
     if (wakewordHeard || recentWake || awaitingCommand) return "active";
     return "listening";
-  }, [apiSpeaking, awaitingCommand, isListening, recentWake, robotSpeaking, wakewordHeard]);
+  }, [apiSpeaking, awaitingCommand, helpPending, isListening, recentWake, robotSpeaking, wakewordHeard]);
 
   const eventCountEntries = useMemo(() => {
     const entries = Object.entries(eventCounts);
@@ -1049,7 +1197,7 @@ export default function App() {
           wakeSessionOpenRef.current = true;
           playWakeTone();
           if (wakeTimeoutRef.current) window.clearTimeout(wakeTimeoutRef.current);
-          wakeTimeoutRef.current = window.setTimeout(() => setWakewordHeard(false), 1200);
+          wakeTimeoutRef.current = window.setTimeout(() => setWakewordHeard(false), 700);
           if (transcriptTimeoutRef.current) window.clearTimeout(transcriptTimeoutRef.current);
           transcriptTimeoutRef.current = window.setTimeout(() => setRecentWake(false), 2200);
           if (commandWindowRef.current) window.clearTimeout(commandWindowRef.current);
@@ -1067,11 +1215,15 @@ export default function App() {
               serverReadyHandledRef.current = false;
               updateFlow("awaiting_server_ready");
               void sendGatewayCommand({ type: "is_server_ready", payload: {} }, "Checking server readiness.");
-            }, 1400);
+            }, WAKE_AUTO_ADVANCE_DELAY_MS);
           }
           return;
         }
         if (event.type === "voice_transcript" && event.payload?.text) {
+          if (helpInputLockRef.current) {
+            return;
+          }
+          setWakewordHeard(false);
           if (isSpeechBlocked() && flowStateRef.current === "idle") {
             return;
           }
@@ -1083,6 +1235,10 @@ export default function App() {
           return;
         }
         if (event.type === "voice_command") {
+          if (helpInputLockRef.current) {
+            return;
+          }
+          setWakewordHeard(false);
           if (isSpeechBlocked() && flowStateRef.current === "idle") {
             return;
           }
@@ -1099,9 +1255,36 @@ export default function App() {
             const recognizedText = String(event.payload?.text || "").trim()
               || String(event.payload?.command?.text || event.payload?.command?._raw_text || "").trim();
             showTranscript(recognizedText);
-            void (async () => {
-              await handleIntent(event.payload.command as VoiceIntent);
-            })();
+            const idleState = flowStateRef.current === "idle";
+            if (idleState && isHelpExitPhrase(recognizedText) && helpMode) {
+              void exitHelpMode();
+              return;
+            }
+            if (idleState && helpMode) {
+              const question = extractHelpQuestion(recognizedText);
+              if (!question) {
+                void speak("Please ask a help question.", true);
+                return;
+              }
+              void askHelpQuestion(question);
+              return;
+            }
+            if (idleState) {
+              const question = extractHelpQuestion(recognizedText);
+              const normalized = recognizedText.toLowerCase().trim().replace(/\s+/g, " ");
+              const intentName = String(event.payload?.command?.intent || "").toLowerCase();
+              const helpTrigger = normalized === "help"
+                || normalized === "nexus help"
+                || normalized.startsWith("help ")
+                || normalized.startsWith("nexus help ")
+                || normalized.startsWith("can you help")
+                || intentName === "help";
+              if (helpTrigger) {
+                void enterHelpMode(question);
+                return;
+              }
+            }
+            void handleIntent(event.payload.command as VoiceIntent);
           }
           return;
         }
@@ -1131,7 +1314,23 @@ export default function App() {
       if (wakeAutoAdvanceRef.current) window.clearTimeout(wakeAutoAdvanceRef.current);
       if (identifyConfirmTimerRef.current) window.clearTimeout(identifyConfirmTimerRef.current);
     };
-  }, [applyStatusEvent, handleGatewayEvent, handleIntent, isActiveInstance, isController, isSpeechBlocked, sendGatewayCommand, showTranscript]);
+  }, [
+    applyStatusEvent,
+    askHelpQuestion,
+    enterHelpMode,
+    exitHelpMode,
+    extractHelpQuestion,
+    handleGatewayEvent,
+    handleIntent,
+    helpMode,
+    isActiveInstance,
+    isController,
+    isHelpExitPhrase,
+    isSpeechBlocked,
+    sendGatewayCommand,
+    showTranscript,
+    speak,
+  ]);
 
   const flowText = flowStatusText(flowState);
   const visibleTranscript = displayTranscript || heardText;
@@ -1142,6 +1341,7 @@ export default function App() {
     ? identifyPromptText
     : flowPromptText(flowState);
   const showFlowText = flowState !== "idle" && (!!actionText || !!promptText || !!flowText);
+  const showHelpPanel = helpMode && flowState === "idle";
 
   return (
     <div className="voice-app">
@@ -1160,10 +1360,16 @@ export default function App() {
         </div>
       ) : null}
       <div className="voice-card">
-        <div className="voice-center">
+        <div className={`voice-center${showHelpPanel ? " help-mode" : ""}`}>
           <RobotFace state={robotState} />
           {wakewordHeard ? <span className="wakeword">Nexus heard</span> : null}
-          {showFlowText ? (
+          {showHelpPanel ? (
+            <p className="transcript">
+              {helpPending
+                ? "Thinking..."
+                : "Help mode active. Ask a question, or say stop help."}
+            </p>
+          ) : showFlowText ? (
             <>
               {actionText ? <p className="transcript empty">{actionText}</p> : null}
               {promptText ? (
@@ -1180,7 +1386,7 @@ export default function App() {
           ) : flowText ? (
             <p className="transcript empty">{flowText}</p>
           ) : isListening ? (
-            <p className="transcript empty">Say "nexus" to begin.</p>
+            <p className="transcript empty">Say "nexus" or "nexus help" to begin.</p>
           ) : booting ? (
             <p className="transcript empty">Initializing voice...</p>
           ) : (
@@ -1189,6 +1395,39 @@ export default function App() {
           <p className={`heard-label${visibleTranscript ? "" : " empty"}`}>
             You said: {visibleTranscript || "—"}
           </p>
+          {showHelpPanel ? (
+            <form className="help-input-row" onSubmit={(event) => { void submitTypedHelp(event); }}>
+              <input
+                className="help-input"
+                type="text"
+                value={helpInput}
+                onChange={(event) => setHelpInput(event.target.value)}
+                placeholder="Type your help question..."
+                disabled={helpPending}
+              />
+              <button className="help-button" type="submit" disabled={helpPending || !helpInput.trim()}>
+                {helpPending ? "Asking..." : "Ask"}
+              </button>
+            </form>
+          ) : null}
+          {showHelpPanel ? (
+            <div className="help-panel" aria-live="polite">
+              {helpQuestion ? <p className="help-line"><strong>Question:</strong> {helpQuestion}</p> : null}
+              {helpPending ? <p className="help-line">Thinking...</p> : null}
+              {helpAnswer ? <p className="help-line"><strong>Answer:</strong> {helpAnswer}</p> : null}
+              {helpError ? <p className="help-line error">Help error: {helpError}</p> : null}
+              {helpSources.length ? (
+                <div className="help-sources">
+                  <p className="help-line"><strong>Sources:</strong></p>
+                  {helpSources.slice(0, 4).map((source, idx) => (
+                    <p key={`${source.path || "source"}-${idx}`} className="help-source-line">
+                      {source.path || "unknown"}{source.heading ? ` :: ${source.heading}` : ""}
+                    </p>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
           {visibleVoiceError ? <p className="error">Voice error: {visibleVoiceError}</p> : null}
           {!isController ? <p className="error">Voice control is active in another tab/window.</p> : null}
         </div>

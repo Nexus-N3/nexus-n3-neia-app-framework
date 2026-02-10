@@ -117,6 +117,35 @@ body {
   justify-content: center;
 }
 
+.voice-center.help-mode {
+  margin-top: 8px;
+  gap: 8px;
+}
+
+.voice-center.help-mode .assistant-robot {
+  width: min(72vw, 700px);
+  height: min(24vh, 220px);
+}
+
+.voice-center.help-mode .assistant-head {
+  gap: clamp(36px, 6.5vmin, 92px);
+}
+
+.voice-center.help-mode .assistant-eyes {
+  gap: clamp(70px, 14vmin, 180px);
+}
+
+.voice-center.help-mode .assistant-eye {
+  width: clamp(56px, 9vmin, 120px);
+  height: clamp(28px, 4.6vmin, 56px);
+}
+
+.voice-center.help-mode .assistant-mouth {
+  margin-top: clamp(10px, 2.2vmin, 26px);
+  width: clamp(46px, 7.6vmin, 90px);
+  height: clamp(20px, 3.6vmin, 40px);
+}
+
 .assistant-head {
   width: 100%;
   height: 100%;
@@ -226,6 +255,74 @@ body {
 
 .heard-label.empty {
   opacity: 0.7;
+}
+
+.help-panel {
+  width: min(92vw, 1020px);
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(127, 109, 255, 0.4);
+  background: rgba(8, 8, 14, 0.66);
+}
+
+.help-line {
+  margin: 4px 0;
+  color: #d6d0ff;
+  font-size: 13px;
+  line-height: 1.35;
+  text-align: left;
+}
+
+.help-sources {
+  margin-top: 6px;
+}
+
+.help-source-line {
+  margin: 2px 0;
+  color: #a8c4ff;
+  font-size: 12px;
+  line-height: 1.3;
+  text-align: left;
+  word-break: break-word;
+}
+
+.help-input-row {
+  width: min(92vw, 1020px);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.help-input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid rgba(127, 109, 255, 0.42);
+  background: rgba(6, 6, 12, 0.72);
+  color: #e8e4ff;
+  border-radius: 10px;
+  min-height: 46px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.help-input::placeholder {
+  color: #9b95ca;
+}
+
+.help-button {
+  border: 1px solid rgba(88, 255, 231, 0.45);
+  background: rgba(8, 20, 18, 0.8);
+  color: #d8fff8;
+  border-radius: 10px;
+  min-height: 46px;
+  padding: 10px 14px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.help-button:disabled {
+  opacity: 0.55;
+  cursor: default;
 }
 
 .command-label {
