@@ -1,0 +1,16 @@
+{
+  "id": "nexus",
+  "name": "Nexus",
+  "version": "0.1.0",
+  "description": "Start new session.",
+  "app_type": "demo",
+  "developer": "RS Nexus",
+  "icon": "icon.png",
+  "supports_online": true,
+  "supports_offline": true,
+  "entry_ui": "ui/assets/index.js?v=2",
+  "style": "ui/assets/index.css?v=2",
+  "mount": "NexusMount",
+  "dev_entry_ui": "http://localhost:3001/src/main.tsx",
+  "dev_mount": "NexusMount"
+}
