@@ -1,6 +1,7 @@
 .nexus-app {
   display: flex;
   flex-direction: column;
+  width: 100%; /* Ensure full width */
   height: 100%;
   min-height: 600px;
   padding: 20px 60px; /* 60px horizontal, 20px vertical */
@@ -34,9 +35,10 @@
   z-index: 1;
 }
 
-.header-left .logo {
-  font-size: 24px;
-  font-weight: bold;
+.header-left .logo-img {
+  height: 32px; /* Adjust height as needed */
+  width: auto;
+  display: block;
 }
 
 .header-center .facility-name {
@@ -202,4 +204,46 @@
 /* Specific overrides if needed */
 .start-session-btn {
   padding: 12px 124px;
+}
+
+/* Subject Counter Styles */
+.subject-counter-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.counter-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid white;
+  background: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
+}
+
+.counter-btn:hover {
+  background-color: white;
+  color: #071d28;
+}
+
+.counter-value {
+  font-size: 48px;
+  font-weight: bold;
+}
+
+.input-hint {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 4px;
 }
