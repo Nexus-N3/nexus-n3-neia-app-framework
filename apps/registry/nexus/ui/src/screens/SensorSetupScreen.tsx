@@ -1,12 +1,50 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
 
+interface Sensor {
+  type: string;
+  loc: string;
+  comp: string;
+}
+
+interface Setup {
+  id: string;
+  name: string;
+  isCustom: boolean;
+  sensors: Sensor[];
+}
+
 export const SensorSetupScreen: React.FC = () => {
   const navigate = useNavigate();
+  const [setups, setSetups] = useState<Setup[]>([
+    {
+      id: 'default',
+      name: 'DEFAULT',
+      isCustom: false,
+      sensors: [
+        { type: 'MOVELLA DOT', loc: 'Left ankle', comp: 'Loading' },
+        { type: 'MOVELLA DOT', loc: 'Right ankle', comp: 'Loading' },
+      ],
+    },
+  ]);
+  const [selectedSetupId, setSelectedSetupId] = useState<string>('default');
+
+  const selectedSetup = setups.find((s) => s.id === selectedSetupId);
 
   const handleBack = () => navigate('/subjects');
+
+  const handleAddCustomSetup = () => {
+    const newSetup: Setup = {
+      id: `custom-${Date.now()}`,
+      name: 'CUSTOM SETUP',
+      isCustom: true,
+      sensors: [],
+    };
+    setSetups([...setups, newSetup]);
+    setSelectedSetupId(newSetup.id);
+  };
 
   return (
     <main className="nexus-content sensor-setup-content" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -40,24 +78,50 @@ export const SensorSetupScreen: React.FC = () => {
             borderRadius: '4px',
           }}
         >
-          <h3 style={{ fontSize: '12px', color: '#888', marginBottom: '15px', letterSpacing: '1px', padding: '20px 20px 0 20px' }}>DEFAULT SETUPS</h3>
+          <h3
+            style={{
+              fontSize: '12px',
+              color: '#888',
+              marginBottom: '10px',
+              letterSpacing: '1px',
+              padding: '15px',
+              textAlign: 'center',
+              marginLeft: '10px',
+              marginRight: '10px',
+            }}
+          >
+            DEFAULT SETUPS
+          </h3>
           <div className="setup-list" style={{ flex: 1, overflowY: 'auto', marginBottom: '20px', marginLeft: '10px', marginRight: '10px' }}>
-            <div
-              className="setup-item selected"
-              style={{
-                padding: '15px',
-                background: 'rgba(255,255,255,0.08)',
-                marginBottom: '10px',
-                borderRadius: '4px',
-                border: '1px solid #5960F6',
-                color: '#5960F6',
-                textAlign: 'left',
-              }}
-            >
-              LOADING
-            </div>
+            {setups.map((setup) => (
+              <div key={setup.id} className={`setup-item ${selectedSetupId === setup.id ? 'selected' : ''}`} onClick={() => setSelectedSetupId(setup.id)}>
+                <span>{setup.name}</span>
+                {setup.isCustom && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Rename logic here
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      borderBottom: '1px solid currentColor',
+                      color: 'inherit',
+                      fontSize: '0.8em',
+                      padding: 0,
+                      cursor: 'pointer',
+                      opacity: 0.8,
+                    }}
+                  >
+                    Rename
+                  </button>
+                )}
+              </div>
+            ))}
           </div>
-          <button className="custom-setup-btn">+ New custom setup</button>
+          <button className="custom-setup-btn" onClick={handleAddCustomSetup}>
+            + New custom setup
+          </button>
         </div>
 
         {/* Top Right: Sensor List */}
@@ -71,30 +135,48 @@ export const SensorSetupScreen: React.FC = () => {
             overflowY: 'auto',
           }}
         >
-          <div className="sensor-list">
-            {[
-              { type: 'MOVELLA DOT', loc: 'Left ankle', comp: 'Loading' },
-              { type: 'MOVELLA DOT', loc: 'Right ankle', comp: 'Loading' },
-            ].map((sensor, i) => (
+          <div className="sensor-list" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            {selectedSetup?.sensors && selectedSetup.sensors.length > 0 ? (
+              selectedSetup.sensors.map((sensor, i) => (
+                <div
+                  key={i}
+                  className="sensor-card"
+                  style={{
+                    display: 'flex',
+                    gap: '20px',
+                    padding: '20px',
+                    background: 'rgba(255,255,255,0.05)',
+                    marginBottom: '15px',
+                    alignItems: 'center',
+                    borderRadius: '4px',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <div style={{ fontWeight: 'bold', fontSize: '1.1em' }}>{sensor.type}</div>
+                  <div style={{ fontSize: '0.9em', opacity: 0.8, color: '#aaa' }}>{sensor.loc}</div>
+                  <div style={{ fontSize: '0.9em', color: '#888', fontStyle: 'italic' }}>Computes: {sensor.comp}</div>
+                </div>
+              ))
+            ) : (
               <div
-                key={i}
-                className="sensor-card"
                 style={{
                   display: 'flex',
-                  gap: '20px',
-                  padding: '20px',
-                  background: 'rgba(255,255,255,0.05)',
-                  marginBottom: '15px',
+                  flexDirection: 'column',
                   alignItems: 'center',
-                  borderRadius: '4px',
-                  justifyContent: 'space-between',
+                  flex: 1,
+                  color: '#aaa',
+                  gap: '20px',
                 }}
               >
-                <div style={{ fontWeight: 'bold', fontSize: '1.1em' }}>{sensor.type}</div>
-                <div style={{ fontSize: '0.9em', opacity: 0.8, color: '#aaa' }}>{sensor.loc}</div>
-                <div style={{ fontSize: '0.9em', color: '#888', fontStyle: 'italic' }}>Computes: {sensor.comp}</div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontWeight: 'bold', fontSize: '1.2em', marginBottom: '8px' }}>NO SENSORS ADDED</div>
+                  <div style={{ fontSize: '0.9em' }}>Add new sensors to create your custom setup</div>
+                </div>
+                <button className="add-sensor-btn" onClick={() => navigate('/add-sensor')}>
+                  + add new sensor
+                </button>
               </div>
-            ))}
+            )}
           </div>
         </div>
 
