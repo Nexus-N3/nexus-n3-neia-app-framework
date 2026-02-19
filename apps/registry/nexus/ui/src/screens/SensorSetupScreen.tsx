@@ -58,7 +58,7 @@ export const SensorSetupScreen: React.FC = () => {
         className="sensor-setup-grid"
         style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 2fr', // 1/3 and 2/3 roughly
+          gridTemplateColumns: 'calc((100% - 60px) / 3) 1fr', // Matches AddSensor layout: (Total - 2*30px gap) / 3
           gridTemplateRows: '1fr auto', // Main content takes available space, buttons take auto
           gap: '30px',
           marginTop: '30px',
