@@ -15,8 +15,7 @@ export const SubjectsRequiredScreen: React.FC = () => {
   };
 
   const handleContinue = () => {
-    console.log('Continue to sensor requirements');
-    // navigate('/sensors'); // Future implementation
+    navigate('/sensor-setup');
   };
 
   return (

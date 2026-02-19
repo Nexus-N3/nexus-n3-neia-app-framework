@@ -5,6 +5,7 @@ import logo from './assets/logo.svg';
 import { HomeScreen } from './screens/HomeScreen';
 import { NewSessionScreen } from './screens/NewSessionScreen';
 import { SubjectsRequiredScreen } from './screens/SubjectsRequiredScreen';
+import { SensorSetupScreen } from './screens/SensorSetupScreen';
 import { BurgerMenu } from './components/BurgerMenu';
 
 const AppContent = () => {
@@ -32,6 +33,7 @@ const AppContent = () => {
         <Route path="/" element={<HomeScreen />} />
         <Route path="/new-session" element={<NewSessionScreen />} />
         <Route path="/subjects" element={<SubjectsRequiredScreen />} />
+        <Route path="/sensor-setup" element={<SensorSetupScreen />} />
       </Routes>
     </div>
   );

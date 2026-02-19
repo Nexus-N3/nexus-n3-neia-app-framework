@@ -192,9 +192,6 @@
   cursor: pointer;
   font-weight: 500;
   transition: background-color 0.2s;
-  align-self: center;
-  margin-top: auto;
-  margin-bottom: 40px;
 }
 
 .nexus-btn:hover {
@@ -246,4 +243,22 @@
   font-size: 12px;
   color: rgba(255, 255, 255, 0.5);
   margin-top: 4px;
+}
+
+.custom-setup-btn {
+  margin-top: auto;
+  background-color: #8a92bf;
+  color: white;
+  border: none;
+  border-radius: 0 0 4px 4px;
+  width: 100%;
+  padding: 15px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.custom-setup-btn:hover {
+  background-color: #757db0;
 }
