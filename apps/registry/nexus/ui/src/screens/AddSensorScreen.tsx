@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
+import { setupsAtom, selectedSetupIdAtom, Sensor } from '../store/atoms';
 
 interface SensorType {
   id: string;
@@ -26,6 +28,8 @@ const PLACEMENT_OPTIONS = [
 
 export const AddSensorScreen: React.FC = () => {
   const navigate = useNavigate();
+  const [setups, setSetups] = useAtom(setupsAtom);
+  const [selectedSetupId] = useAtom(selectedSetupIdAtom);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedPlacements, setSelectedPlacements] = useState<string[]>([]);
 
@@ -33,6 +37,37 @@ export const AddSensorScreen: React.FC = () => {
 
   const togglePlacement = (id: string) => {
     setSelectedPlacements((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]));
+  };
+
+  const handleAddSensor = () => {
+    if (!selectedType || selectedPlacements.length === 0) return;
+
+    const sensorTypeName = SENSOR_TYPES.find((t) => t.id === selectedType)?.name || selectedType;
+    const locationString = selectedPlacements
+      .map((p) => PLACEMENT_OPTIONS.find((opt) => opt.id === p)?.label)
+      .filter(Boolean)
+      .join(', ');
+
+    const newSensor: Sensor = {
+      id: `sensor-${Date.now()}`,
+      type: sensorTypeName.toUpperCase(), // Match style in sensor list
+      loc: locationString.charAt(0) + locationString.slice(1).toLowerCase(), // Sentence case roughly
+      comp: 'Loading',
+    };
+
+    setSetups((prevSetups) =>
+      prevSetups.map((setup) => {
+        if (setup.id === selectedSetupId) {
+          return {
+            ...setup,
+            sensors: [...setup.sensors, newSensor],
+          };
+        }
+        return setup;
+      }),
+    );
+
+    navigate(-1);
   };
 
   return (
@@ -383,8 +418,13 @@ export const AddSensorScreen: React.FC = () => {
         >
           <button
             className="nexus-btn continue-btn"
-            style={{ width: '100%' }}
-            onClick={() => navigate(-1)} // Just go back for now
+            style={{
+              width: '100%',
+              opacity: selectedType && selectedPlacements.length > 0 ? 1 : 0.5,
+              cursor: selectedType && selectedPlacements.length > 0 ? 'pointer' : 'not-allowed',
+            }}
+            disabled={!selectedType || selectedPlacements.length === 0}
+            onClick={handleAddSensor}
           >
             Add sensor
           </button>

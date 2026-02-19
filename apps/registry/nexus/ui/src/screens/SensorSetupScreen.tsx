@@ -1,35 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
-
-interface Sensor {
-  type: string;
-  loc: string;
-  comp: string;
-}
-
-interface Setup {
-  id: string;
-  name: string;
-  isCustom: boolean;
-  sensors: Sensor[];
-}
+import { Sensor, Setup, setupsAtom, selectedSetupIdAtom } from '../store/atoms';
 
 export const SensorSetupScreen: React.FC = () => {
   const navigate = useNavigate();
-  const [setups, setSetups] = useState<Setup[]>([
-    {
-      id: 'default',
-      name: 'DEFAULT',
-      isCustom: false,
-      sensors: [
-        { type: 'MOVELLA DOT', loc: 'Left ankle', comp: 'Loading' },
-        { type: 'MOVELLA DOT', loc: 'Right ankle', comp: 'Loading' },
-      ],
-    },
-  ]);
-  const [selectedSetupId, setSelectedSetupId] = useState<string>('default');
+  const [setups, setSetups] = useAtom(setupsAtom);
+  const [selectedSetupId, setSelectedSetupId] = useAtom(selectedSetupIdAtom);
 
   const selectedSetup = setups.find((s) => s.id === selectedSetupId);
 
