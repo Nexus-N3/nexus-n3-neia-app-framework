@@ -46,6 +46,24 @@ export const SensorSetupScreen: React.FC = () => {
     setSelectedSetupId(newSetup.id);
   };
 
+  const handleModifyDefault = () => {
+    // Find the default setup (assuming it has id 'default' or is the first one)
+    const defaultSetup = setups.find((s) => s.id === 'default') || setups[0];
+    if (!defaultSetup) return;
+
+    const newSetup: Setup = {
+      ...defaultSetup,
+      id: `custom-${Date.now()}`,
+      name: `${defaultSetup.name} (MODIFIED)`,
+      isCustom: true,
+      // Deep copy sensors to avoid reference issues
+      sensors: defaultSetup.sensors.map((s) => ({ ...s, id: `sensor-${Date.now()}-${s.id}` })),
+    };
+
+    setSetups([...setups, newSetup]);
+    setSelectedSetupId(newSetup.id);
+  };
+
   return (
     <main className="nexus-content sensor-setup-content" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div className="sub-header-row">
@@ -217,7 +235,7 @@ export const SensorSetupScreen: React.FC = () => {
             marginTop: 'auto', // Align to bottom if row has height, though grid handles placement
           }}
         >
-          <button className="nexus-btn secondary-btn" style={{ flex: 1 }}>
+          <button className="nexus-btn secondary-btn" onClick={handleModifyDefault} style={{ flex: 1 }}>
             Modify default
           </button>
           <button className="nexus-btn continue-btn" style={{ flex: 1 }}>
