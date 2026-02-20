@@ -14,6 +14,14 @@ export const SensorSetupScreen: React.FC = () => {
 
   const handleBack = () => navigate('/subjects');
 
+  const handleRenameSetup = (setupId: string, currentName: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    const newName = window.prompt('Enter new setup name:', currentName);
+    if (newName && newName.trim() !== '') {
+      setSetups((prev) => prev.map((s) => (s.id === setupId ? { ...s, name: newName.trim().toUpperCase() } : s)));
+    }
+  };
+
   const handleAddCustomSetup = () => {
     const newSetup: Setup = {
       id: `custom-${Date.now()}`,
@@ -77,10 +85,7 @@ export const SensorSetupScreen: React.FC = () => {
                 <span>{setup.name}</span>
                 {setup.isCustom && (
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // Rename logic here
-                    }}
+                    onClick={(e) => handleRenameSetup(setup.id, setup.name, e)}
                     style={{
                       background: 'none',
                       border: 'none',
