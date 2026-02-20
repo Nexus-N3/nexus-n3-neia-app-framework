@@ -22,6 +22,19 @@ export const SensorSetupScreen: React.FC = () => {
     }
   };
 
+  const handleDeleteSetup = (setupId: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (window.confirm('Are you sure you want to delete this custom setup?')) {
+      const newSetups = setups.filter((s) => s.id !== setupId);
+      setSetups(newSetups);
+
+      if (selectedSetupId === setupId) {
+        // If deleted setup was selected, switch to default or first available
+        setSelectedSetupId('default');
+      }
+    }
+  };
+
   const handleAddCustomSetup = () => {
     const newSetup: Setup = {
       id: `custom-${Date.now()}`,
@@ -84,21 +97,38 @@ export const SensorSetupScreen: React.FC = () => {
               <div key={setup.id} className={`setup-item ${selectedSetupId === setup.id ? 'selected' : ''}`} onClick={() => setSelectedSetupId(setup.id)}>
                 <span>{setup.name}</span>
                 {setup.isCustom && (
-                  <button
-                    onClick={(e) => handleRenameSetup(setup.id, setup.name, e)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      borderBottom: '1px solid currentColor',
-                      color: 'inherit',
-                      fontSize: '0.8em',
-                      padding: 0,
-                      cursor: 'pointer',
-                      opacity: 0.8,
-                    }}
-                  >
-                    Rename
-                  </button>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button
+                      onClick={(e) => handleRenameSetup(setup.id, setup.name, e)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        borderBottom: '1px solid currentColor',
+                        color: 'inherit',
+                        fontSize: '0.8em',
+                        padding: 0,
+                        cursor: 'pointer',
+                        opacity: 0.8,
+                      }}
+                    >
+                      Rename
+                    </button>
+                    <button
+                      onClick={(e) => handleDeleteSetup(setup.id, e)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        borderBottom: '1px solid currentColor',
+                        color: '#ff6b6b',
+                        fontSize: '0.8em',
+                        padding: 0,
+                        cursor: 'pointer',
+                        opacity: 0.8,
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 )}
               </div>
             ))}

@@ -290,6 +290,7 @@
 
 .add-sensor-btn {
   width: 100%;
+  box-sizing: border-box; /* Ensure padding is included in width */
   padding: 15px;
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.2);
