@@ -300,6 +300,9 @@
   font-weight: 600;
   transition: all 0.2s ease;
   text-transform: uppercase;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .add-sensor-btn:hover {

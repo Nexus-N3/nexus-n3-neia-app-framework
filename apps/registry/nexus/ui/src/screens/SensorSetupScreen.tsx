@@ -116,26 +116,31 @@ export const SensorSetupScreen: React.FC = () => {
         >
           <div className="sensor-list" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
             {selectedSetup?.sensors && selectedSetup.sensors.length > 0 ? (
-              selectedSetup.sensors.map((sensor, i) => (
-                <div
-                  key={i}
-                  className="sensor-card"
-                  style={{
-                    display: 'flex',
-                    gap: '20px',
-                    padding: '20px',
-                    background: 'rgba(255,255,255,0.05)',
-                    marginBottom: '15px',
-                    alignItems: 'center',
-                    borderRadius: '4px',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <div style={{ fontWeight: 'bold', fontSize: '1.1em' }}>{sensor.type}</div>
-                  <div style={{ fontSize: '0.9em', opacity: 0.8, color: '#aaa' }}>{sensor.loc}</div>
-                  <div style={{ fontSize: '0.9em', color: '#888', fontStyle: 'italic' }}>Computes: {sensor.comp}</div>
+              <>
+                {selectedSetup.sensors.map((sensor, i) => (
+                  <div
+                    key={i}
+                    className="sensor-card"
+                    style={{
+                      display: 'flex',
+                      gap: '20px',
+                      padding: '20px',
+                      background: 'rgba(255,255,255,0.05)',
+                      marginBottom: '15px',
+                      alignItems: 'center',
+                      borderRadius: '4px',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <div style={{ fontWeight: 'bold', fontSize: '1.1em' }}>{sensor.type}</div>
+                    <div style={{ fontSize: '0.9em', opacity: 0.8, color: '#aaa' }}>{sensor.loc}</div>
+                    <div style={{ fontSize: '0.9em', color: '#888', fontStyle: 'italic' }}>Computes: {sensor.comp}</div>
+                  </div>
+                ))}
+                <div className="add-sensor-btn" onClick={() => navigate('/add-sensor')}>
+                  + Add new sensor
                 </div>
-              ))
+              </>
             ) : (
               <div
                 style={{

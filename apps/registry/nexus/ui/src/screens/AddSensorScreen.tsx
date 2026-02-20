@@ -43,24 +43,26 @@ export const AddSensorScreen: React.FC = () => {
     if (!selectedType || selectedPlacements.length === 0) return;
 
     const sensorTypeName = SENSOR_TYPES.find((t) => t.id === selectedType)?.name || selectedType;
-    const locationString = selectedPlacements
-      .map((p) => PLACEMENT_OPTIONS.find((opt) => opt.id === p)?.label)
-      .filter(Boolean)
-      .join(', ');
 
-    const newSensor: Sensor = {
-      id: `sensor-${Date.now()}`,
-      type: sensorTypeName.toUpperCase(), // Match style in sensor list
-      loc: locationString.charAt(0) + locationString.slice(1).toLowerCase(), // Sentence case roughly
-      comp: 'Loading',
-    };
+    const newSensors: Sensor[] = selectedPlacements.map((placementId, index) => {
+      const placementLabel = PLACEMENT_OPTIONS.find((opt) => opt.id === placementId)?.label || placementId;
+      // specific casing if needed, or just capitalize first letter
+      const loc = placementLabel.charAt(0) + placementLabel.slice(1).toLowerCase();
+
+      return {
+        id: `sensor-${Date.now()}-${index}`,
+        type: sensorTypeName.toUpperCase(),
+        loc: loc,
+        comp: 'Loading',
+      };
+    });
 
     setSetups((prevSetups) =>
       prevSetups.map((setup) => {
         if (setup.id === selectedSetupId) {
           return {
             ...setup,
-            sensors: [...setup.sensors, newSensor],
+            sensors: [...setup.sensors, ...newSensors],
           };
         }
         return setup;
