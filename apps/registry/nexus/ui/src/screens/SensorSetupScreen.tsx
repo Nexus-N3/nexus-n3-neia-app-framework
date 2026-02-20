@@ -137,9 +137,11 @@ export const SensorSetupScreen: React.FC = () => {
                     <div style={{ fontSize: '0.9em', color: '#888', fontStyle: 'italic' }}>Computes: {sensor.comp}</div>
                   </div>
                 ))}
-                <div className="add-sensor-btn" onClick={() => navigate('/add-sensor')}>
-                  + Add new sensor
-                </div>
+                {selectedSetup.isCustom && (
+                  <div className="add-sensor-btn" onClick={() => navigate('/add-sensor')}>
+                    + Add new sensor
+                  </div>
+                )}
               </>
             ) : (
               <div
@@ -156,9 +158,11 @@ export const SensorSetupScreen: React.FC = () => {
                   <div style={{ fontWeight: 'bold', fontSize: '1.2em', marginBottom: '8px' }}>NO SENSORS ADDED</div>
                   <div style={{ fontSize: '0.9em' }}>Add new sensors to create your custom setup</div>
                 </div>
-                <button className="add-sensor-btn" onClick={() => navigate('/add-sensor')}>
-                  + add new sensor
-                </button>
+                {selectedSetup.isCustom && (
+                  <button className="add-sensor-btn" onClick={() => navigate('/add-sensor')}>
+                    + add new sensor
+                  </button>
+                )}
               </div>
             )}
           </div>
