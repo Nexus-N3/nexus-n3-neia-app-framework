@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { useAtom } from 'jotai';
 import './App.css';
 import logo from './assets/logo.svg';
 import { HomeScreen } from './screens/HomeScreen';
@@ -7,12 +8,17 @@ import { NewSessionScreen } from './screens/NewSessionScreen';
 import { SubjectsRequiredScreen } from './screens/SubjectsRequiredScreen';
 import { SensorSetupScreen } from './screens/SensorSetupScreen';
 import { AddSensorScreen } from './screens/AddSensorScreen';
+import { SessionScreen } from './screens/SessionScreen';
 import { BurgerMenu } from './components/BurgerMenu';
+import { sessionNameAtom } from './store/atoms';
 
 const AppContent = () => {
   const location = useLocation();
+  const [sessionName] = useAtom(sessionNameAtom);
   const isHome = location.pathname === '/';
-  const headerTitle = isHome ? 'LUNAR FACILITY EDGE' : 'CREATE NEW SESSION';
+  const isSession = location.pathname === '/session';
+
+  const headerTitle = isHome ? 'LUNAR FACILITY EDGE' : isSession ? sessionName : 'CREATE NEW SESSION';
 
   return (
     <div className="nexus-app">
@@ -36,6 +42,7 @@ const AppContent = () => {
         <Route path="/subjects" element={<SubjectsRequiredScreen />} />
         <Route path="/sensor-setup" element={<SensorSetupScreen />} />
         <Route path="/add-sensor" element={<AddSensorScreen />} />
+        <Route path="/session" element={<SessionScreen />} />
       </Routes>
     </div>
   );

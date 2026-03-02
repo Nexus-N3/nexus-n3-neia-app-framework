@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
+import { subjectCountAtom } from '../store/atoms';
 
 export const SubjectsRequiredScreen: React.FC = () => {
   const navigate = useNavigate();
-  const [subjectCount, setSubjectCount] = useState(4);
+  const [subjectCount, setSubjectCount] = useAtom(subjectCountAtom);
 
   const increment = () => setSubjectCount((prev) => prev + 1);
   const decrement = () => setSubjectCount((prev) => (prev > 1 ? prev - 1 : 1));

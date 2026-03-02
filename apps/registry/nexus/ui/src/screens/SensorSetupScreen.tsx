@@ -238,7 +238,7 @@ export const SensorSetupScreen: React.FC = () => {
           <button className="nexus-btn secondary-btn" onClick={handleModifyDefault} style={{ flex: 1 }}>
             Modify default
           </button>
-          <button className="nexus-btn continue-btn" style={{ flex: 1 }}>
+          <button className="nexus-btn continue-btn" onClick={() => navigate('/session')} style={{ flex: 1 }}>
             Create session
           </button>
         </div>
