@@ -104,7 +104,7 @@ export const ActivityScreen: React.FC = () => {
         {/* Segmented Control */}
         <SegmentedControl
           value={viewMode}
-          onChange={setViewMode}
+          onChange={(value) => setViewMode(value as 'realtime' | 'periodic')}
           options={[
             { label: 'Real time', value: 'realtime' },
             { label: 'Periodic', value: 'periodic' },
