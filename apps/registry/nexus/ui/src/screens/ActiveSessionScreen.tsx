@@ -140,10 +140,28 @@ export const ActiveSessionScreen: React.FC = () => {
         }}
       >
         <div></div> {/* Empty 1/3 */}
-        <button className="nexus-btn secondary-btn" onClick={() => navigate('/assign-sensors')}>
+        <button
+          className="nexus-btn secondary-btn"
+          onClick={() => navigate('/assign-sensors')}
+          style={{
+            background: 'transparent',
+            border: '1px solid #5960F6',
+            color: '#5960F6',
+            transition: 'background-color 0.2s',
+          }}
+          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = 'rgba(89, 96, 246, 0.1)')}
+          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+        >
           Manage sensors
         </button>
-        <button className="nexus-btn continue-btn">Start new activity</button>
+        <button
+          className="nexus-btn continue-btn"
+          style={{ backgroundColor: '#3B7D23', transition: 'background-color 0.2s' }}
+          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#2E611B')}
+          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#3B7D23')}
+        >
+          Start new activity
+        </button>
       </div>
     </main>
   );
