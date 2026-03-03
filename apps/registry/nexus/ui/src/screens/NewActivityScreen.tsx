@@ -18,7 +18,7 @@ export const NewActivityScreen: React.FC = () => {
   const handleStartActivity = () => {
     // Logic to start activity would go here
     console.log('Starting activity:', activityName || 'Activity_1');
-    navigate('/active-session');
+    navigate('/activity');
   };
 
   return (

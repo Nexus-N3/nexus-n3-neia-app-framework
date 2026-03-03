@@ -12,6 +12,7 @@ import { SessionScreen } from './screens/SessionScreen';
 import { AssignSensorsScreen } from './screens/AssignSensorsScreen';
 import { ActiveSessionScreen } from './screens/ActiveSessionScreen';
 import { NewActivityScreen } from './screens/NewActivityScreen';
+import { ActivityScreen } from './screens/ActivityScreen';
 import { BurgerMenu } from './components/BurgerMenu';
 import { sessionNameAtom } from './store/atoms';
 
@@ -23,7 +24,8 @@ const AppContent = () => {
     location.pathname === '/session' ||
     location.pathname === '/assign-sensors' ||
     location.pathname === '/active-session' ||
-    location.pathname === '/new-activity';
+    location.pathname === '/new-activity' ||
+    location.pathname === '/activity';
 
   const headerTitle = isHome ? 'LUNAR FACILITY EDGE' : isSessionRelated ? sessionName : 'CREATE NEW SESSION';
 
@@ -53,6 +55,7 @@ const AppContent = () => {
         <Route path="/assign-sensors" element={<AssignSensorsScreen />} />
         <Route path="/active-session" element={<ActiveSessionScreen />} />
         <Route path="/new-activity" element={<NewActivityScreen />} />
+        <Route path="/activity" element={<ActivityScreen />} />
       </Routes>
     </div>
   );
