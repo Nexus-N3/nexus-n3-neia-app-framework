@@ -13,6 +13,7 @@ import { AssignSensorsScreen } from './screens/AssignSensorsScreen';
 import { ActiveSessionScreen } from './screens/ActiveSessionScreen';
 import { NewActivityScreen } from './screens/NewActivityScreen';
 import { ActivityScreen } from './screens/ActivityScreen';
+import { SubjectActivityScreen } from './screens/SubjectActivityScreen';
 import { BurgerMenu } from './components/BurgerMenu';
 import { sessionNameAtom } from './store/atoms';
 
@@ -25,7 +26,8 @@ const AppContent = () => {
     location.pathname === '/assign-sensors' ||
     location.pathname === '/active-session' ||
     location.pathname === '/new-activity' ||
-    location.pathname === '/activity';
+    location.pathname === '/activity' ||
+    location.pathname.startsWith('/activity/subject/');
 
   const headerTitle = isHome ? 'LUNAR FACILITY EDGE' : isSessionRelated ? sessionName : 'CREATE NEW SESSION';
 
@@ -56,6 +58,8 @@ const AppContent = () => {
         <Route path="/active-session" element={<ActiveSessionScreen />} />
         <Route path="/new-activity" element={<NewActivityScreen />} />
         <Route path="/activity" element={<ActivityScreen />} />
+        {/* We need a route for individual subject view */}
+        <Route path="/activity/subject/:id" element={<SubjectActivityScreen />} />
       </Routes>
     </div>
   );

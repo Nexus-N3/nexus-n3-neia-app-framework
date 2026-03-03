@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
+import { SegmentedControl } from '../components/SegmentedControl';
 import { subjectCountAtom, sessionNameAtom } from '../store/atoms';
 
 const PendingBarGraph = () => (
@@ -101,46 +102,14 @@ export const ActivityScreen: React.FC = () => {
         </div>
 
         {/* Segmented Control */}
-        <div
-          style={{
-            display: 'flex',
-            background: 'rgba(255, 255, 255, 0.1)',
-            borderRadius: '4px',
-            padding: '2px',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-          }}
-        >
-          <button
-            onClick={() => setViewMode('realtime')}
-            style={{
-              background: viewMode === 'realtime' ? '#5960F6' : 'transparent',
-              color: 'white',
-              border: 'none',
-              padding: '6px 12px',
-              borderRadius: '2px',
-              fontSize: '12px',
-              cursor: 'pointer',
-              transition: 'background-color 0.2s',
-            }}
-          >
-            Real time
-          </button>
-          <button
-            onClick={() => setViewMode('periodic')}
-            style={{
-              background: viewMode === 'periodic' ? '#5960F6' : 'transparent',
-              color: 'white',
-              border: 'none',
-              padding: '6px 12px',
-              borderRadius: '2px',
-              fontSize: '12px',
-              cursor: 'pointer',
-              transition: 'background-color 0.2s',
-            }}
-          >
-            Periodic
-          </button>
-        </div>
+        <SegmentedControl
+          value={viewMode}
+          onChange={setViewMode}
+          options={[
+            { label: 'Real time', value: 'realtime' },
+            { label: 'Periodic', value: 'periodic' },
+          ]}
+        />
       </div>
 
       <div
@@ -195,6 +164,7 @@ export const ActivityScreen: React.FC = () => {
               }}
               onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#757db0')}
               onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#8a92bf')}
+              onClick={() => navigate(`/activity/subject/${subject.id}`)}
             >
               View
             </button>
