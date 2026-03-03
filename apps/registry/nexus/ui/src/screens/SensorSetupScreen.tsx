@@ -76,12 +76,12 @@ export const SensorSetupScreen: React.FC = () => {
         className="sensor-setup-grid"
         style={{
           display: 'grid',
-          gridTemplateColumns: 'calc((100% - 60px) / 3) 1fr', // Matches AddSensor layout: (Total - 2*30px gap) / 3
-          gridTemplateRows: '1fr auto', // Main content takes available space, buttons take auto
-          gap: '30px',
+          gridTemplateColumns: '1fr 2fr',
+          gap: '20px',
           marginTop: '30px',
-          flex: 1, // Grow to fill the flex container
+          flex: 1,
           width: '100%',
+          overflow: 'hidden',
         }}
       >
         {/* Top Left: Default Setups (spans 1 row) */}
@@ -220,28 +220,27 @@ export const SensorSetupScreen: React.FC = () => {
             )}
           </div>
         </div>
+      </div>
 
-        {/* Bottom Left: Empty (Implicitly handled by grid placement, but explicit for clarity) */}
-        <div style={{ gridColumn: '1 / 2', gridRow: '2 / 3' }}></div>
-
-        {/* Bottom Right: Buttons */}
-        <div
-          className="action-row"
-          style={{
-            gridColumn: '2 / 3',
-            gridRow: '2 / 3',
-            display: 'flex',
-            gap: '20px',
-            marginTop: 'auto', // Align to bottom if row has height, though grid handles placement
-          }}
-        >
-          <button className="nexus-btn secondary-btn" onClick={handleModifyDefault} style={{ flex: 1 }}>
-            Modify default
-          </button>
-          <button className="nexus-btn continue-btn" onClick={() => navigate('/session')} style={{ flex: 1 }}>
-            Create session
-          </button>
-        </div>
+      {/* Footer Buttons */}
+      <div
+        className="action-row"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr 1fr',
+          gap: '20px',
+          marginTop: '20px',
+          marginBottom: '20px',
+          width: '100%',
+        }}
+      >
+        <div></div>
+        <button className="nexus-btn secondary-btn" onClick={handleModifyDefault}>
+          Modify default
+        </button>
+        <button className="nexus-btn continue-btn" onClick={() => navigate('/session')}>
+          Create session
+        </button>
       </div>
     </main>
   );

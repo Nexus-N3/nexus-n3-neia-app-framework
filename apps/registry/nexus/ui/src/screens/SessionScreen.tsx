@@ -106,13 +106,13 @@ export const SessionScreen: React.FC = () => {
             style={{
               background: 'rgba(231, 238, 243, 0.05)',
               borderRadius: '4px',
-              padding: '20px',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
+              overflow: 'hidden',
             }}
           >
-            <div className="subject-info">
+            <div className="subject-info" style={{ padding: '20px', flex: 1 }}>
               <h3 style={{ textAlign: 'center', margin: '0 0 15px 0', fontSize: '18px', fontWeight: 500 }}>{subject.name}</h3>
 
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px', color: '#ff6b6b' }}>
@@ -150,12 +150,12 @@ export const SessionScreen: React.FC = () => {
                 background: '#8a92bf',
                 color: 'white',
                 border: 'none',
-                borderRadius: '4px',
+                borderRadius: '0 0 4px 4px',
                 width: '100%',
                 padding: '12px',
                 cursor: 'pointer',
                 fontWeight: 600,
-                marginTop: '15px',
+                marginTop: '0',
                 textTransform: 'uppercase',
                 fontSize: '14px',
                 transition: 'background-color 0.2s',
@@ -178,6 +178,7 @@ export const SessionScreen: React.FC = () => {
           gap: '20px',
           marginTop: '20px',
           marginBottom: '20px',
+          width: '100%',
         }}
       >
         <div></div> {/* Empty 1/3 */}
