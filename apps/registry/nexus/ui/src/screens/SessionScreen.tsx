@@ -182,7 +182,9 @@ export const SessionScreen: React.FC = () => {
         }}
       >
         <div></div> {/* Empty 1/3 */}
-        <button className="nexus-btn secondary-btn">Connect sensors</button>
+        <button className="nexus-btn secondary-btn" onClick={() => navigate('/assign-sensors')}>
+          Connect sensors
+        </button>
         <button className="nexus-btn continue-btn">Start session</button>
       </div>
     </main>

@@ -9,6 +9,7 @@ import { SubjectsRequiredScreen } from './screens/SubjectsRequiredScreen';
 import { SensorSetupScreen } from './screens/SensorSetupScreen';
 import { AddSensorScreen } from './screens/AddSensorScreen';
 import { SessionScreen } from './screens/SessionScreen';
+import { AssignSensorsScreen } from './screens/AssignSensorsScreen';
 import { BurgerMenu } from './components/BurgerMenu';
 import { sessionNameAtom } from './store/atoms';
 
@@ -16,9 +17,9 @@ const AppContent = () => {
   const location = useLocation();
   const [sessionName] = useAtom(sessionNameAtom);
   const isHome = location.pathname === '/';
-  const isSession = location.pathname === '/session';
+  const isSessionRelated = location.pathname === '/session' || location.pathname === '/assign-sensors';
 
-  const headerTitle = isHome ? 'LUNAR FACILITY EDGE' : isSession ? sessionName : 'CREATE NEW SESSION';
+  const headerTitle = isHome ? 'LUNAR FACILITY EDGE' : isSessionRelated ? sessionName : 'CREATE NEW SESSION';
 
   return (
     <div className="nexus-app">
@@ -43,6 +44,7 @@ const AppContent = () => {
         <Route path="/sensor-setup" element={<SensorSetupScreen />} />
         <Route path="/add-sensor" element={<AddSensorScreen />} />
         <Route path="/session" element={<SessionScreen />} />
+        <Route path="/assign-sensors" element={<AssignSensorsScreen />} />
       </Routes>
     </div>
   );
