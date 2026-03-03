@@ -54,7 +54,7 @@ const SensorRow = ({ sensor }: { sensor: Sensor }) => {
         display: 'flex',
         alignItems: 'center',
         background: 'rgba(255, 255, 255, 0.05)',
-        padding: '12px 20px',
+        padding: '8px',
         borderRadius: '4px',
         gap: '20px',
       }}
@@ -105,7 +105,14 @@ const SensorRow = ({ sensor }: { sensor: Sensor }) => {
             fontSize: '12px',
             height: 'auto',
             minWidth: 'auto',
+            background: 'rgba(255, 255, 255, 0.1)',
+            border: 'none',
+            color: 'white',
+            cursor: 'pointer',
+            transition: 'background-color 0.2s',
           }}
+          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)')}
+          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)')}
         >
           Identify
         </button>
@@ -116,8 +123,6 @@ const SensorRow = ({ sensor }: { sensor: Sensor }) => {
             fontSize: '12px',
             height: 'auto',
             minWidth: 'auto',
-            background: 'rgba(255, 255, 255, 0.1)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
           }}
         >
           Place
@@ -191,6 +196,37 @@ export const AssignSensorsScreen: React.FC = () => {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Footer Buttons */}
+      <div
+        className="action-row"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr 1fr',
+          gap: '20px',
+          marginTop: '20px',
+          marginBottom: '20px',
+          width: '100%',
+        }}
+      >
+        <div></div> {/* Empty 1/3 */}
+        <button
+          className="nexus-btn secondary-btn"
+          style={{
+            background: 'transparent',
+            border: '1px solid #5960F6',
+            color: '#5960F6',
+            transition: 'background-color 0.2s',
+          }}
+          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = 'rgba(89, 96, 246, 0.1)')}
+          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+        >
+          Find more sensors
+        </button>
+        <button className="nexus-btn continue-btn" onClick={() => navigate('/session')}>
+          Return to session
+        </button>
       </div>
     </main>
   );
