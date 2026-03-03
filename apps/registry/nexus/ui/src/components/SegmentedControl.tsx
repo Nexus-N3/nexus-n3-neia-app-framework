@@ -10,11 +10,9 @@ export const SegmentedControl = <T extends string>({ options, value, onChange }:
   return (
     <div
       style={{
-        display: 'flex',
         background: 'rgba(255, 255, 255, 0.1)',
-        borderRadius: '4px',
-        padding: '2px',
-        border: '1px solid rgba(255, 255, 255, 0.2)',
+        borderRadius: '40px',
+        overflow: 'hidden',
       }}
     >
       {options.map((option) => (
@@ -25,11 +23,14 @@ export const SegmentedControl = <T extends string>({ options, value, onChange }:
             background: value === option.value ? '#5960F6' : 'transparent',
             color: 'white',
             border: 'none',
-            padding: '6px 12px',
-            borderRadius: '2px',
+            padding: '8px 16px',
             fontSize: '12px',
             cursor: 'pointer',
             transition: 'background-color 0.2s',
+            flex: 1,
+            borderRadius: '40px',
+            fontWeight: 500,
+            textTransform: 'uppercase',
           }}
         >
           {option.label}
