@@ -5,11 +5,22 @@ import { BackButton } from '../components/BackButton';
 import { subjectCountAtom, sessionNameAtom } from '../store/atoms';
 
 const PendingBarGraph = () => (
-  <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end', height: '60px', justifyContent: 'center' }}>
+  <div
+    style={{
+      display: 'flex',
+      gap: '40px',
+      alignItems: 'flex-end',
+      height: '100%',
+      width: '100%',
+      justifyContent: 'center',
+      padding: '0 30px',
+      boxSizing: 'border-box',
+    }}
+  >
     {[0.5, 0.5, 1].map((opacity, i) => (
-      <div key={i} style={{ display: 'flex', gap: '4px', opacity, alignItems: 'flex-end', height: '100%' }}>
-        <div style={{ width: '8px', height: '40%', backgroundColor: '#5960F6', borderRadius: '2px' }}></div>
-        <div style={{ width: '8px', height: '70%', backgroundColor: '#19D2EA', borderRadius: '2px' }}></div>
+      <div key={i} style={{ display: 'flex', gap: '8px', opacity, alignItems: 'flex-end', height: '100%', flex: 1 }}>
+        <div style={{ flex: 1, height: '40%', backgroundColor: '#5960F6', borderRadius: '4px' }}></div>
+        <div style={{ flex: 1, height: '70%', backgroundColor: '#19D2EA', borderRadius: '4px' }}></div>
       </div>
     ))}
   </div>
@@ -50,7 +61,10 @@ export const ActivityScreen: React.FC = () => {
   return (
     <main className="nexus-content activity-content" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Header Row */}
-      <div className="sub-header-row" style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative' }}>
+      <div
+        className="sub-header-row"
+        style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative' }}
+      >
         <BackButton onClick={handleBack} />
 
         {/* Carousel Controls */}
@@ -219,9 +233,9 @@ export const ActivityScreen: React.FC = () => {
         {/* End Activity (Red) */}
         <button
           className="nexus-btn continue-btn"
-          style={{ backgroundColor: '#ff6b6b', transition: 'background-color 0.2s' }}
-          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#fa5252')}
-          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#ff6b6b')}
+          style={{ backgroundColor: '#c00000', transition: 'background-color 0.2s', opacity: 0.8 }}
+          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#df0000')}
+          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#c00000')}
           onClick={() => navigate('/active-session')}
         >
           End activity
