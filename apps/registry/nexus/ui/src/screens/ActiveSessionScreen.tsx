@@ -3,22 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
-import { sessionNameAtom, subjectCountAtom, setupsAtom, selectedSetupIdAtom } from '../store/atoms';
+import { subjectCountAtom } from '../store/atoms';
 
-export const SessionScreen: React.FC = () => {
+export const ActiveSessionScreen: React.FC = () => {
   const navigate = useNavigate();
-  const [sessionName] = useAtom(sessionNameAtom);
   const [subjectCount] = useAtom(subjectCountAtom);
-  const [setups] = useAtom(setupsAtom);
-  const [selectedSetupId] = useAtom(selectedSetupIdAtom);
 
-  // Pagination state (we show 4 items at a time in a 2x2 grid)
   const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 4;
   const totalPages = Math.ceil(subjectCount / itemsPerPage);
 
-  const selectedSetup = setups.find((s) => s.id === selectedSetupId);
-  const sensorsRequired = selectedSetup ? selectedSetup.sensors.length : 0;
+  const subjects = Array.from({ length: subjectCount }, (_, i) => ({
+    id: i + 1,
+    name: `Subject_${i + 1}`,
+  }));
+
+  const currentSubjects = subjects.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
 
   const handlePrevPage = () => {
     setCurrentPage((prev) => Math.max(0, prev - 1));
@@ -29,24 +29,11 @@ export const SessionScreen: React.FC = () => {
   };
 
   const handleBack = () => {
-    navigate('/sensor-setup');
+    navigate('/session');
   };
 
-  // Generate subjects based on count
-  const subjects = Array.from({ length: subjectCount }, (_, i) => ({
-    id: i + 1,
-    name: `Subject_${i + 1}`,
-    sensorsRequired: sensorsRequired,
-    sensorsConnected: 0,
-    sensorsPlaced: 0,
-    status: 'red', // Default status
-  }));
-
-  // Get current page subjects
-  const currentSubjects = subjects.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
-
   return (
-    <main className="nexus-content session-content" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <main className="nexus-content active-session-content" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Header Row with Carousel */}
       <div className="sub-header-row" style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <BackButton onClick={handleBack} />
@@ -86,7 +73,6 @@ export const SessionScreen: React.FC = () => {
         <InfoButton />
       </div>
 
-      {/* Grid Content */}
       <div
         className="subjects-grid"
         style={{
@@ -112,40 +98,12 @@ export const SessionScreen: React.FC = () => {
               overflow: 'hidden',
             }}
           >
-            <div className="subject-info" style={{ padding: '20px', flex: 1 }}>
-              <h3 style={{ textAlign: 'center', margin: '0 0 15px 0', fontSize: '18px', fontWeight: 500 }}>{subject.name}</h3>
-
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px', color: '#ff6b6b' }}>
-                <div
-                  style={{
-                    width: '10px',
-                    height: '10px',
-                    borderRadius: '50%',
-                    background: '#ff6b6b',
-                    marginRight: '8px',
-                  }}
-                ></div>
-                <span style={{ textTransform: 'uppercase', fontSize: '12px', fontWeight: 600 }}>Sensors</span>
-              </div>
-
-              <div className="subject-stats" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: 'rgba(255,255,255,0.7)' }}>
-                  <span>Required</span>
-                  <span style={{ color: 'white' }}>{subject.sensorsRequired}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: 'rgba(255,255,255,0.7)' }}>
-                  <span>Connected</span>
-                  <span style={{ color: 'white' }}>{subject.sensorsConnected}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: 'rgba(255,255,255,0.7)' }}>
-                  <span>Placed</span>
-                  <span style={{ color: 'white' }}>{subject.sensorsPlaced}</span>
-                </div>
-              </div>
+            <div style={{ padding: '20px', flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <h3 style={{ margin: '0', fontSize: '18px', fontWeight: 500, textAlign: 'center' }}>{subject.name}</h3>
             </div>
 
             <button
-              className="place-sensors-btn"
+              className="nexus-btn secondary-btn"
               style={{
                 background: '#8a92bf',
                 color: 'white',
@@ -163,7 +121,7 @@ export const SessionScreen: React.FC = () => {
               onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#757db0')}
               onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#8a92bf')}
             >
-              Place sensors
+              View subject
             </button>
           </div>
         ))}
@@ -183,11 +141,9 @@ export const SessionScreen: React.FC = () => {
       >
         <div></div> {/* Empty 1/3 */}
         <button className="nexus-btn secondary-btn" onClick={() => navigate('/assign-sensors')}>
-          Connect sensors
+          Manage sensors
         </button>
-        <button className="nexus-btn continue-btn" onClick={() => navigate('/active-session')}>
-          Start session
-        </button>
+        <button className="nexus-btn continue-btn">Start new activity</button>
       </div>
     </main>
   );
