@@ -159,6 +159,7 @@ export const ActiveSessionScreen: React.FC = () => {
           style={{ backgroundColor: '#3B7D23', transition: 'background-color 0.2s' }}
           onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#2E611B')}
           onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#3B7D23')}
+          onClick={() => navigate('/new-activity')}
         >
           Start new activity
         </button>
