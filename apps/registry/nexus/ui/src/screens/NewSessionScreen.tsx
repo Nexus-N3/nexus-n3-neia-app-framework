@@ -20,21 +20,20 @@ export const NewSessionScreen: React.FC = () => {
   };
 
   return (
-    <main className="nexus-content" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div className="sub-header-row" style={{ marginBottom: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <main className="nexus-content">
+      <div className="sub-header-row">
         <BackButton onClick={handleBack} />
 
-        <h2 className="screen-title" style={{ margin: 0 }}>
-          SESSION NAME
-        </h2>
+        <h2 className="screen-title">SESSION NAME</h2>
 
         <InfoButton />
       </div>
 
       <div className="session-form-container">
         <div className="form-group">
-          <label>Project / User Identifier</label>
+          <label htmlFor="project-identifier">Project / User Identifier</label>
           <input
+            id="project-identifier"
             type="text"
             placeholder="(Default) LUNAR FACILITY"
             className="nexus-input"
@@ -44,8 +43,9 @@ export const NewSessionScreen: React.FC = () => {
         </div>
 
         <div className="form-group">
-          <label>Session Identifier</label>
+          <label htmlFor="session-identifier">Session Identifier</label>
           <input
+            id="session-identifier"
             type="text"
             placeholder="(Default) Session [X] [Date]"
             className="nexus-input"

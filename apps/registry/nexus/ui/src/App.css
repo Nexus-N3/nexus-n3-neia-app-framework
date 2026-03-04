@@ -151,8 +151,7 @@
 }
 
 .form-group label {
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.7);
+  color: #fff;
 }
 
 .nexus-input {
@@ -170,7 +169,7 @@
 }
 
 .nexus-input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .nexus-btn {
@@ -197,18 +196,20 @@
 .subject-counter-container {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 24px;
+  justify-content: space-between;
   margin-bottom: 40px;
+  min-width: 800px;
 }
 
 .counter-btn {
-  width: 48px;
-  height: 48px;
+  width: 128px;
+  height: 128px;
   border-radius: 50%;
-  border: 2px solid white;
+  border: none;
   background: none;
   color: white;
+  padding: 0;
+  margin: 0;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -224,13 +225,14 @@
 }
 
 .counter-value {
-  font-size: 48px;
+  font-size: 128px;
   font-weight: bold;
 }
 
 .input-hint {
-  color: rgba(255, 255, 255, 0.5);
+  color: #E7EEF3;
   margin-top: 4px;
+  font-size: 24px;
 }
 
 .custom-setup-btn {
