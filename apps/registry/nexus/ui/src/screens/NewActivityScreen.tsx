@@ -51,7 +51,7 @@ export const NewActivityScreen: React.FC = () => {
               color: 'white',
             }}
           />
-          <div style={{ marginTop: '10px', color: '#888', fontStyle: 'italic' }}>Group names can be edited once created</div>
+          <div className="input-hint" style={{ fontStyle: 'italic' }}>Group names can be edited once created</div>
         </div>
 
         {/* Separator */}
