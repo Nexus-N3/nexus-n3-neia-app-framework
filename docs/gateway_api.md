@@ -33,6 +33,10 @@ The server pushes all gateway events (EVT_*), for example:
 }
 ```
 
+Battery-related events include:
+- `EVT_BATTERY_UPDATE` (payload: `{ "address": "...", "battery_level": <int>, "is_charging": <bool> }`)
+- `EVT_BATTERY_CHECK` (payload: `{ "timestamp": "...", "results": [...] }`)
+
 ### Purge Queues (LavinMQ only)
 `POST /api/v1/gateway/purge`
 

@@ -51,6 +51,7 @@ Step contract: `docs/step_api_contract.md`
 
 Current steps:
 0) Check Server Readiness (CMD_IS_SERVER_READY)
+0a) (Optional) Pre-init Battery Check (CMD_CHECK_BATTERY -> EVT_BATTERY_CHECK)
 1) Who + Session Label (UI-only)
 2) Subjects (UI-only)
 3) Sensors (UI-only)
@@ -88,6 +89,30 @@ The shell UI is React + Vite. It provides:
 
 Plugin UIs can be static bundles or dev server URLs. The shell loads the bundle
 and calls the `mount` entry point.
+
+## UI Screen Size Guidelines
+NEIA apps and the dashboard are expected to run on:
+- Edge screens as small as ~5" (often low-res or narrow viewports)
+- Laptops/desktops
+
+Guidelines:
+- Treat 480px width as the minimum supported viewport; ensure all core flows work.
+- Support both portrait and landscape at small sizes; avoid layouts that require
+  fixed widths or horizontal scrolling.
+- Prefer single-column layouts under ~900px and progressive disclosure for
+  secondary panels/sidebars.
+- Use large touch targets and avoid hover-only interactions for edge screens.
+- Provide a "full-screen app" path in the shell so apps can run with minimal
+  chrome on small displays.
+
+Deterministic profile override:
+- Use `display_profile` (URL), `window.__NEXUS_DISPLAY_PROFILE`, or `VITE_DISPLAY_PROFILE`
+  to apply an explicit body class (`display-profile-<value>`).
+- Keep media queries as fallback, but ship tuned profile classes for known hardware
+  (for example `1920x1080`, `800x400`) to avoid browser/device reporting variance.
+
+If specific edge hardware differs (e.g., 800x480 or 720p), update these targets
+and re-validate the dashboard + app templates.
 
 ## Dev Workflow (Apps)
 - Build a plugin UI with any framework.

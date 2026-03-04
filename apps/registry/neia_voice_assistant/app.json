@@ -1,0 +1,13 @@
+{
+  "id": "neia_voice_assistant",
+  "name": "NEIA Voice Assistant",
+  "version": "0.1.0",
+  "description": "Offline voice control for NEIA.",
+  "app_type": "demo",
+  "developer": "RS Nexus",
+  "entry_ui": "ui/assets/index.js",
+  "style": "ui/assets/index.css",
+  "mount": "NeiaVoiceMount",
+  "dev_entry_ui": "http://localhost:3002/src/main.tsx",
+  "dev_mount": "NeiaVoiceMount"
+}

@@ -9,15 +9,24 @@ from fastapi.staticfiles import StaticFiles
 from .config import BASE_DIR
 from .gateway.manager import create_gateway_manager
 from .registry import AppRegistry
+from .voice import create_voice_manager
 
 registry = AppRegistry()
 gateway_manager = create_gateway_manager()
+voice_manager = create_voice_manager(
+    BASE_DIR,
+    send_command=gateway_manager.send_command,
+    broadcast_event=gateway_manager.broadcast_event,
+)
+gateway_manager.add_event_listener(voice_manager.handle_gateway_event)
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     await gateway_manager.start()
+    voice_manager.start_if_enabled()
     yield
+    voice_manager.stop()
     await gateway_manager.stop()
 
 
@@ -91,14 +100,74 @@ def get_steps():
     return FileResponse(steps_path)
 
 
+@api_v1.get("/voice/status")
+def voice_status():
+    return voice_manager.status()
+
+
+@api_v1.get("/voice/last")
+def voice_last():
+    return voice_manager.last()
+
+@api_v1.post("/voice/reset")
+def voice_reset():
+    return voice_manager.reset()
+
+
+@api_v1.post("/voice/enable")
+def voice_enable():
+    return voice_manager.enable()
+
+@api_v1.post("/voice/activate")
+def voice_activate():
+    voice_manager.set_flow_active(True)
+    return voice_manager.enable()
+
+@api_v1.post("/voice/deactivate")
+def voice_deactivate():
+    return voice_manager.set_flow_active(False)
+
+
+@api_v1.post("/voice/disable")
+def voice_disable():
+    return voice_manager.disable()
+
+
+@api_v1.post("/voice/tts")
+def voice_tts(payload: dict):
+    if not isinstance(payload, dict):
+        raise HTTPException(status_code=400, detail="Invalid payload")
+    enabled = payload.get("enabled")
+    if enabled is None:
+        raise HTTPException(status_code=400, detail="Missing enabled")
+    return voice_manager.set_tts_enabled(bool(enabled))
+
+
+@api_v1.post("/voice/speak")
+def voice_speak(payload: dict):
+    text = payload.get("text") if isinstance(payload, dict) else None
+    if not text:
+        raise HTTPException(status_code=400, detail="Missing text")
+    wait = bool(payload.get("wait")) if isinstance(payload, dict) else False
+    ok, error = voice_manager._maybe_speak(text, wait=wait)
+    if not ok and error == "TTS disabled":
+        raise HTTPException(status_code=400, detail=error)
+    if error:
+        raise HTTPException(status_code=500, detail=error)
+    return {"status": "spoken", "wait": wait}
+
+
 @api_v1.websocket("/gateway/events")
 async def gateway_events(ws: WebSocket):
     await ws.accept()
     await gateway_manager.broadcaster.register(ws)
     try:
+        await ws.send_json({"type": "voice_status", "payload": voice_manager.status()})
         while True:
             await ws.receive_text()
     except WebSocketDisconnect:
+        pass
+    finally:
         await gateway_manager.broadcaster.unregister(ws)
 
 

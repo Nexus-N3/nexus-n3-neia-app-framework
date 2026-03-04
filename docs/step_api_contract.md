@@ -108,6 +108,14 @@ Example payload:
 ## Errors
 - Any command may emit `EVT_ERROR` with a payload string or dict.
 
+## Battery Check (Pre-init)
+- Command: `CMD_CHECK_BATTERY`
+  - Payload: `{ "scan_timeout": <seconds>, "read_timeout": <seconds> }`
+- Event: `EVT_BATTERY_CHECK`
+  - Payload includes `timestamp` and `results` list of battery status per device.
+- Live event: `EVT_BATTERY_UPDATE`
+  - Payload: `{ "address": "...", "battery_level": <int>, "is_charging": <bool> }`
+
 ## Notes
 - No persistence across runs.
 - If using LavinMQ, purge queues at start of a session.

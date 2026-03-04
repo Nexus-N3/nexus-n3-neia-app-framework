@@ -16,19 +16,50 @@
 
 body {
   margin: 0;
-  background: linear-gradient(180deg, #f1f1f3 0%, #eceaf6 50%, #e6e3f4 100%);
+  background: #000000;
   color: var(--text);
   min-height: 100vh;
+  overflow-x: hidden;
+  overscroll-behavior: none;
 }
 
 #root {
   min-height: 100vh;
+  overflow-x: clip;
+  overscroll-behavior: none;
+}
+
+html,
+body,
+#root {
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+#root::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .shell {
   max-width: 1100px;
   margin: 0 auto;
+  padding: 20px 18px 36px;
+}
 
+.shell.dashboard-pre {
+  opacity: 0;
+  transform: scale(1.015);
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+.shell.dashboard-enter {
+  opacity: 1;
+  transform: scale(1);
+  filter: blur(0);
+  transition: opacity 0.62s ease, transform 0.62s ease, filter 0.62s ease;
 }
 
 .shell-header {
@@ -60,11 +91,12 @@ body {
 .shell-header h1 {
   margin: 0 0 6px;
   font-size: 24px;
+  color: #e7e7e7;
 }
 
 .shell-header p {
   margin: 0;
-  color: var(--muted);
+  color: #b8b8b8;
 }
 
 .shell-body {
@@ -79,11 +111,11 @@ body {
 }
 
 .panel {
-  background: var(--panel);
+  background: rgba(10, 10, 10, 0.92);
   border-radius: 16px;
   padding: 18px 20px 20px;
-  border: 1px solid var(--border);
-  box-shadow: 0 12px 24px rgba(58, 49, 97, 0.08);
+  border: 1px solid #232323;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
 }
 
 .panel.wide {
@@ -91,7 +123,7 @@ body {
 }
 
 .muted {
-  color: var(--muted);
+  color: #a8a8a8;
   font-size: 13px;
 }
 
@@ -106,7 +138,7 @@ body {
   border: 1px solid var(--border);
   border-radius: 999px;
   background: #ffffff;
-  color: var(--text);
+  color: #3f3f3f;
   padding: 8px 18px;
   font-weight: 600;
   cursor: pointer;
@@ -129,6 +161,7 @@ body {
 .app-section h3 {
   margin: 22px 0 12px;
   font-size: 20px;
+  color: #e0e0e0;
 }
 
 .app-grid {
@@ -145,14 +178,18 @@ body {
 }
 
 .app-card {
-  border: 1px solid var(--border);
+  border: 1px solid #2a2a2a;
   border-radius: 14px;
-  background: #fff;
+  background: #111;
   padding: 14px 16px;
-  box-shadow: 0 10px 18px rgba(58, 49, 97, 0.08);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.app-card-title strong {
+  color: #d8d8d8;
 }
 
 .app-card-header {
@@ -187,7 +224,7 @@ body {
 
 .app-card-desc {
   margin: 0;
-  color: var(--muted);
+  color: #ababab;
   font-size: 14px;
 }
 
@@ -195,12 +232,12 @@ body {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 12px;
+  gap: 18px;
 }
 
 .app-developer {
   font-size: 13px;
-  color: var(--muted);
+  color: #9d9d9d;
 }
 
 ul {
@@ -229,6 +266,9 @@ li {
 .actions {
   display: flex;
   gap: 8px;
+  align-items: center;
+  margin-top: 6px;
+  width: 100%;
 }
 
 button {
@@ -246,6 +286,33 @@ button.secondary {
   color: #3d2f7a;
 }
 
+.actions .launch-btn {
+  width: 108px;
+  height: 72px;
+  padding: 0;
+  border-radius: 12px;
+  font-size: 16px;
+  line-height: 1.1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.actions .square-btn {
+  width: 72px;
+  height: 72px;
+  padding: 0;
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 1.1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin-left: auto;
+}
+
 .app-mount {
   min-height: 160px;
   padding: 16px;
@@ -257,16 +324,6 @@ button.secondary {
 .app-mount.full {
   min-height: 70vh;
   background: #ffffff;
-}
-
-.app-shell {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 32px 20px 60px;
-}
-
-.app-header {
-  gap: 16px;
 }
 
 .error {
@@ -332,11 +389,13 @@ button.secondary {
   }
 
   .app-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 
   .app-card {
     padding: 10px 12px;
+    gap: 12px;
   }
 
   .app-icon {
@@ -357,7 +416,456 @@ button.secondary {
     font-size: 13px;
   }
 
+  .actions .launch-btn {
+    width: 96px;
+    height: 52px;
+    border-radius: 10px;
+    font-size: 12px;
+  }
+
+  .actions .square-btn {
+    width: 52px;
+    height: 52px;
+    border-radius: 10px;
+    font-size: 10px;
+  }
+
   .app-mount.full {
     min-height: 55vh;
   }
+}
+
+.app-shell {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 20px 60px;
+}
+
+.app-shell.takeover {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #000000;
+  overflow-x: clip;
+  overscroll-behavior: none;
+}
+
+.app-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  min-height: 52px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #1e1e1e;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(4px);
+}
+
+.app-mount.takeover {
+  flex: 1;
+  min-height: calc(100vh - 52px);
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  padding: 0 12px 12px;
+  background: #000000;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  overflow: hidden;
+  overflow-x: clip;
+  overscroll-behavior: none;
+}
+
+.app-stage {
+  height: 100%;
+  width: min(100%, 1400px);
+  margin: 0 auto;
+  padding-top: 14px;
+}
+
+.app-stage > * {
+  height: 100%;
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (min-width: 1600px) and (min-height: 850px) {
+  .shell {
+    max-width: 1760px;
+    padding: 28px 28px 44px;
+  }
+
+  .shell-logo {
+    height: 160px;
+  }
+
+  .shell-header h1 {
+    font-size: 34px;
+  }
+
+  .shell-header p {
+    font-size: 20px;
+  }
+
+  .shell-tabs {
+    gap: 18px;
+    margin: 16px 0 28px;
+  }
+
+  .shell-tabs .tab {
+    padding: 14px 24px;
+    font-size: 20px;
+    border-radius: 999px;
+  }
+
+  .app-section h3 {
+    margin: 24px 0 16px;
+    font-size: 30px;
+  }
+
+  .app-grid {
+    gap: 22px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .app-card {
+    border-radius: 18px;
+    padding: 20px 22px;
+    gap: 14px;
+  }
+
+  .app-icon {
+    width: 78px;
+    height: 78px;
+    border-radius: 16px;
+  }
+
+  .app-card-title strong {
+    font-size: 26px;
+  }
+
+  .app-card-desc {
+    font-size: 19px;
+    line-height: 1.5;
+  }
+
+  .app-developer {
+    font-size: 17px;
+  }
+
+  button {
+    padding: 12px 18px;
+    font-size: 19px;
+    border-radius: 12px;
+  }
+
+  .app-topbar {
+    min-height: 72px;
+    padding: 12px 18px;
+  }
+
+  .app-mount.takeover {
+    min-height: calc(100vh - 72px);
+    padding: 0 18px 18px;
+  }
+
+  .app-stage {
+    width: min(100%, 1780px);
+    padding-top: 20px;
+  }
+
+  .startup-robot {
+    width: min(96vw, 1680px);
+    height: min(84vh, 980px);
+  }
+
+  .startup-status {
+    font-size: clamp(20px, 2.4vmin, 34px);
+  }
+}
+
+.startup-overlay {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  color: #f4f4f4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(20px, 3vh, 36px);
+  z-index: 100;
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 0.68s ease, transform 0.68s ease;
+  overflow: hidden;
+  overscroll-behavior: none;
+  contain: paint;
+}
+
+.startup-overlay.exiting {
+  opacity: 0;
+  transform: scale(1.018);
+}
+
+.startup-robot {
+  width: min(94vw, 1320px);
+  height: min(76vh, 760px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.robot-head {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: clamp(40px, 7vmin, 88px);
+  background: transparent;
+  padding: clamp(28px, 4.8vmin, 64px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(92px, 11.5vmin, 220px);
+  box-shadow: none;
+  position: relative;
+}
+
+.robot-eyes {
+  display: flex;
+  justify-content: center;
+  gap: clamp(104px, 24vmin, 400px);
+}
+
+.robot-eye {
+  width: clamp(92px, 16vmin, 220px);
+  height: clamp(48px, 8vmin, 108px);
+  border-radius: 999px 999px 70% 70%;
+  background: linear-gradient(180deg, #b8a8ff 0%, #7f6dff 100%);
+  box-shadow:
+    0 0 16px rgba(137, 110, 255, 0.85),
+    0 0 36px rgba(88, 255, 231, 0.32);
+  position: relative;
+  overflow: hidden;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+.robot-eye::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #080808;
+  transform: scaleY(0);
+  transform-origin: center;
+  animation: eye-blink 2.4s infinite;
+}
+
+.robot-mouth {
+  align-self: center;
+  margin-top: clamp(28px, 5vmin, 72px);
+  width: clamp(70px, 12vmin, 170px);
+  height: clamp(28px, 5.2vmin, 62px);
+  border-radius: 70% 70% 999px 999px;
+  border-top: none;
+  border-bottom: none;
+  background: #9f8bff;
+  box-shadow:
+    0 0 12px rgba(159, 139, 255, 0.75),
+    0 0 24px rgba(88, 255, 231, 0.2);
+  transition: width 0.35s ease, height 0.35s ease, border-radius 0.35s ease;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+.stage-waking .robot-mouth {
+  width: clamp(40px, 8vmin, 98px);
+  height: clamp(40px, 8vmin, 98px);
+  border-radius: 50%;
+  border-top: none;
+  border-bottom: none;
+  background: #9f8bff;
+  box-shadow:
+    0 0 14px rgba(159, 139, 255, 0.82),
+    0 0 30px rgba(88, 255, 231, 0.25);
+  animation: yawn-expand 1.15s ease-in-out 1;
+}
+
+.stage-speaking .robot-mouth {
+  background: #cfb3ff;
+  animation: mouth-speak 0.28s infinite ease-in-out;
+  animation-delay: 90ms;
+  animation-fill-mode: both;
+}
+
+.startup-status {
+  margin: 0;
+  font-size: clamp(14px, 2vmin, 24px);
+  letter-spacing: 0.03em;
+  color: #c9c9c9;
+}
+
+@keyframes eye-blink {
+  0%, 12%, 24%, 100% {
+    transform: scaleY(0);
+  }
+
+  8%, 20% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes mouth-speak {
+  0%, 100% {
+    width: clamp(70px, 12vmin, 170px);
+    height: clamp(28px, 5.2vmin, 62px);
+    border-radius: 70% 70% 999px 999px;
+    border-top: none;
+    border-bottom: none;
+    background: #cfb3ff;
+  }
+
+  50% {
+    width: clamp(40px, 7vmin, 92px);
+    height: clamp(32px, 6.2vmin, 68px);
+    border-radius: 999px;
+    border-bottom: none;
+    background: #cfb3ff;
+  }
+}
+
+@keyframes yawn-expand {
+  0%, 100% {
+    transform: scale(1);
+  }
+
+  55% {
+    transform: scale(1.22);
+  }
+}
+
+body.display-profile-1920x1080 .shell {
+  max-width: 1780px;
+  padding: 30px 30px 72px;
+}
+
+body.display-profile-1920x1080 .shell-logo {
+  height: 170px;
+}
+
+body.display-profile-1920x1080 .shell-header h1 {
+  font-size: 38px;
+}
+
+body.display-profile-1920x1080 .shell-header p {
+  font-size: 22px;
+}
+
+body.display-profile-1920x1080 .shell-tabs {
+  margin: 18px 0 34px;
+  gap: 20px;
+}
+
+body.display-profile-1920x1080 .shell-tabs .tab {
+  font-size: 22px;
+  padding: 15px 30px;
+}
+
+body.display-profile-1920x1080 .shell-body {
+  gap: 26px;
+  margin-bottom: 28px;
+}
+
+body.display-profile-1920x1080 .panel {
+  border-radius: 20px;
+  padding: 26px 28px 30px;
+}
+
+body.display-profile-1920x1080 .app-section h3 {
+  margin: 30px 0 18px;
+  font-size: 34px;
+}
+
+body.display-profile-1920x1080 .app-grid {
+  gap: 24px;
+}
+
+body.display-profile-1920x1080 .app-card {
+  border-radius: 20px;
+  padding: 22px 24px;
+  gap: 14px;
+}
+
+body.display-profile-1920x1080 .app-icon {
+  width: 84px;
+  height: 84px;
+}
+
+body.display-profile-1920x1080 .app-card-title strong {
+  font-size: 28px;
+}
+
+body.display-profile-1920x1080 .app-card-desc {
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+body.display-profile-1920x1080 .app-developer {
+  font-size: 17px;
+}
+
+body.display-profile-1920x1080 button {
+  padding: 14px 20px;
+  font-size: 19px;
+  border-radius: 12px;
+}
+
+body.display-profile-1920x1080 .actions .launch-btn {
+  width: 156px;
+  height: 104px;
+  border-radius: 16px;
+  font-size: 24px;
+}
+
+body.display-profile-1920x1080 .actions .square-btn {
+  width: 104px;
+  height: 104px;
+  border-radius: 16px;
+  font-size: 17px;
+}
+
+body.display-profile-1920x1080 .app-topbar {
+  min-height: 88px;
+  padding: 16px 20px;
+}
+
+body.display-profile-1920x1080 .app-mount.takeover {
+  min-height: calc(100vh - 88px);
+  padding: 0 22px 22px;
+}
+
+body.display-profile-1920x1080 .app-stage {
+  width: min(100%, 1820px);
+  padding-top: 24px;
+}
+
+body.display-profile-1920x1080 .startup-overlay {
+  gap: clamp(36px, 4.8vh, 62px);
+}
+
+body.display-profile-1920x1080 .startup-robot {
+  width: min(96vw, 1760px);
+  height: min(84vh, 1080px);
+}
+
+body.display-profile-1920x1080 .startup-status {
+  font-size: clamp(24px, 2.7vmin, 40px);
 }
