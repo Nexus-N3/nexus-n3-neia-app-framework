@@ -1,31 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
-import { BackButton } from '../components/BackButton';
 import { SegmentedControl } from '../components/SegmentedControl';
 import { subjectCountAtom, sessionNameAtom } from '../store/atoms';
-
-const PendingBarGraph = () => (
-  <div
-    style={{
-      display: 'flex',
-      gap: '40px',
-      alignItems: 'flex-end',
-      height: '100%',
-      width: '100%',
-      justifyContent: 'center',
-      padding: '0 30px',
-      boxSizing: 'border-box',
-    }}
-  >
-    {[0.5, 0.5, 1].map((opacity, i) => (
-      <div key={i} style={{ display: 'flex', gap: '8px', opacity, alignItems: 'flex-end', height: '100%', flex: 1 }}>
-        <div style={{ flex: 1, height: '40%', backgroundColor: '#5960F6', borderRadius: '4px' }}></div>
-        <div style={{ flex: 1, height: '70%', backgroundColor: '#19D2EA', borderRadius: '4px' }}></div>
-      </div>
-    ))}
-  </div>
-);
+import { ScreenLayout } from '../components/ScreenLayout';
+import { CarouselHeader } from '../components/CarouselHeader';
+import { BarGraph } from '../components/BarGraph';
 
 export const ActivityScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -60,57 +40,25 @@ export const ActivityScreen: React.FC = () => {
   };
 
   return (
-    <main className="nexus-content activity-content" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* Header Row */}
-      <div
-        className="sub-header-row"
-        style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative' }}
-      >
-        <BackButton onClick={handleBack} />
-
-        {/* Carousel Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
-          <button
-            onClick={handlePrevPage}
-            disabled={currentPage === 0}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'white',
-              fontSize: '24px',
-              cursor: currentPage === 0 ? 'default' : 'pointer',
-              opacity: currentPage === 0 ? 0.3 : 1,
-            }}
-          >
-            &lt;
-          </button>
-          <span style={{ textTransform: 'uppercase', letterSpacing: '1px', fontSize: '18px', fontWeight: 500 }}>Subjects</span>
-          <button
-            onClick={handleNextPage}
-            disabled={currentPage >= totalPages - 1}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'white',
-              fontSize: '24px',
-              cursor: currentPage >= totalPages - 1 ? 'default' : 'pointer',
-              opacity: currentPage >= totalPages - 1 ? 0.3 : 1,
-            }}
-          >
-            &gt;
-          </button>
-        </div>
-
-        {/* Segmented Control */}
-        <SegmentedControl
-          value={viewMode}
-          onChange={(value) => setViewMode(value as 'realtime' | 'periodic')}
-          options={[
-            { label: 'Real time', value: 'realtime' },
-            { label: 'Periodic', value: 'periodic' },
-          ]}
-        />
-      </div>
+    <ScreenLayout className="activity-content">
+      <CarouselHeader
+        onBack={handleBack}
+        title="Subjects"
+        onPrev={handlePrevPage}
+        onNext={handleNextPage}
+        isPrevDisabled={currentPage === 0}
+        isNextDisabled={currentPage >= totalPages - 1}
+        rightElement={
+          <SegmentedControl
+            value={viewMode}
+            onChange={(value) => setViewMode(value as 'realtime' | 'periodic')}
+            options={[
+              { label: 'Real time', value: 'realtime' },
+              { label: 'Periodic', value: 'periodic' },
+            ]}
+          />
+        }
+      />
 
       <div
         className="subjects-grid"
@@ -142,7 +90,7 @@ export const ActivityScreen: React.FC = () => {
 
               {/* Pending Bar Graph */}
               <div style={{ width: '100%', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <PendingBarGraph />
+                <BarGraph variant="simple" />
               </div>
             </div>
 
@@ -211,6 +159,6 @@ export const ActivityScreen: React.FC = () => {
           End activity
         </button>
       </div>
-    </main>
+    </ScreenLayout>
   );
 };

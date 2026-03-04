@@ -8,7 +8,7 @@ import { sessionNameAtom } from '../store/atoms';
 export const NewSessionScreen: React.FC = () => {
   const navigate = useNavigate();
   const [sessionName, setSessionName] = useAtom(sessionNameAtom);
-  const [projectIdentifier, setProjectIdentifier] = useState('LUNAR FACILITY');
+  const [projectIdentifier, setProjectIdentifier] = useState('');
 
   const handleBack = () => {
     navigate('/');

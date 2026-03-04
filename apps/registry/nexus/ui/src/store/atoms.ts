@@ -28,5 +28,5 @@ export const setupsAtom = atom<Setup[]>([
 
 export const selectedSetupIdAtom = atom<string>('default');
 
-export const sessionNameAtom = atom<string>('LUNAR FACILITY / Session [X] [Date]');
+export const sessionNameAtom = atom<string>('');
 export const subjectCountAtom = atom<number>(4);

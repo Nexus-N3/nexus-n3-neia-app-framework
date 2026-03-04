@@ -1,90 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAtom } from 'jotai';
-import { BackButton } from '../components/BackButton';
-import { SegmentedControl } from '../components/SegmentedControl';
+import { ScreenLayout } from '../components/ScreenLayout';
+import { CarouselHeader } from '../components/CarouselHeader';
+import { BarGraph } from '../components/BarGraph';
 import { subjectCountAtom, sessionNameAtom } from '../store/atoms';
-
-const PendingBarGraph = () => (
-  <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
-    <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'flex-end', marginBottom: '4px' }}>
-      {/* Grid Lines */}
-      {/* Top Line (10 BW/s) */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          borderTop: '1px dotted rgba(255, 255, 255, 0.3)',
-          pointerEvents: 'none',
-        }}
-      >
-        <span style={{ position: 'absolute', right: 0, top: '-20px', fontSize: '12px', color: 'rgba(255, 255, 255, 0.6)' }}>10 BW/s</span>
-      </div>
-      {/* Middle Line (5) */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '50%',
-          left: 0,
-          right: 0,
-          borderTop: '1px dotted rgba(255, 255, 255, 0.3)',
-          pointerEvents: 'none',
-        }}
-      >
-        <span style={{ position: 'absolute', right: 0, top: '-20px', fontSize: '12px', color: 'rgba(255, 255, 255, 0.6)' }}>5</span>
-      </div>
-      {/* Bottom Line (Solid) */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          borderBottom: '1px solid rgba(255, 255, 255, 0.3)',
-          pointerEvents: 'none',
-        }}
-      ></div>
-
-      {/* Bars Groups */}
-      <div style={{ display: 'flex', width: '100%', height: '100%', justifyContent: 'space-between', padding: '0 20px', boxSizing: 'border-box', position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 1 }}>
-        {[
-          { l: '40%', r: '65%' },
-          { l: '50%', r: '75%' },
-          { l: '45%', r: '60%' },
-          { l: '55%', r: '70%' },
-          { l: '35%', r: '50%' },
-        ].map((heights, i) => (
-          <div key={i} style={{ display: 'flex', gap: '6px', alignItems: 'flex-end', height: '100%', width: '14%' }}>
-            {/* Left Bar (Darker) */}
-            <div style={{ flex: 1, height: heights.l, backgroundColor: '#5960F6', borderRadius: '4px 4px 0 0' }}></div>
-            {/* Right Bar (Lighter) */}
-            <div style={{ flex: 1, height: heights.r, backgroundColor: '#19D2EA', borderRadius: '4px 4px 0 0' }}></div>
-          </div>
-        ))}
-      </div>
-    </div>
-
-    {/* X-Axis Labels */}
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        width: '100%',
-        marginTop: '10px',
-        padding: '0 20px',
-        boxSizing: 'border-box',
-      }}
-    >
-      {['116', '117', '118', '119', '120'].map((label) => (
-        <div key={label} style={{ width: '14%', textAlign: 'center', fontSize: '14px', color: 'rgba(255, 255, 255, 0.6)' }}>
-          {label}
-        </div>
-      ))}
-    </div>
-  </div>
-);
+import { SegmentedControl } from '../components/SegmentedControl';
 
 export const SubjectActivityScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -113,57 +34,25 @@ export const SubjectActivityScreen: React.FC = () => {
   const currentSubjectName = `Subject_${subjectId}`;
 
   return (
-    <main className="nexus-content activity-content" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* Header Row */}
-      <div
-        className="sub-header-row"
-        style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative' }}
-      >
-        <BackButton onClick={handleBack} />
-
-        {/* Carousel Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
-          <button
-            onClick={handlePrevSubject}
-            disabled={subjectId <= 1}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'white',
-              fontSize: '24px',
-              cursor: subjectId <= 1 ? 'default' : 'pointer',
-              opacity: subjectId <= 1 ? 0.3 : 1,
-            }}
-          >
-            &lt;
-          </button>
-          <span style={{ textTransform: 'uppercase', letterSpacing: '1px', fontSize: '18px', fontWeight: 500 }}>{currentSubjectName}</span>
-          <button
-            onClick={handleNextSubject}
-            disabled={subjectId >= subjectCount}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'white',
-              fontSize: '24px',
-              cursor: subjectId >= subjectCount ? 'default' : 'pointer',
-              opacity: subjectId >= subjectCount ? 0.3 : 1,
-            }}
-          >
-            &gt;
-          </button>
-        </div>
-
-        {/* Segmented Control */}
-        <SegmentedControl
-          value={viewMode}
-          onChange={(value) => setViewMode(value as 'realtime' | 'periodic')}
-          options={[
-            { label: 'Real time', value: 'realtime' },
-            { label: 'Periodic', value: 'periodic' },
-          ]}
-        />
-      </div>
+    <ScreenLayout>
+      <CarouselHeader
+        title={currentSubjectName}
+        onBack={handleBack}
+        onPrev={handlePrevSubject}
+        onNext={handleNextSubject}
+        isPrevDisabled={subjectId <= 1}
+        isNextDisabled={subjectId >= subjectCount}
+        rightElement={
+          <SegmentedControl
+            value={viewMode}
+            onChange={(value) => setViewMode(value as 'realtime' | 'periodic')}
+            options={[
+              { label: 'Real time', value: 'realtime' },
+              { label: 'Periodic', value: 'periodic' },
+            ]}
+          />
+        }
+      />
 
       {/* Main Content Area */}
       <div style={{ width: '100%', display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px', flex: 1, minHeight: 0 }}>
@@ -292,7 +181,7 @@ export const SubjectActivityScreen: React.FC = () => {
             }}
           >
             <div style={{ flex: 1, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <PendingBarGraph />
+              <BarGraph variant="detailed" labels={['116', '117', '118', '119', '120']} />
             </div>
 
             {/* Time Control */}
@@ -333,6 +222,6 @@ export const SubjectActivityScreen: React.FC = () => {
           End activity
         </button>
       </div>
-    </main>
+    </ScreenLayout>
   );
 };

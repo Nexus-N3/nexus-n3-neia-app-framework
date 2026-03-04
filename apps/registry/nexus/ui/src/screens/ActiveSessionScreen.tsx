@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
-import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
 import { subjectCountAtom } from '../store/atoms';
+import { ScreenLayout } from '../components/ScreenLayout';
+import { CarouselHeader } from '../components/CarouselHeader';
 
 export const ActiveSessionScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -33,45 +34,16 @@ export const ActiveSessionScreen: React.FC = () => {
   };
 
   return (
-    <main className="nexus-content active-session-content" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* Header Row with Carousel */}
-      <div className="sub-header-row" style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <BackButton onClick={handleBack} />
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          <button
-            onClick={handlePrevPage}
-            disabled={currentPage === 0}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'white',
-              fontSize: '24px',
-              cursor: currentPage === 0 ? 'default' : 'pointer',
-              opacity: currentPage === 0 ? 0.3 : 1,
-            }}
-          >
-            &lt;
-          </button>
-          <span style={{ textTransform: 'uppercase', letterSpacing: '1px', fontSize: '18px', fontWeight: 500 }}>Subjects</span>
-          <button
-            onClick={handleNextPage}
-            disabled={currentPage >= totalPages - 1}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'white',
-              fontSize: '24px',
-              cursor: currentPage >= totalPages - 1 ? 'default' : 'pointer',
-              opacity: currentPage >= totalPages - 1 ? 0.3 : 1,
-            }}
-          >
-            &gt;
-          </button>
-        </div>
-
-        <InfoButton />
-      </div>
+    <ScreenLayout className="active-session-content">
+      <CarouselHeader
+        onBack={handleBack}
+        title="Subjects"
+        onPrev={handlePrevPage}
+        onNext={handleNextPage}
+        isPrevDisabled={currentPage === 0}
+        isNextDisabled={currentPage >= totalPages - 1}
+        rightElement={<InfoButton />}
+      />
 
       <div
         className="subjects-grid"
@@ -164,6 +136,6 @@ export const ActiveSessionScreen: React.FC = () => {
           Start new activity
         </button>
       </div>
-    </main>
+    </ScreenLayout>
   );
 };
