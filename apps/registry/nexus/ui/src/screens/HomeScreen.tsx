@@ -9,11 +9,13 @@ export const HomeScreen: React.FC = () => {
   };
 
   return (
-    <main className="nexus-content home-content">
+    <main className="nexus-content">
       <h1 className="welcome-text">WELCOME TO NEXUS</h1>
-      <button className="nexus-btn start-session-btn" onClick={handleStartSession}>
-        Start new session
-      </button>
+      <div className="screen-footer">
+        <button className="nexus-btn" onClick={handleStartSession}>
+          Start new session
+        </button>
+      </div>
     </main>
   );
 };

@@ -86,7 +86,7 @@ export const ActivityScreen: React.FC = () => {
             }}
           >
             <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h3 style={{ margin: '0', fontSize: '18px', fontWeight: 500, textAlign: 'center' }}>{subject.name}</h3>
+              <h3 style={{ margin: '0', fontWeight: 500, textAlign: 'center' }}>{subject.name}</h3>
 
               {/* Pending Bar Graph */}
               <div style={{ width: '100%', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -107,7 +107,6 @@ export const ActivityScreen: React.FC = () => {
                 fontWeight: 600,
                 marginTop: '0',
                 textTransform: 'uppercase',
-                fontSize: '14px',
                 transition: 'background-color 0.2s',
               }}
               onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#757db0')}

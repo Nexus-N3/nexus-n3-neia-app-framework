@@ -106,8 +106,8 @@ export const AddSensorScreen: React.FC = () => {
           }}
         >
           <div style={{ padding: '20px' }}>
-            <h3 style={{ fontSize: '12px', color: '#888', margin: 0, textAlign: 'center' }}>SENSOR TYPE</h3>
-            <div style={{ fontSize: '10px', color: '#666', marginTop: '5px', textAlign: 'center', textTransform: 'uppercase' }}>Select one</div>
+            <h3 style={{ color: '#888', margin: 0, textAlign: 'center' }}>SENSOR TYPE</h3>
+            <div style={{ color: '#666', marginTop: '5px', textAlign: 'center', textTransform: 'uppercase' }}>Select one</div>
           </div>
 
           <div className="list-content" style={{ flex: 1, overflowY: 'auto', padding: '0 10px 20px 10px' }}>
@@ -157,8 +157,8 @@ export const AddSensorScreen: React.FC = () => {
           }}
         >
           <div style={{ padding: '20px' }}>
-            <h3 style={{ fontSize: '12px', color: '#888', margin: 0, textAlign: 'center' }}>PLACEMENT</h3>
-            <div style={{ fontSize: '10px', color: '#666', marginTop: '5px', textAlign: 'center', textTransform: 'uppercase' }}>Select one or more</div>
+            <h3 style={{ color: '#888', margin: 0, textAlign: 'center' }}>PLACEMENT</h3>
+            <div style={{ color: '#666', marginTop: '5px', textAlign: 'center', textTransform: 'uppercase' }}>Select one or more</div>
           </div>
 
           <div className="list-content" style={{ flex: 1, overflowY: 'auto', padding: '0 20px 20px 20px' }}>
@@ -178,7 +178,6 @@ export const AddSensorScreen: React.FC = () => {
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
                     width: '100%',
-                    fontSize: '14px',
                     fontWeight: 600,
                     textAlign: 'center',
                     justifyContent: 'center',
@@ -199,7 +198,6 @@ export const AddSensorScreen: React.FC = () => {
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
                     width: '100%',
-                    fontSize: '14px',
                     fontWeight: 600,
                     textAlign: 'center',
                     justifyContent: 'center',
@@ -220,7 +218,6 @@ export const AddSensorScreen: React.FC = () => {
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
                     width: '100%',
-                    fontSize: '14px',
                     fontWeight: 600,
                     textAlign: 'center',
                     justifyContent: 'center',
@@ -242,7 +239,6 @@ export const AddSensorScreen: React.FC = () => {
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
                     width: '100%',
-                    fontSize: '14px',
                     fontWeight: 600,
                     textAlign: 'center',
                     justifyContent: 'center',
@@ -263,7 +259,6 @@ export const AddSensorScreen: React.FC = () => {
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
                     width: '100%',
-                    fontSize: '14px',
                     fontWeight: 600,
                     textAlign: 'center',
                     justifyContent: 'center',
@@ -284,7 +279,6 @@ export const AddSensorScreen: React.FC = () => {
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
                     width: '100%',
-                    fontSize: '14px',
                     fontWeight: 600,
                     textAlign: 'center',
                     justifyContent: 'center',
@@ -305,7 +299,6 @@ export const AddSensorScreen: React.FC = () => {
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
                     width: '100%',
-                    fontSize: '14px',
                     fontWeight: 600,
                     textAlign: 'center',
                     justifyContent: 'center',
@@ -326,7 +319,6 @@ export const AddSensorScreen: React.FC = () => {
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
                     width: '100%',
-                    fontSize: '14px',
                     fontWeight: 600,
                     textAlign: 'center',
                     justifyContent: 'center',
@@ -344,7 +336,6 @@ export const AddSensorScreen: React.FC = () => {
                   justifyContent: 'center',
                   height: '100%',
                   color: '#aaa',
-                  fontSize: '14px',
                 }}
               >
                 Select a sensor type first
@@ -367,8 +358,8 @@ export const AddSensorScreen: React.FC = () => {
           }}
         >
           <div style={{ padding: '20px' }}>
-            <h3 style={{ fontSize: '12px', color: '#888', margin: 0, textAlign: 'center' }}>COMPUTATIONS</h3>
-            <div style={{ fontSize: '10px', color: '#666', marginTop: '5px', textAlign: 'center', textTransform: 'uppercase' }}>Computations</div>
+            <h3 style={{ color: '#888', margin: 0, textAlign: 'center' }}>COMPUTATIONS</h3>
+            <div style={{ color: '#666', marginTop: '5px', textAlign: 'center', textTransform: 'uppercase' }}>Computations</div>
           </div>
 
           <div className="list-content" style={{ flex: 1, overflowY: 'auto', padding: '0 10px 20px 10px' }}>
@@ -401,7 +392,6 @@ export const AddSensorScreen: React.FC = () => {
                   justifyContent: 'center',
                   height: '100%',
                   color: '#aaa',
-                  fontSize: '14px',
                 }}
               >
                 Select placement first

@@ -6,9 +6,19 @@ body {
   height: 100%;
   box-sizing: border-box;
   font-family: 'Montserrat', sans-serif;
+  font-size: 32px;
   letter-spacing: 0.26em; /* 26% letter spacing */
   background-color: #071d28; /* As requested background color */
   color: #fff;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: 0.26em;
+  font-size: inherit; /* Inherit the 32px unless overridden */
 }
 
 #root {

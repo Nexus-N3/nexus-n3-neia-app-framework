@@ -59,14 +59,13 @@ export const SessionScreen: React.FC = () => {
               background: 'none',
               border: 'none',
               color: 'white',
-              fontSize: '24px',
               cursor: currentPage === 0 ? 'default' : 'pointer',
               opacity: currentPage === 0 ? 0.3 : 1,
             }}
           >
             &lt;
           </button>
-          <span style={{ textTransform: 'uppercase', fontSize: '18px', fontWeight: 500 }}>Subjects</span>
+          <span style={{ textTransform: 'uppercase', fontWeight: 500 }}>Subjects</span>
           <button
             onClick={handleNextPage}
             disabled={currentPage >= totalPages - 1}
@@ -74,7 +73,6 @@ export const SessionScreen: React.FC = () => {
               background: 'none',
               border: 'none',
               color: 'white',
-              fontSize: '24px',
               cursor: currentPage >= totalPages - 1 ? 'default' : 'pointer',
               opacity: currentPage >= totalPages - 1 ? 0.3 : 1,
             }}
@@ -113,7 +111,7 @@ export const SessionScreen: React.FC = () => {
             }}
           >
             <div className="subject-info" style={{ padding: '20px', flex: 1 }}>
-              <h3 style={{ textAlign: 'center', margin: '0 0 15px 0', fontSize: '18px', fontWeight: 500 }}>{subject.name}</h3>
+              <h3 style={{ textAlign: 'center', margin: '0 0 15px 0', fontWeight: 500 }}>{subject.name}</h3>
 
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px', color: '#ff6b6b' }}>
                 <div
@@ -125,15 +123,15 @@ export const SessionScreen: React.FC = () => {
                     marginRight: '8px',
                   }}
                 ></div>
-                <span style={{ textTransform: 'uppercase', fontSize: '12px', fontWeight: 600 }}>Sensors</span>
+                <span style={{ textTransform: 'uppercase', fontWeight: 600 }}>Sensors</span>
               </div>
 
               <div className="subject-stats" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: 'rgba(255,255,255,0.7)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'rgba(255,255,255,0.7)' }}>
                   <span>Required</span>
                   <span style={{ color: 'white' }}>{subject.sensorsRequired}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: 'rgba(255,255,255,0.7)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'rgba(255,255,255,0.7)' }}>
                   <span>Connected</span>
                   <span style={{ color: 'white' }}>{subject.sensorsConnected}</span>
                 </div>

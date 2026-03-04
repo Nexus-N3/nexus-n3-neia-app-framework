@@ -60,7 +60,6 @@ export const SubjectActivityScreen: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px', padding: '20px' }}>
           <h3
             style={{
-              fontSize: '18px',
               color: 'white',
               margin: '0 0 20px 0',
               fontWeight: 500,
@@ -76,7 +75,6 @@ export const SubjectActivityScreen: React.FC = () => {
               <h4
                 style={{
                   margin: '0 0 4px 0',
-                  fontSize: '12px',
                   color: 'rgba(255, 255, 255, 0.6)',
                   textTransform: 'uppercase',
                   textAlign: 'center',
@@ -86,15 +84,15 @@ export const SubjectActivityScreen: React.FC = () => {
               </h4>
               <hr style={{ borderColor: 'rgba(255, 255, 255, 0.1)', margin: '8px 0 16px 0' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.6)', textTransform: 'uppercase' }}>INTENSITY</span>
-                <span style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.6)', textTransform: 'uppercase' }}>DOSE</span>
+                <span style={{ color: 'rgba(255, 255, 255, 0.6)', textTransform: 'uppercase' }}>INTENSITY</span>
+                <span style={{ color: 'rgba(255, 255, 255, 0.6)', textTransform: 'uppercase' }}>DOSE</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '24px', fontWeight: 500, marginTop: '4px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 500, marginTop: '4px' }}>
                 <span style={{ color: '#5960F6' }}>
-                  5.1 <span style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.6)' }}>bw/s</span>
+                  5.1 <span style={{ color: 'rgba(255, 255, 255, 0.6)' }}>bw/s</span>
                 </span>
                 <span style={{ color: '#5960F6' }}>
-                  0.3 <span style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.6)' }}>kBW</span>
+                  0.3 <span style={{ color: 'rgba(255, 255, 255, 0.6)' }}>kBW</span>
                 </span>
               </div>
             </div>
@@ -104,7 +102,6 @@ export const SubjectActivityScreen: React.FC = () => {
               <h4
                 style={{
                   margin: '0 0 4px 0',
-                  fontSize: '12px',
                   color: 'rgba(255, 255, 255, 0.6)',
                   textTransform: 'uppercase',
                   textAlign: 'center',
@@ -113,14 +110,14 @@ export const SubjectActivityScreen: React.FC = () => {
                 IMBALANCE
               </h4>
               <hr style={{ borderColor: 'rgba(255, 255, 255, 0.1)', margin: '8px 0 16px 0' }} />
-              <div style={{ marginBottom: '16px', fontSize: '14px', textAlign: 'right', color: '#19D2EA' }}>right side dominant</div>
+              <div style={{ marginBottom: '16px', textAlign: 'right', color: '#19D2EA' }}>right side dominant</div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                <span style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.6)', textTransform: 'uppercase' }}>OFFLOAD</span>
-                <span style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.6)', textTransform: 'uppercase' }}>RATIO</span>
+                <span style={{ color: 'rgba(255, 255, 255, 0.6)', textTransform: 'uppercase' }}>OFFLOAD</span>
+                <span style={{ color: 'rgba(255, 255, 255, 0.6)', textTransform: 'uppercase' }}>RATIO</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '24px', fontWeight: 600, color: '#5960F6' }}>4%</span>
-                <span style={{ fontSize: '24px', fontWeight: 500 }}>
+                <span style={{ fontWeight: 600, color: '#5960F6' }}>4%</span>
+                <span style={{ fontWeight: 500 }}>
                   <span style={{ color: '#5960F6' }}>48</span>:<span style={{ color: '#19D2EA' }}>52</span>
                 </span>
               </div>
@@ -131,7 +128,6 @@ export const SubjectActivityScreen: React.FC = () => {
               <h4
                 style={{
                   margin: '0 0 4px 0',
-                  fontSize: '12px',
                   color: 'rgba(255, 255, 255, 0.6)',
                   textTransform: 'uppercase',
                   textAlign: 'center',
@@ -141,17 +137,17 @@ export const SubjectActivityScreen: React.FC = () => {
               </h4>
               <hr style={{ borderColor: 'rgba(255, 255, 255, 0.1)', margin: '8px 0 16px 0' }} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#5960F6', fontWeight: 500 }}>42</span>
                   <span style={{ color: 'rgba(255, 255, 255, 0.6)' }}>V</span>
                   <span style={{ color: '#19D2EA', fontWeight: 500 }}>58</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#5960F6', fontWeight: 500 }}>56</span>
                   <span style={{ color: 'rgba(255, 255, 255, 0.6)' }}>ML</span>
                   <span style={{ color: '#19D2EA', fontWeight: 500 }}>44</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#5960F6', fontWeight: 500 }}>48</span>
                   <span style={{ color: 'rgba(255, 255, 255, 0.6)' }}>AP</span>
                   <span style={{ color: '#19D2EA', fontWeight: 500 }}>52</span>

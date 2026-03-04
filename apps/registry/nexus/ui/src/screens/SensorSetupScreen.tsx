@@ -98,7 +98,6 @@ export const SensorSetupScreen: React.FC = () => {
         >
           <h3
             style={{
-              fontSize: '12px',
               color: '#888',
               marginBottom: '10px',
               padding: '15px',
@@ -122,7 +121,6 @@ export const SensorSetupScreen: React.FC = () => {
                         border: 'none',
                         borderBottom: '1px solid currentColor',
                         color: 'inherit',
-                        fontSize: '0.8em',
                         padding: 0,
                         cursor: 'pointer',
                         opacity: 0.8,
@@ -137,7 +135,6 @@ export const SensorSetupScreen: React.FC = () => {
                         border: 'none',
                         borderBottom: '1px solid currentColor',
                         color: '#ff6b6b',
-                        fontSize: '0.8em',
                         padding: 0,
                         cursor: 'pointer',
                         opacity: 0.8,
@@ -184,9 +181,9 @@ export const SensorSetupScreen: React.FC = () => {
                       justifyContent: 'space-between',
                     }}
                   >
-                    <div style={{ fontWeight: 'bold', fontSize: '1.1em' }}>{sensor.type}</div>
-                    <div style={{ fontSize: '0.9em', opacity: 0.8, color: '#aaa' }}>{sensor.loc}</div>
-                    <div style={{ fontSize: '0.9em', color: '#888', fontStyle: 'italic' }}>Computes: {sensor.comp}</div>
+                    <div style={{ fontWeight: 'bold' }}>{sensor.type}</div>
+                    <div style={{ opacity: 0.8, color: '#aaa' }}>{sensor.loc}</div>
+                    <div style={{ color: '#888', fontStyle: 'italic' }}>Computes: {sensor.comp}</div>
                   </div>
                 ))}
                 {selectedSetup.isCustom && (
@@ -207,8 +204,8 @@ export const SensorSetupScreen: React.FC = () => {
                 }}
               >
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontWeight: 'bold', fontSize: '1.2em', marginBottom: '8px' }}>NO SENSORS ADDED</div>
-                  <div style={{ fontSize: '0.9em' }}>Add new sensors to create your custom setup</div>
+                  <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>NO SENSORS ADDED</div>
+                  <div style={{}}>Add new sensors to create your custom setup</div>
                 </div>
                 {selectedSetup.isCustom && (
                   <button className="add-sensor-btn" onClick={() => navigate('/add-sensor')}>

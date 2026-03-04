@@ -43,14 +43,14 @@ export const CarouselHeader: React.FC<CarouselHeaderProps> = ({ onBack, title, o
             background: 'none',
             border: 'none',
             color: 'white',
-            fontSize: '24px',
+            fontSize: 'inherit',
             cursor: isPrevDisabled ? 'default' : 'pointer',
             opacity: isPrevDisabled ? 0.3 : 1,
           }}
         >
           &lt;
         </button>
-        <span style={{ textTransform: 'uppercase', fontSize: '18px', fontWeight: 500 }}>{title}</span>
+        <span style={{ textTransform: 'uppercase', fontWeight: 500 }}>{title}</span>
         <button
           onClick={onNext}
           disabled={isNextDisabled}
@@ -58,7 +58,7 @@ export const CarouselHeader: React.FC<CarouselHeaderProps> = ({ onBack, title, o
             background: 'none',
             border: 'none',
             color: 'white',
-            fontSize: '24px',
+            fontSize: 'inherit',
             cursor: isNextDisabled ? 'default' : 'pointer',
             opacity: isNextDisabled ? 0.3 : 1,
           }}

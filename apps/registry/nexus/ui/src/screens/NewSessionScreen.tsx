@@ -20,11 +20,13 @@ export const NewSessionScreen: React.FC = () => {
   };
 
   return (
-    <main className="nexus-content new-session-content">
-      <div className="sub-header-row">
+    <main className="nexus-content" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div className="sub-header-row" style={{ marginBottom: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <BackButton onClick={handleBack} />
 
-        <h2 className="screen-title">SESSION NAME</h2>
+        <h2 className="screen-title" style={{ margin: 0 }}>
+          SESSION NAME
+        </h2>
 
         <InfoButton />
       </div>
@@ -53,11 +55,11 @@ export const NewSessionScreen: React.FC = () => {
         </div>
       </div>
 
-      <div className="content-spacer"></div>
-
-      <button className="nexus-btn continue-btn" onClick={handleContinue}>
-        Continue to session setup
-      </button>
+      <div className="screen-footer">
+        <button className="nexus-btn continue-btn" onClick={handleContinue}>
+          Continue to session setup
+        </button>
+      </div>
     </main>
   );
 };

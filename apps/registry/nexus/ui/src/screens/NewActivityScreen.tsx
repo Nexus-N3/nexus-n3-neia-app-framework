@@ -26,7 +26,7 @@ export const NewActivityScreen: React.FC = () => {
       {/* Sub Header */}
       <div className="sub-header-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '40px', alignItems: 'center' }}>
         <BackButton onClick={handleBack} />
-        <h2 className="screen-title" style={{ margin: 0, fontSize: '24px' }}>
+        <h2 className="screen-title" style={{ margin: 0 }}>
           ACTIVITY NAME
         </h2>
         <InfoButton />
@@ -35,7 +35,7 @@ export const NewActivityScreen: React.FC = () => {
       <div style={{ maxWidth: '600px', width: '100%', margin: '0 auto', flex: 1 }}>
         {/* Activity Name Input */}
         <div className="form-group" style={{ marginBottom: '40px' }}>
-          <label style={{ display: 'block', marginBottom: '10px', fontSize: '14px', color: '#ccc', textTransform: 'uppercase' }}>Activity name</label>
+          <label style={{ display: 'block', marginBottom: '10px', color: '#ccc', textTransform: 'uppercase' }}>Activity name</label>
           <input
             type="text"
             className="nexus-input"
@@ -49,10 +49,9 @@ export const NewActivityScreen: React.FC = () => {
               border: '1px solid rgba(255, 255, 255, 0.1)',
               borderRadius: '4px',
               color: 'white',
-              fontSize: '16px',
             }}
           />
-          <div style={{ marginTop: '10px', fontSize: '12px', color: '#888', fontStyle: 'italic' }}>Group names can be edited once created</div>
+          <div style={{ marginTop: '10px', color: '#888', fontStyle: 'italic' }}>Group names can be edited once created</div>
         </div>
 
         {/* Separator */}
@@ -60,7 +59,7 @@ export const NewActivityScreen: React.FC = () => {
 
         {/* Quick Selection */}
         <div style={{ marginBottom: '40px' }}>
-          <h3 style={{ fontSize: '14px', color: '#ccc', textTransform: 'uppercase', marginBottom: '20px' }}>Quick selection</h3>
+          <h3 style={{ color: '#ccc', textTransform: 'uppercase', marginBottom: '20px' }}>Quick selection</h3>
           <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
             {quickSelections.map((selection) => (
               <button
@@ -73,7 +72,6 @@ export const NewActivityScreen: React.FC = () => {
                   padding: '10px 20px',
                   color: 'white',
                   cursor: 'pointer',
-                  fontSize: '14px',
                   transition: 'background-color 0.2s',
                 }}
                 onMouseOver={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)')}
@@ -87,8 +85,8 @@ export const NewActivityScreen: React.FC = () => {
       </div>
 
       {/* Footer Button */}
-      <div style={{ marginTop: 'auto', marginBottom: '20px', display: 'flex', justifyContent: 'center' }}>
-        <button className="nexus-btn continue-btn" onClick={handleStartActivity} style={{ width: '100%', maxWidth: '400px' }}>
+      <div className="screen-footer">
+        <button className="nexus-btn continue-btn" onClick={handleStartActivity}>
           Start activity
         </button>
       </div>

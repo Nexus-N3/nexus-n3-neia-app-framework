@@ -102,7 +102,6 @@ const SensorRow = ({ sensor }: { sensor: Sensor }) => {
           className="nexus-btn secondary-btn"
           style={{
             padding: '6px 16px',
-            fontSize: '12px',
             height: 'auto',
             minWidth: 'auto',
             background: 'rgba(255, 255, 255, 0.1)',
@@ -120,7 +119,6 @@ const SensorRow = ({ sensor }: { sensor: Sensor }) => {
           className="nexus-btn secondary-btn"
           style={{
             padding: '6px 16px',
-            fontSize: '12px',
             height: 'auto',
             minWidth: 'auto',
           }}
@@ -160,7 +158,7 @@ export const AssignSensorsScreen: React.FC = () => {
       {/* Sub Header */}
       <div className="sub-header-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', alignItems: 'center' }}>
         <BackButton onClick={handleBack} />
-        <h2 className="screen-title" style={{ margin: 0, fontSize: '24px' }}>
+        <h2 className="screen-title" style={{ margin: 0 }}>
           PLACE SENSORS
         </h2>
         <InfoButton />
@@ -171,8 +169,8 @@ export const AssignSensorsScreen: React.FC = () => {
           <div key={subject.id} className="subject-section" style={{ marginBottom: '30px' }}>
             {/* Subject Header */}
             <div style={{ marginBottom: '15px' }}>
-              <h3 style={{ fontSize: '18px', fontWeight: 500, margin: '0 0 5px 0', textAlign: 'left' }}>{subject.name}: assigned sensors</h3>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#ccc' }}>
+              <h3 style={{ fontWeight: 500, margin: '0 0 5px 0', textAlign: 'left' }}>{subject.name}: assigned sensors</h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ccc' }}>
                 <div
                   style={{
                     width: '10px',

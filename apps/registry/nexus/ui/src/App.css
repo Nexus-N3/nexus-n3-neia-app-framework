@@ -42,7 +42,6 @@
 }
 
 .header-center .facility-name {
-  font-size: 18px;
   text-transform: uppercase;
 }
 
@@ -93,7 +92,6 @@
   border: none;
   border-radius: 15px; /* Rounded style */
   padding: 12px 124px;
-  font-size: 16px;
   cursor: pointer;
   font-weight: 500;
   transition: background-color 0.2s;
@@ -132,10 +130,8 @@
 }
 
 .screen-title {
-  font-size: 24px;
   font-weight: 400;
   text-transform: uppercase;
-  margin: 0;
 }
 
 .session-form-container {
@@ -143,7 +139,7 @@
   flex-direction: column;
   gap: 32px;
   width: 100%;
-  max-width: 600px; /* Limit width for aesthetics */
+  max-width: 1000px; /* Limit width for aesthetics */
   align-items: stretch; /* Stretch inputs to fill container */
 }
 
@@ -155,7 +151,6 @@
 }
 
 .form-group label {
-  font-size: 14px;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.7);
 }
@@ -166,7 +161,6 @@
   border-radius: 8px;
   padding: 16px;
   color: white;
-  font-size: 16px;
   outline: none;
   transition: border-color 0.2s;
 }
@@ -185,7 +179,6 @@
   border: none;
   border-radius: 15px; /* Rounded style */
   padding: 12px 60px;
-  font-size: 16px;
   cursor: pointer;
   font-weight: 500;
   transition: background-color 0.2s;
@@ -216,7 +209,6 @@
   border: 2px solid white;
   background: none;
   color: white;
-  font-size: 24px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -237,7 +229,6 @@
 }
 
 .input-hint {
-  font-size: 12px;
   color: rgba(255, 255, 255, 0.5);
   margin-top: 4px;
 }
@@ -252,7 +243,6 @@
   padding: 15px;
   cursor: pointer;
   font-weight: 600;
-  font-size: 14px;
   transition: background-color 0.2s;
 }
 
@@ -294,7 +284,6 @@
   border-radius: 4px;
   color: white;
   cursor: pointer;
-  font-size: 14px;
   font-weight: 600;
   transition: all 0.2s ease;
   text-transform: uppercase;
@@ -306,4 +295,17 @@
 .add-sensor-btn:hover {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.4);
+}
+
+.screen-footer {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: auto;
+  margin-bottom: 20px;
+}
+
+.screen-footer button {
+  min-width: 800px;
 }

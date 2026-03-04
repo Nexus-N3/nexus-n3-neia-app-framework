@@ -50,11 +50,11 @@ export const SubjectsRequiredScreen: React.FC = () => {
         </div>
       </div>
 
-      <div className="content-spacer"></div>
-
-      <button className="nexus-btn continue-btn" onClick={handleContinue}>
-        Continue to sensor requirements
-      </button>
+      <div className="screen-footer">
+        <button className="nexus-btn continue-btn" onClick={handleContinue}>
+          Continue to sensor requirements
+        </button>
+      </div>
     </main>
   );
 };
