@@ -65,7 +65,6 @@ export const SubjectActivityScreen: React.FC = () => {
               margin: '0 0 20px 0',
               fontWeight: 500,
               textTransform: 'uppercase',
-              letterSpacing: '1px',
             }}
           >
             Performance
@@ -80,7 +79,6 @@ export const SubjectActivityScreen: React.FC = () => {
                   fontSize: '12px',
                   color: 'rgba(255, 255, 255, 0.6)',
                   textTransform: 'uppercase',
-                  letterSpacing: '1px',
                   textAlign: 'center',
                 }}
               >
@@ -109,7 +107,6 @@ export const SubjectActivityScreen: React.FC = () => {
                   fontSize: '12px',
                   color: 'rgba(255, 255, 255, 0.6)',
                   textTransform: 'uppercase',
-                  letterSpacing: '1px',
                   textAlign: 'center',
                 }}
               >
@@ -123,7 +120,7 @@ export const SubjectActivityScreen: React.FC = () => {
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '24px', fontWeight: 600, color: '#5960F6' }}>4%</span>
-                <span style={{ fontSize: '24px', fontFamily: 'monospace', fontWeight: 500 }}>
+                <span style={{ fontSize: '24px', fontWeight: 500 }}>
                   <span style={{ color: '#5960F6' }}>48</span>:<span style={{ color: '#19D2EA' }}>52</span>
                 </span>
               </div>
@@ -137,7 +134,6 @@ export const SubjectActivityScreen: React.FC = () => {
                   fontSize: '12px',
                   color: 'rgba(255, 255, 255, 0.6)',
                   textTransform: 'uppercase',
-                  letterSpacing: '1px',
                   textAlign: 'center',
                 }}
               >

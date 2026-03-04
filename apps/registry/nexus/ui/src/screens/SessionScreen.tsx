@@ -66,7 +66,7 @@ export const SessionScreen: React.FC = () => {
           >
             &lt;
           </button>
-          <span style={{ textTransform: 'uppercase', letterSpacing: '1px', fontSize: '18px', fontWeight: 500 }}>Subjects</span>
+          <span style={{ textTransform: 'uppercase', fontSize: '18px', fontWeight: 500 }}>Subjects</span>
           <button
             onClick={handleNextPage}
             disabled={currentPage >= totalPages - 1}

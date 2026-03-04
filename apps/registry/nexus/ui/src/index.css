@@ -5,7 +5,8 @@ body {
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: 0.26em; /* 26% letter spacing */
   background-color: #071d28; /* As requested background color */
   color: #fff;
 }

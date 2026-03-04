@@ -50,7 +50,7 @@ export const CarouselHeader: React.FC<CarouselHeaderProps> = ({ onBack, title, o
         >
           &lt;
         </button>
-        <span style={{ textTransform: 'uppercase', letterSpacing: '1px', fontSize: '18px', fontWeight: 500 }}>{title}</span>
+        <span style={{ textTransform: 'uppercase', fontSize: '18px', fontWeight: 500 }}>{title}</span>
         <button
           onClick={onNext}
           disabled={isNextDisabled}

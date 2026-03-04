@@ -35,9 +35,7 @@ export const NewActivityScreen: React.FC = () => {
       <div style={{ maxWidth: '600px', width: '100%', margin: '0 auto', flex: 1 }}>
         {/* Activity Name Input */}
         <div className="form-group" style={{ marginBottom: '40px' }}>
-          <label style={{ display: 'block', marginBottom: '10px', fontSize: '14px', color: '#ccc', letterSpacing: '1px', textTransform: 'uppercase' }}>
-            Activity name
-          </label>
+          <label style={{ display: 'block', marginBottom: '10px', fontSize: '14px', color: '#ccc', textTransform: 'uppercase' }}>Activity name</label>
           <input
             type="text"
             className="nexus-input"
@@ -62,7 +60,7 @@ export const NewActivityScreen: React.FC = () => {
 
         {/* Quick Selection */}
         <div style={{ marginBottom: '40px' }}>
-          <h3 style={{ fontSize: '14px', color: '#ccc', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '20px' }}>Quick selection</h3>
+          <h3 style={{ fontSize: '14px', color: '#ccc', textTransform: 'uppercase', marginBottom: '20px' }}>Quick selection</h3>
           <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
             {quickSelections.map((selection) => (
               <button

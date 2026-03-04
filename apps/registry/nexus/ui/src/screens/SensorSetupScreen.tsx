@@ -101,7 +101,6 @@ export const SensorSetupScreen: React.FC = () => {
               fontSize: '12px',
               color: '#888',
               marginBottom: '10px',
-              letterSpacing: '1px',
               padding: '15px',
               textAlign: 'center',
               marginLeft: '10px',
