@@ -29,3 +29,6 @@ apps/registry/app_react_template/ui/node_modules/
 Thumbs.db
 .idea/
 .vscode/
+
+# Local model artifacts (do not commit)
+models/ollama/
