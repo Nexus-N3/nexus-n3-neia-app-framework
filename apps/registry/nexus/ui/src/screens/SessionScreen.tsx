@@ -48,7 +48,7 @@ export const SessionScreen: React.FC = () => {
   const currentSubjects = subjects.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
 
   return (
-    <main className="nexus-content session-content" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <main className="nexus-content session-content" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       {/* Header Row with Carousel */}
       <div className="sub-header-row" style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <BackButton onClick={handleBack} />
@@ -99,6 +99,7 @@ export const SessionScreen: React.FC = () => {
           flex: 1,
           width: '100%',
           overflow: 'hidden',
+          minHeight: 0,
         }}
       >
         {currentSubjects.map((subject) => (
@@ -112,25 +113,26 @@ export const SessionScreen: React.FC = () => {
               flexDirection: 'column',
               justifyContent: 'space-between',
               overflow: 'hidden',
+              height: '100%',
             }}
           >
             <div className="subject-info" style={{ padding: '20px', flex: 1 }}>
-              <h3 style={{ textAlign: 'center', margin: '0 0 15px 0', fontWeight: 500 }}>{subject.name}</h3>
+              <h3 style={{ textAlign: 'center', margin: '0 0 15px 0', fontWeight: 500, fontSize: '32px' }}>{subject.name}</h3>
 
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px', color: '#ff6b6b' }}>
                 <div
                   style={{
-                    width: '10px',
-                    height: '10px',
+                    width: '24px',
+                    height: '24px',
                     borderRadius: '50%',
                     background: '#ff6b6b',
-                    marginRight: '8px',
+                    marginRight: '12px',
                   }}
                 ></div>
-                <span style={{ textTransform: 'uppercase', fontWeight: 600 }}>Sensors</span>
+                <span style={{ textTransform: 'uppercase', fontWeight: 600, fontSize: '32px' }}>Sensors</span>
               </div>
 
-              <div className="subject-stats" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div className="subject-stats" style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '32px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: 'rgba(255,255,255,0.7)' }}>
                   <span>Required</span>
                   <span style={{ color: 'white' }}>{subject.sensorsRequired}</span>
@@ -139,33 +141,15 @@ export const SessionScreen: React.FC = () => {
                   <span>Connected</span>
                   <span style={{ color: 'white' }}>{subject.sensorsConnected}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: 'rgba(255,255,255,0.7)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'rgba(255,255,255,0.7)' }}>
                   <span>Placed</span>
                   <span style={{ color: 'white' }}>{subject.sensorsPlaced}</span>
                 </div>
               </div>
             </div>
 
-            <button
-              className="place-sensors-btn"
-              style={{
-                background: '#8a92bf',
-                color: 'white',
-                border: 'none',
-                borderRadius: '0 0 4px 4px',
-                width: '100%',
-                padding: '12px',
-                cursor: 'pointer',
-                fontWeight: 600,
-                marginTop: '0',
-                textTransform: 'uppercase',
-                fontSize: '14px',
-                transition: 'background-color 0.2s',
-              }}
-              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#757db0')}
-              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#8a92bf')}
-            >
-              Place sensors
+            <button className="panel-action-btn" onClick={() => {}}>
+              Connect sensors
             </button>
           </div>
         ))}

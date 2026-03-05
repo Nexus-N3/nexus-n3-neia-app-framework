@@ -172,7 +172,7 @@ export const SensorSetupScreen: React.FC = () => {
               </div>
             ))}
           </div>
-          <button className="custom-setup-btn" onClick={handleAddCustomSetup}>
+          <button className="panel-action-btn" onClick={handleAddCustomSetup}>
             + New custom setup
           </button>
         </div>

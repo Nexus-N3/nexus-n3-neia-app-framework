@@ -239,7 +239,7 @@
   font-size: 24px;
 }
 
-.custom-setup-btn {
+.panel-action-btn {
   margin-top: auto;
   background-color: #8a92bf;
   color: white;
@@ -252,7 +252,7 @@
   transition: background-color 0.2s;
 }
 
-.custom-setup-btn:hover {
+.panel-action-btn:hover {
   background-color: #757db0;
 }
 
