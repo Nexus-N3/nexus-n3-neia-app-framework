@@ -15,7 +15,7 @@ export const SubjectActivityScreen: React.FC = () => {
   const [viewMode, setViewMode] = useState<'realtime' | 'periodic'>('realtime');
 
   const handleBack = () => {
-    navigate('/activity');
+    navigate('/active-session');
   };
 
   const handlePrevSubject = () => {

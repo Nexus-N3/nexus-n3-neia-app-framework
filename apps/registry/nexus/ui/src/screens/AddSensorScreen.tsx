@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAtom } from 'jotai';
+import { useAtom, useSetAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
 import { setupsAtom, selectedSetupIdAtom, Sensor } from '../store/atoms';
@@ -28,7 +28,7 @@ const PLACEMENT_OPTIONS = [
 
 export const AddSensorScreen: React.FC = () => {
   const navigate = useNavigate();
-  const [, setSetups] = useAtom(setupsAtom);
+  const setSetups = useSetAtom(setupsAtom);
   const [selectedSetupId] = useAtom(selectedSetupIdAtom);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedPlacements, setSelectedPlacements] = useState<string[]>([]);

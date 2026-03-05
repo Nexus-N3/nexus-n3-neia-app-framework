@@ -29,6 +29,7 @@ export const setupsAtom = atom<Setup[]>([
 export const selectedSetupIdAtom = atom<string>('default');
 
 export const sessionNameAtom = atom<string>('');
+export const activeActivityAtom = atom<string | null>(null);
 export const subjectCountAtom = atom<number>(4);
 
 // Format: `${subjectId}:${sensorId}`

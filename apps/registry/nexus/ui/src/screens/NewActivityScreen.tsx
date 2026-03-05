@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSetAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
+import { activeActivityAtom } from '../store/atoms';
 
 export const NewActivityScreen: React.FC = () => {
   const navigate = useNavigate();
   const [activityName, setActivityName] = useState('');
+  const setActiveActivity = useSetAtom(activeActivityAtom);
 
   const quickSelections = ['Walking', 'Running', 'Jumping', 'Rowing'];
 
@@ -14,9 +17,9 @@ export const NewActivityScreen: React.FC = () => {
   };
 
   const handleStartActivity = () => {
-    // Logic to start activity would go here
-    console.log('Starting activity:', activityName || 'Activity_1');
-    navigate('/activity');
+    const finalName = activityName || 'Activity_1';
+    setActiveActivity(finalName);
+    navigate('/active-session');
   };
 
   return (
