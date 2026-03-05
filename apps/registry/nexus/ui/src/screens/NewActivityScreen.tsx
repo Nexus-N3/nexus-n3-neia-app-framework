@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
-import { sessionNameAtom } from '../store/atoms';
 
 export const NewActivityScreen: React.FC = () => {
   const navigate = useNavigate();

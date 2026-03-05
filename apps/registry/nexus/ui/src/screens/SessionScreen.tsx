@@ -3,13 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
-import { sessionNameAtom, subjectCountAtom, setupsAtom, selectedSetupIdAtom, placedSensorsAtom } from '../store/atoms';
+import { subjectCountAtom, setupsAtom, selectedSetupIdAtom, placedSensorsAtom } from '../store/atoms';
 import chevronLeft from '../assets/chevron-left.svg';
 import chevronRight from '../assets/chevron-right.svg';
 
 export const SessionScreen: React.FC = () => {
   const navigate = useNavigate();
-  const [sessionName] = useAtom(sessionNameAtom);
   const [subjectCount] = useAtom(subjectCountAtom);
   const [setups] = useAtom(setupsAtom);
   const [selectedSetupId] = useAtom(selectedSetupIdAtom);

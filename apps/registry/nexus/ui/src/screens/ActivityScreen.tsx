@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
 import { SegmentedControl } from '../components/SegmentedControl';
-import { subjectCountAtom, sessionNameAtom } from '../store/atoms';
+import { subjectCountAtom } from '../store/atoms';
 import { ScreenLayout } from '../components/ScreenLayout';
 import { CarouselHeader } from '../components/CarouselHeader';
 import { BarGraph } from '../components/BarGraph';
@@ -10,7 +10,6 @@ import { BarGraph } from '../components/BarGraph';
 export const ActivityScreen: React.FC = () => {
   const navigate = useNavigate();
   const [subjectCount] = useAtom(subjectCountAtom);
-  const [sessionName] = useAtom(sessionNameAtom);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);

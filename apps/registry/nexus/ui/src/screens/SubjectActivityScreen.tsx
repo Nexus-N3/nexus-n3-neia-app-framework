@@ -4,7 +4,7 @@ import { useAtom } from 'jotai';
 import { ScreenLayout } from '../components/ScreenLayout';
 import { CarouselHeader } from '../components/CarouselHeader';
 import { BarGraph } from '../components/BarGraph';
-import { subjectCountAtom, sessionNameAtom } from '../store/atoms';
+import { subjectCountAtom } from '../store/atoms';
 import { SegmentedControl } from '../components/SegmentedControl';
 
 export const SubjectActivityScreen: React.FC = () => {
@@ -12,7 +12,6 @@ export const SubjectActivityScreen: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const subjectId = parseInt(id || '1', 10);
   const [subjectCount] = useAtom(subjectCountAtom);
-  const [sessionName] = useAtom(sessionNameAtom);
   const [viewMode, setViewMode] = useState<'realtime' | 'periodic'>('realtime');
 
   const handleBack = () => {

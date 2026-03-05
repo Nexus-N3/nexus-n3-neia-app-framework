@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
-import { Sensor, Setup, setupsAtom, selectedSetupIdAtom } from '../store/atoms';
+import { Setup, setupsAtom, selectedSetupIdAtom } from '../store/atoms';
 
 export const SensorSetupScreen: React.FC = () => {
   const navigate = useNavigate();

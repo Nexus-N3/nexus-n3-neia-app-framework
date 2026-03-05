@@ -4,7 +4,7 @@ import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
 import { SensorRow } from '../components/SensorRow';
-import { subjectCountAtom, setupsAtom, selectedSetupIdAtom, Sensor, placedSensorsAtom } from '../store/atoms';
+import { subjectCountAtom, setupsAtom, selectedSetupIdAtom, placedSensorsAtom } from '../store/atoms';
 
 export const AssignSensorsScreen: React.FC = () => {
   const navigate = useNavigate();

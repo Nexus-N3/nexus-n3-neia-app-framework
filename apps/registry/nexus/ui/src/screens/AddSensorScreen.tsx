@@ -28,7 +28,7 @@ const PLACEMENT_OPTIONS = [
 
 export const AddSensorScreen: React.FC = () => {
   const navigate = useNavigate();
-  const [setups, setSetups] = useAtom(setupsAtom);
+  const [, setSetups] = useAtom(setupsAtom);
   const [selectedSetupId] = useAtom(selectedSetupIdAtom);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedPlacements, setSelectedPlacements] = useState<string[]>([]);

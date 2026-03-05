@@ -11,7 +11,7 @@ const mount: MountFn = (el) => {
 };
 
 if (typeof globalThis !== 'undefined') {
-  (globalThis as any).NexusMount = mount;
+  globalThis.NexusMount = mount;
 }
 
 const appMountEl = document.getElementById('app-mount');
