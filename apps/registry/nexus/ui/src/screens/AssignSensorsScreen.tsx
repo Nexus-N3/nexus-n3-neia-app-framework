@@ -135,7 +135,7 @@ export const AssignSensorsScreen: React.FC = () => {
           onMouseOver={(e) => (e.currentTarget.style.backgroundColor = 'rgba(89, 96, 246, 0.1)')}
           onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
         >
-          {'Find more sensors'}
+          {allSensorsPlaced ? 'Manage sensors' : 'Find more sensors'}
         </button>
         <button className="nexus-btn continue-btn" onClick={() => navigate('/session')}>
           Return to session
