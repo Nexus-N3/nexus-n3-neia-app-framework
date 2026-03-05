@@ -1,29 +1,42 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
 import { SensorRow } from '../components/SensorRow';
-import { subjectCountAtom, setupsAtom, selectedSetupIdAtom, Sensor } from '../store/atoms';
+import { subjectCountAtom, setupsAtom, selectedSetupIdAtom, Sensor, placedSensorsAtom } from '../store/atoms';
 
 export const AssignSensorsScreen: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const subjectIdParam = searchParams.get('subjectId');
+  const targetSubjectId = subjectIdParam ? parseInt(subjectIdParam, 10) : null;
+
   const [subjectCount] = useAtom(subjectCountAtom);
   const [setups] = useAtom(setupsAtom);
   const [selectedSetupId] = useAtom(selectedSetupIdAtom);
+  const [placedSensors] = useAtom(placedSensorsAtom);
 
   // Determine required sensors
   const selectedSetup = setups.find((s) => s.id === selectedSetupId);
   const requiredSensors = selectedSetup ? selectedSetup.sensors : [];
 
   // Generate subjects (this should ideally be shared state, but keeping consistent with SessionScreen logic)
-  const subjects = Array.from({ length: subjectCount }, (_, i) => ({
-    id: i + 1,
-    name: `Subject_${i + 1}`,
-    requiredCount: requiredSensors.length,
-    connectedCount: 0, // Mocked for now
-    placedCount: 0, // Mocked for now
-  }));
+  let subjects = Array.from({ length: subjectCount }, (_, i) => {
+    const id = i + 1;
+    const subjectPlacedCount = requiredSensors.filter((s) => placedSensors.has(`${id}:${s.id}`)).length;
+    return {
+      id,
+      name: `Subject_${id}`,
+      requiredCount: requiredSensors.length,
+      connectedCount: 0, // Mocked for now
+      placedCount: subjectPlacedCount,
+    };
+  });
+
+  if (targetSubjectId) {
+    subjects = subjects.filter((s) => s.id === targetSubjectId);
+  }
 
   const handleBack = () => {
     navigate('/session');
@@ -88,7 +101,7 @@ export const AssignSensorsScreen: React.FC = () => {
             {/* Sensors List */}
             <div className="sensors-list" style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
               {requiredSensors.map((sensor, idx) => (
-                <SensorRow key={`${subject.id}-${idx}`} sensor={sensor} />
+                <SensorRow key={`${subject.id}-${idx}`} subjectId={subject.id} sensor={sensor} />
               ))}
               {requiredSensors.length === 0 && <div style={{ fontStyle: 'italic', color: '#888', padding: '10px' }}>No sensors required for this setup.</div>}
             </div>

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
-import { sessionNameAtom, subjectCountAtom, setupsAtom, selectedSetupIdAtom } from '../store/atoms';
+import { sessionNameAtom, subjectCountAtom, setupsAtom, selectedSetupIdAtom, placedSensorsAtom } from '../store/atoms';
 import chevronLeft from '../assets/chevron-left.svg';
 import chevronRight from '../assets/chevron-right.svg';
 
@@ -13,6 +13,7 @@ export const SessionScreen: React.FC = () => {
   const [subjectCount] = useAtom(subjectCountAtom);
   const [setups] = useAtom(setupsAtom);
   const [selectedSetupId] = useAtom(selectedSetupIdAtom);
+  const [placedSensors] = useAtom(placedSensorsAtom);
 
   // Pagination state (we show 4 items at a time in a 2x2 grid)
   const [currentPage, setCurrentPage] = useState(0);
@@ -35,14 +36,21 @@ export const SessionScreen: React.FC = () => {
   };
 
   // Generate subjects based on count
-  const subjects = Array.from({ length: subjectCount }, (_, i) => ({
-    id: i + 1,
-    name: `Subject_${i + 1}`,
-    sensorsRequired: sensorsRequired,
-    sensorsConnected: 0,
-    sensorsPlaced: 0,
-    status: 'red', // Default status
-  }));
+  const subjects = Array.from({ length: subjectCount }, (_, i) => {
+    const id = i + 1;
+    const placedCount = selectedSetup ? selectedSetup.sensors.filter((s) => placedSensors.has(`${id}:${s.id}`)).length : 0;
+
+    return {
+      id,
+      name: `Subject_${id}`,
+      sensorsRequired: sensorsRequired,
+      sensorsConnected: 0,
+      sensorsPlaced: placedCount,
+      status: 'red', // Default status
+    };
+  });
+
+  const allSensorsPlaced = subjects.length > 0 && subjects.every((s) => s.sensorsPlaced >= s.sensorsRequired && s.sensorsRequired > 0);
 
   // Get current page subjects
   const currentSubjects = subjects.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
@@ -148,7 +156,7 @@ export const SessionScreen: React.FC = () => {
               </div>
             </div>
 
-            <button className="panel-action-btn" onClick={() => {}}>
+            <button className="panel-action-btn" onClick={() => navigate(`/assign-sensors?subjectId=${subject.id}`)}>
               Connect sensors
             </button>
           </div>
@@ -171,7 +179,16 @@ export const SessionScreen: React.FC = () => {
         <button className="nexus-btn secondary-btn" onClick={() => navigate('/assign-sensors')}>
           Connect sensors
         </button>
-        <button className="nexus-btn continue-btn" onClick={() => navigate('/active-session')}>
+        <button
+          className="nexus-btn continue-btn"
+          onClick={() => navigate('/active-session')}
+          disabled={!allSensorsPlaced}
+          style={{
+            backgroundColor: allSensorsPlaced ? undefined : '#D9D9D9',
+            cursor: allSensorsPlaced ? 'pointer' : 'default',
+            color: allSensorsPlaced ? undefined : '#888',
+          }}
+        >
           Start session
         </button>
       </div>

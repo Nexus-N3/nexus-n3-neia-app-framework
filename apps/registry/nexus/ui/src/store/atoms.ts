@@ -30,3 +30,6 @@ export const selectedSetupIdAtom = atom<string>('default');
 
 export const sessionNameAtom = atom<string>('');
 export const subjectCountAtom = atom<number>(4);
+
+// Format: `${subjectId}:${sensorId}`
+export const placedSensorsAtom = atom<Set<string>>(new Set());

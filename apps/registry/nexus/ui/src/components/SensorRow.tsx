@@ -1,11 +1,24 @@
 import React, { useState } from 'react';
+import { useAtom } from 'jotai';
 import { ToggleSwitch } from './ToggleSwitch';
 import { BatteryIcon } from './BatteryIcon';
-import { Sensor } from '../store/atoms';
+import { Sensor, placedSensorsAtom } from '../store/atoms';
 
-export const SensorRow = ({ sensor }: { sensor: Sensor }) => {
+export const SensorRow = ({ subjectId, sensor }: { subjectId: number; sensor: Sensor }) => {
   const [isOn, setIsOn] = useState(false);
-  const [isPlaced, setIsPlaced] = useState(false);
+  const [placedSensors, setPlacedSensors] = useAtom(placedSensorsAtom);
+  const sensorKey = `${subjectId}:${sensor.id}`;
+  const isPlaced = placedSensors.has(sensorKey);
+
+  const togglePlaced = () => {
+    const next = new Set(placedSensors);
+    if (next.has(sensorKey)) {
+      next.delete(sensorKey);
+    } else {
+      next.add(sensorKey);
+    }
+    setPlacedSensors(next);
+  };
 
   return (
     <div
@@ -57,7 +70,7 @@ export const SensorRow = ({ sensor }: { sensor: Sensor }) => {
         </button>
         <button
           className="nexus-btn secondary-btn"
-          onClick={() => setIsPlaced(!isPlaced)}
+          onClick={togglePlaced}
           style={{
             padding: '0 30px',
             height: '80px',
