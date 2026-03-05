@@ -4,6 +4,8 @@ import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
 import { sessionNameAtom, subjectCountAtom, setupsAtom, selectedSetupIdAtom } from '../store/atoms';
+import chevronLeft from '../assets/chevron-left.svg';
+import chevronRight from '../assets/chevron-right.svg';
 
 export const SessionScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -51,33 +53,35 @@ export const SessionScreen: React.FC = () => {
       <div className="sub-header-row" style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <BackButton onClick={handleBack} />
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '60px' }}>
           <button
             onClick={handlePrevPage}
             disabled={currentPage === 0}
             style={{
               background: 'none',
               border: 'none',
+              padding: 0,
               color: 'white',
               cursor: currentPage === 0 ? 'default' : 'pointer',
               opacity: currentPage === 0 ? 0.3 : 1,
             }}
           >
-            &lt;
+            <img src={chevronLeft} alt="Previous" style={{ width: '32px', height: '32px', marginTop: '8px' }} />
           </button>
-          <span style={{ textTransform: 'uppercase', fontWeight: 500 }}>Subjects</span>
+          <span style={{ textTransform: 'uppercase', fontWeight: 500, fontSize: '48px' }}>Subjects</span>
           <button
             onClick={handleNextPage}
             disabled={currentPage >= totalPages - 1}
             style={{
               background: 'none',
               border: 'none',
+              padding: 0,
               color: 'white',
               cursor: currentPage >= totalPages - 1 ? 'default' : 'pointer',
               opacity: currentPage >= totalPages - 1 ? 0.3 : 1,
             }}
           >
-            &gt;
+            <img src={chevronRight} alt="Next" style={{ width: '32px', height: '32px', marginTop: '8px' }} />
           </button>
         </div>
 
