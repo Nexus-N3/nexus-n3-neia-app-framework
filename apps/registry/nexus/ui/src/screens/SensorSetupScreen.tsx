@@ -65,7 +65,7 @@ export const SensorSetupScreen: React.FC = () => {
   };
 
   return (
-    <main className="nexus-content sensor-setup-content" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <main className="nexus-content sensor-setup-content" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       <div className="sub-header-row">
         <BackButton onClick={handleBack} />
         <h2 className="screen-title">SENSOR SETUP</h2>
@@ -81,6 +81,7 @@ export const SensorSetupScreen: React.FC = () => {
           flex: 1,
           width: '100%',
           overflow: 'hidden',
+          minHeight: 0,
         }}
       >
         {/* Top Left: Default Setups (spans 1 row) */}
@@ -93,6 +94,8 @@ export const SensorSetupScreen: React.FC = () => {
             flexDirection: 'column',
             background: 'rgba(231, 238, 243, 0.05)',
             borderRadius: '4px',
+            height: '100%',
+            overflow: 'hidden',
           }}
         >
           <h3
@@ -119,6 +122,7 @@ export const SensorSetupScreen: React.FC = () => {
               gap: '20px',
               display: 'flex',
               flexDirection: 'column',
+              paddingBottom: '20px',
             }}
           >
             {setups.map((setup) => (
@@ -181,10 +185,11 @@ export const SensorSetupScreen: React.FC = () => {
             gridRow: '1 / 2',
             display: 'flex',
             flexDirection: 'column',
-            overflowY: 'auto',
+            height: '100%',
+            overflow: 'hidden',
           }}
         >
-          <div className="sensor-list" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <div className="sensor-list" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', paddingBottom: '20px' }}>
             {selectedSetup?.sensors && selectedSetup.sensors.length > 0 ? (
               <>
                 {selectedSetup.sensors.map((sensor, i) => (

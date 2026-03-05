@@ -73,7 +73,7 @@ export const AddSensorScreen: React.FC = () => {
   };
 
   return (
-    <main className="nexus-content add-sensor-content" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <main className="nexus-content add-sensor-content" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       <div className="sub-header-row">
         <BackButton onClick={handleBack} />
         <h2 className="screen-title">ADD SENSOR</h2>
@@ -90,6 +90,8 @@ export const AddSensorScreen: React.FC = () => {
           marginTop: '30px',
           flex: 1, // Grow to fill the flex container
           width: '100%',
+          overflow: 'hidden',
+          minHeight: 0,
         }}
       >
         {/* Column 1: SENSOR TYPE */}
@@ -103,6 +105,7 @@ export const AddSensorScreen: React.FC = () => {
             background: 'rgba(231, 238, 243, 0.05)',
             borderRadius: '4px',
             height: '100%',
+            overflow: 'hidden',
           }}
         >
           <div style={{ padding: '20px' }}>
@@ -144,6 +147,7 @@ export const AddSensorScreen: React.FC = () => {
             background: 'rgba(231, 238, 243, 0.05)',
             borderRadius: '4px',
             height: '100%',
+            overflow: 'hidden',
           }}
         >
           <div style={{ padding: '20px' }}>
@@ -246,6 +250,7 @@ export const AddSensorScreen: React.FC = () => {
             background: 'rgba(231, 238, 243, 0.05)',
             borderRadius: '4px',
             height: '100%',
+            overflow: 'hidden',
           }}
         >
           <div style={{ padding: '20px' }}>
