@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
+import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
+import { SubjectsCarousel } from '../components/SubjectsCarousel';
 import { subjectCountAtom } from '../store/atoms';
 import { ScreenLayout } from '../components/ScreenLayout';
-import { CarouselHeader } from '../components/CarouselHeader';
 
 export const ActiveSessionScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -35,15 +36,14 @@ export const ActiveSessionScreen: React.FC = () => {
 
   return (
     <ScreenLayout className="active-session-content">
-      <CarouselHeader
-        onBack={handleBack}
-        title="Subjects"
-        onPrev={handlePrevPage}
-        onNext={handleNextPage}
-        isPrevDisabled={currentPage === 0}
-        isNextDisabled={currentPage >= totalPages - 1}
-        rightElement={<InfoButton />}
-      />
+      {/* Header Row with Carousel */}
+      <div className="sub-header-row" style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <BackButton onClick={handleBack} />
+
+        <SubjectsCarousel currentPage={currentPage} totalPages={totalPages} onPrev={handlePrevPage} onNext={handleNextPage} />
+
+        <InfoButton />
+      </div>
 
       <div
         className="subjects-grid"
@@ -68,29 +68,16 @@ export const ActiveSessionScreen: React.FC = () => {
               flexDirection: 'column',
               justifyContent: 'space-between',
               overflow: 'hidden',
+              height: '100%',
             }}
           >
             <div style={{ padding: '20px', flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-              <h3 style={{ margin: '0', fontWeight: 500, textAlign: 'center' }}>{subject.name}</h3>
+              <h3 style={{ margin: '0', textAlign: 'center' }}>{subject.name}</h3>
             </div>
 
             <button
-              className="nexus-btn secondary-btn"
-              style={{
-                background: '#8a92bf',
-                color: 'white',
-                border: 'none',
-                borderRadius: '0 0 4px 4px',
-                width: '100%',
-                padding: '12px',
-                cursor: 'pointer',
-                fontWeight: 600,
-                marginTop: '0',
-                textTransform: 'uppercase',
-                transition: 'background-color 0.2s',
-              }}
-              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#757db0')}
-              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#8a92bf')}
+              className="panel-action-btn primary"
+              onClick={() => navigate(`/activity/subject/${subject.id}`)}
             >
               View subject
             </button>

@@ -81,7 +81,7 @@ export const AssignSensorsScreen: React.FC = () => {
           <div key={subject.id} className="subject-section" style={{ marginBottom: '30px' }}>
             {/* Subject Header */}
             <div style={{ marginBottom: '15px' }}>
-              <h3 style={{ fontWeight: 500, margin: '0 0 5px 0', textAlign: 'left', fontSize: '32px', textTransform: 'uppercase' }}>
+              <h3 style={{ margin: '0 0 5px 0', textAlign: 'left', textTransform: 'uppercase' }}>
                 {subject.name}: assigned sensors
               </h3>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ccc', fontSize: '32px' }}>

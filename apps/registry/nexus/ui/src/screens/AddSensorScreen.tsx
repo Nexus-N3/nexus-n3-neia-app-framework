@@ -109,7 +109,7 @@ export const AddSensorScreen: React.FC = () => {
           }}
         >
           <div style={{ padding: '20px' }}>
-            <h3 style={{ color: '#fff', fontSize: '32px', margin: 0, textAlign: 'center' }}>SENSOR TYPE</h3>
+            <h3 style={{ margin: 0, textAlign: 'center' }}>SENSOR TYPE</h3>
             <div style={{ color: '#fff', fontSize: '24px', marginTop: '5px', textAlign: 'center', textTransform: 'uppercase' }}>Select one</div>
           </div>
 
@@ -151,7 +151,7 @@ export const AddSensorScreen: React.FC = () => {
           }}
         >
           <div style={{ padding: '20px' }}>
-            <h3 style={{ color: '#fff', fontSize: '32px', margin: 0, textAlign: 'center' }}>PLACEMENT</h3>
+            <h3 style={{ margin: 0, textAlign: 'center' }}>PLACEMENT</h3>
             <div style={{ color: '#fff', fontSize: '24px', marginTop: '5px', textAlign: 'center', textTransform: 'uppercase' }}>Select one or more</div>
           </div>
 
@@ -254,7 +254,7 @@ export const AddSensorScreen: React.FC = () => {
           }}
         >
           <div style={{ padding: '20px' }}>
-            <h3 style={{ color: '#fff', fontSize: '32px', margin: 0, textAlign: 'center' }}>COMPUTATIONS</h3>
+            <h3 style={{ margin: 0, textAlign: 'center' }}>COMPUTATIONS</h3>
             <div style={{ color: '#fff', fontSize: '24px', marginTop: '5px', textAlign: 'center', textTransform: 'uppercase' }}>Computations</div>
           </div>
 

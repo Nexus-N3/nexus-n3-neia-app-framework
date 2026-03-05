@@ -59,9 +59,7 @@ export const SubjectActivityScreen: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px', padding: '20px' }}>
           <h3
             style={{
-              color: 'white',
               margin: '0 0 20px 0',
-              fontWeight: 500,
               textTransform: 'uppercase',
             }}
           >

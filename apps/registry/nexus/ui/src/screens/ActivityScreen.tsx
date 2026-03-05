@@ -85,7 +85,7 @@ export const ActivityScreen: React.FC = () => {
             }}
           >
             <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h3 style={{ margin: '0', fontWeight: 500, textAlign: 'center' }}>{subject.name}</h3>
+              <h3 style={{ margin: '0', textAlign: 'center' }}>{subject.name}</h3>
 
               {/* Pending Bar Graph */}
               <div style={{ width: '100%', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -93,26 +93,8 @@ export const ActivityScreen: React.FC = () => {
               </div>
             </div>
 
-            <button
-              className="nexus-btn secondary-btn"
-              style={{
-                background: '#8a92bf',
-                color: 'white',
-                border: 'none',
-                borderRadius: '0 0 4px 4px',
-                width: '100%',
-                padding: '12px',
-                cursor: 'pointer',
-                fontWeight: 600,
-                marginTop: '0',
-                textTransform: 'uppercase',
-                transition: 'background-color 0.2s',
-              }}
-              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#757db0')}
-              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#8a92bf')}
-              onClick={() => navigate(`/activity/subject/${subject.id}`)}
-            >
-              View
+            <button className="panel-action-btn" onClick={() => navigate(`/activity/subject/${subject.id}`)}>
+              View subject
             </button>
           </div>
         ))}

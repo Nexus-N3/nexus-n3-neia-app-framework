@@ -256,6 +256,14 @@
   background-color: #757db0;
 }
 
+.panel-action-btn.primary {
+  background-color: #5960f6;
+}
+
+.panel-action-btn.primary:hover {
+  background-color: #484ecf;
+}
+
 .setup-item {
   min-height: 44px;
   padding: 30px;
@@ -370,4 +378,12 @@
 
 .screen-footer button {
   min-width: 800px;
+}
+
+/* Global H3 Styles */
+h3 {
+  font-size: 32px;
+  font-weight: 500;
+  margin: 0;
+  color: #fff;
 }
