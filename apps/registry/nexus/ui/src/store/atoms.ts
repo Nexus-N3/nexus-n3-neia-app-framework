@@ -17,7 +17,7 @@ export interface Setup {
 export const setupsAtom = atom<Setup[]>([
   {
     id: 'default',
-    name: 'DEFAULT',
+    name: 'loading',
     isCustom: false,
     sensors: [
       { id: 'default-1', type: 'MOVELLA DOT', loc: 'Left ankle', comp: 'Loading' },

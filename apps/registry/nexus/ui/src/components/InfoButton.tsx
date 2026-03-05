@@ -11,10 +11,10 @@ export const InfoButton: React.FC<InfoButtonProps> = ({ onClick, className = '' 
       <svg width="70" height="70" viewBox="0 0 70 70" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path
           d="M35.0006 46.6666V34.9999M35.0006 23.3333H35.0298M64.1673 34.9999C64.1673 51.1082 51.109 64.1666 35.0006 64.1666C18.8923 64.1666 5.83398 51.1082 5.83398 34.9999C5.83398 18.8916 18.8923 5.83325 35.0006 5.83325C51.109 5.83325 64.1673 18.8916 64.1673 34.9999Z"
-          stroke="#E7EEF3"
-          stroke-width="4"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          stroke="currentColor"
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
       </svg>
     </button>

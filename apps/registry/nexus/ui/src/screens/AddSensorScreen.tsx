@@ -106,30 +106,20 @@ export const AddSensorScreen: React.FC = () => {
           }}
         >
           <div style={{ padding: '20px' }}>
-            <h3 style={{ color: '#888', margin: 0, textAlign: 'center' }}>SENSOR TYPE</h3>
-            <div style={{ color: '#666', marginTop: '5px', textAlign: 'center', textTransform: 'uppercase' }}>Select one</div>
+            <h3 style={{ color: '#fff', fontSize: '32px', margin: 0, textAlign: 'center' }}>SENSOR TYPE</h3>
+            <div style={{ color: '#fff', fontSize: '24px', marginTop: '5px', textAlign: 'center', textTransform: 'uppercase' }}>Select one</div>
           </div>
 
-          <div className="list-content" style={{ flex: 1, overflowY: 'auto', padding: '0 10px 20px 10px' }}>
+          <div
+            className="list-content"
+            style={{ flex: 1, overflowY: 'auto', padding: '0 10px 20px 10px', display: 'flex', flexDirection: 'column', gap: '20px' }}
+          >
             {SENSOR_TYPES.map((type) => (
               <div
                 key={type.id}
                 className={`setup-item ${selectedType === type.id ? 'selected' : ''}`}
                 onClick={() => setSelectedType(type.id)}
-                style={{
-                  padding: '15px',
-                  background: selectedType === type.id ? 'rgba(255,255,255,0.08)' : 'transparent',
-                  marginBottom: '10px',
-                  borderRadius: '4px',
-                  border: selectedType === type.id ? '1px solid #5960F6' : '1px solid rgba(255, 255, 255, 0.2)',
-                  color: selectedType === type.id ? '#5960F6' : '#fff',
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  transition: 'all 0.2s ease',
-                }}
+                style={{ textTransform: 'uppercase' }}
               >
                 <span>{type.name}</span>
                 <div onClick={(e) => e.stopPropagation()}>
@@ -157,172 +147,73 @@ export const AddSensorScreen: React.FC = () => {
           }}
         >
           <div style={{ padding: '20px' }}>
-            <h3 style={{ color: '#888', margin: 0, textAlign: 'center' }}>PLACEMENT</h3>
-            <div style={{ color: '#666', marginTop: '5px', textAlign: 'center', textTransform: 'uppercase' }}>Select one or more</div>
+            <h3 style={{ color: '#fff', fontSize: '32px', margin: 0, textAlign: 'center' }}>PLACEMENT</h3>
+            <div style={{ color: '#fff', fontSize: '24px', marginTop: '5px', textAlign: 'center', textTransform: 'uppercase' }}>Select one or more</div>
           </div>
 
           <div className="list-content" style={{ flex: 1, overflowY: 'auto', padding: '0 20px 20px 20px' }}>
             {selectedType ? (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                 <button
-                  className={`setup-item ${selectedPlacements.includes('head') ? 'selected' : ''}`}
+                  className={`setup-item centered ${selectedPlacements.includes('head') ? 'selected' : ''}`}
                   onClick={() => togglePlacement('head')}
-                  style={{
-                    gridColumn: '1 / 3',
-                    padding: '15px',
-                    background: selectedPlacements.includes('head') ? 'rgba(255,255,255,0.08)' : 'transparent',
-                    marginBottom: '0',
-                    borderRadius: '4px',
-                    border: selectedPlacements.includes('head') ? '1px solid #5960F6' : '1px solid rgba(255, 255, 255, 0.2)',
-                    color: selectedPlacements.includes('head') ? '#5960F6' : '#fff',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    width: '100%',
-                    fontWeight: 600,
-                    textAlign: 'center',
-                    justifyContent: 'center',
-                  }}
+                  style={{ gridColumn: '1 / 3', width: '100%' }}
                 >
                   HEAD
                 </button>
 
                 <button
-                  className={`setup-item ${selectedPlacements.includes('left_wrist') ? 'selected' : ''}`}
+                  className={`setup-item centered ${selectedPlacements.includes('left_wrist') ? 'selected' : ''}`}
                   onClick={() => togglePlacement('left_wrist')}
-                  style={{
-                    padding: '15px',
-                    background: selectedPlacements.includes('left_wrist') ? 'rgba(255,255,255,0.08)' : 'transparent',
-                    borderRadius: '4px',
-                    border: selectedPlacements.includes('left_wrist') ? '1px solid #5960F6' : '1px solid rgba(255, 255, 255, 0.2)',
-                    color: selectedPlacements.includes('left_wrist') ? '#5960F6' : '#fff',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    width: '100%',
-                    fontWeight: 600,
-                    textAlign: 'center',
-                    justifyContent: 'center',
-                  }}
+                  style={{ width: '100%' }}
                 >
                   LEFT WRIST
                 </button>
 
                 <button
-                  className={`setup-item ${selectedPlacements.includes('right_wrist') ? 'selected' : ''}`}
+                  className={`setup-item centered ${selectedPlacements.includes('right_wrist') ? 'selected' : ''}`}
                   onClick={() => togglePlacement('right_wrist')}
-                  style={{
-                    padding: '15px',
-                    background: selectedPlacements.includes('right_wrist') ? 'rgba(255,255,255,0.08)' : 'transparent',
-                    borderRadius: '4px',
-                    border: selectedPlacements.includes('right_wrist') ? '1px solid #5960F6' : '1px solid rgba(255, 255, 255, 0.2)',
-                    color: selectedPlacements.includes('right_wrist') ? '#5960F6' : '#fff',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    width: '100%',
-                    fontWeight: 600,
-                    textAlign: 'center',
-                    justifyContent: 'center',
-                  }}
+                  style={{ width: '100%' }}
                 >
                   RIGHT WRIST
                 </button>
 
                 <button
-                  className={`setup-item ${selectedPlacements.includes('waist') ? 'selected' : ''}`}
+                  className={`setup-item centered ${selectedPlacements.includes('waist') ? 'selected' : ''}`}
                   onClick={() => togglePlacement('waist')}
-                  style={{
-                    gridColumn: '1 / 3',
-                    padding: '15px',
-                    background: selectedPlacements.includes('waist') ? 'rgba(255,255,255,0.08)' : 'transparent',
-                    borderRadius: '4px',
-                    border: selectedPlacements.includes('waist') ? '1px solid #5960F6' : '1px solid rgba(255, 255, 255, 0.2)',
-                    color: selectedPlacements.includes('waist') ? '#5960F6' : '#fff',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    width: '100%',
-                    fontWeight: 600,
-                    textAlign: 'center',
-                    justifyContent: 'center',
-                  }}
+                  style={{ gridColumn: '1 / 3', width: '100%' }}
                 >
                   WAIST
                 </button>
 
                 <button
-                  className={`setup-item ${selectedPlacements.includes('left_thigh') ? 'selected' : ''}`}
+                  className={`setup-item centered ${selectedPlacements.includes('left_thigh') ? 'selected' : ''}`}
                   onClick={() => togglePlacement('left_thigh')}
-                  style={{
-                    padding: '15px',
-                    background: selectedPlacements.includes('left_thigh') ? 'rgba(255,255,255,0.08)' : 'transparent',
-                    borderRadius: '4px',
-                    border: selectedPlacements.includes('left_thigh') ? '1px solid #5960F6' : '1px solid rgba(255, 255, 255, 0.2)',
-                    color: selectedPlacements.includes('left_thigh') ? '#5960F6' : '#fff',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    width: '100%',
-                    fontWeight: 600,
-                    textAlign: 'center',
-                    justifyContent: 'center',
-                  }}
+                  style={{ width: '100%' }}
                 >
                   LEFT THIGH
                 </button>
 
                 <button
-                  className={`setup-item ${selectedPlacements.includes('right_thigh') ? 'selected' : ''}`}
+                  className={`setup-item centered ${selectedPlacements.includes('right_thigh') ? 'selected' : ''}`}
                   onClick={() => togglePlacement('right_thigh')}
-                  style={{
-                    padding: '15px',
-                    background: selectedPlacements.includes('right_thigh') ? 'rgba(255,255,255,0.08)' : 'transparent',
-                    borderRadius: '4px',
-                    border: selectedPlacements.includes('right_thigh') ? '1px solid #5960F6' : '1px solid rgba(255, 255, 255, 0.2)',
-                    color: selectedPlacements.includes('right_thigh') ? '#5960F6' : '#fff',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    width: '100%',
-                    fontWeight: 600,
-                    textAlign: 'center',
-                    justifyContent: 'center',
-                  }}
+                  style={{ width: '100%' }}
                 >
                   RIGHT THIGH
                 </button>
 
                 <button
-                  className={`setup-item ${selectedPlacements.includes('left_ankle') ? 'selected' : ''}`}
+                  className={`setup-item centered ${selectedPlacements.includes('left_ankle') ? 'selected' : ''}`}
                   onClick={() => togglePlacement('left_ankle')}
-                  style={{
-                    padding: '15px',
-                    background: selectedPlacements.includes('left_ankle') ? 'rgba(255,255,255,0.08)' : 'transparent',
-                    borderRadius: '4px',
-                    border: selectedPlacements.includes('left_ankle') ? '1px solid #5960F6' : '1px solid rgba(255, 255, 255, 0.2)',
-                    color: selectedPlacements.includes('left_ankle') ? '#5960F6' : '#fff',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    width: '100%',
-                    fontWeight: 600,
-                    textAlign: 'center',
-                    justifyContent: 'center',
-                  }}
+                  style={{ width: '100%' }}
                 >
                   LEFT ANKLE
                 </button>
 
                 <button
-                  className={`setup-item ${selectedPlacements.includes('right_ankle') ? 'selected' : ''}`}
+                  className={`setup-item centered ${selectedPlacements.includes('right_ankle') ? 'selected' : ''}`}
                   onClick={() => togglePlacement('right_ankle')}
-                  style={{
-                    padding: '15px',
-                    background: selectedPlacements.includes('right_ankle') ? 'rgba(255,255,255,0.08)' : 'transparent',
-                    borderRadius: '4px',
-                    border: selectedPlacements.includes('right_ankle') ? '1px solid #5960F6' : '1px solid rgba(255, 255, 255, 0.2)',
-                    color: selectedPlacements.includes('right_ankle') ? '#5960F6' : '#fff',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    width: '100%',
-                    fontWeight: 600,
-                    textAlign: 'center',
-                    justifyContent: 'center',
-                  }}
+                  style={{ width: '100%' }}
                 >
                   RIGHT ANKLE
                 </button>
@@ -358,28 +249,13 @@ export const AddSensorScreen: React.FC = () => {
           }}
         >
           <div style={{ padding: '20px' }}>
-            <h3 style={{ color: '#888', margin: 0, textAlign: 'center' }}>COMPUTATIONS</h3>
-            <div style={{ color: '#666', marginTop: '5px', textAlign: 'center', textTransform: 'uppercase' }}>Computations</div>
+            <h3 style={{ color: '#fff', fontSize: '32px', margin: 0, textAlign: 'center' }}>COMPUTATIONS</h3>
+            <div style={{ color: '#fff', fontSize: '24px', marginTop: '5px', textAlign: 'center', textTransform: 'uppercase' }}>Computations</div>
           </div>
 
           <div className="list-content" style={{ flex: 1, overflowY: 'auto', padding: '0 10px 20px 10px' }}>
             {selectedPlacements.length > 0 ? (
-              <div
-                className="setup-item selected"
-                style={{
-                  padding: '15px',
-                  background: 'rgba(255,255,255,0.08)',
-                  marginBottom: '10px',
-                  borderRadius: '4px',
-                  border: '1px solid #5960F6',
-                  color: '#5960F6',
-                  textAlign: 'left',
-                  cursor: 'default',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
+              <div className="setup-item selected" style={{ cursor: 'default' }}>
                 <span>LOADING (default)</span>
                 <InfoButton className="item-info-btn" onClick={() => console.log('Info for LOADING')} />
               </div>

@@ -78,7 +78,6 @@ export const SensorSetupScreen: React.FC = () => {
           display: 'grid',
           gridTemplateColumns: '1fr 2fr',
           gap: '20px',
-          marginTop: '30px',
           flex: 1,
           width: '100%',
           overflow: 'hidden',
@@ -98,49 +97,71 @@ export const SensorSetupScreen: React.FC = () => {
         >
           <h3
             style={{
-              color: '#888',
-              marginBottom: '10px',
-              padding: '15px',
+              margin: '20px',
+              marginBottom: '30px',
               textAlign: 'center',
-              marginLeft: '10px',
-              marginRight: '10px',
+              fontSize: '32px',
+              fontWeight: 500,
+              color: '#fff',
+              textTransform: 'uppercase',
             }}
           >
             DEFAULT SETUPS
           </h3>
-          <div className="setup-list" style={{ flex: 1, overflowY: 'auto', marginBottom: '20px', marginLeft: '10px', marginRight: '10px' }}>
+          <div
+            className="setup-list"
+            style={{
+              flex: 1,
+              overflowY: 'auto',
+              marginBottom: '20px',
+              marginLeft: '10px',
+              marginRight: '10px',
+              gap: '20px',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
             {setups.map((setup) => (
-              <div key={setup.id} className={`setup-item ${selectedSetupId === setup.id ? 'selected' : ''}`} onClick={() => setSelectedSetupId(setup.id)}>
+              <div
+                key={setup.id}
+                className={`setup-item ${selectedSetupId === setup.id ? 'selected' : ''}`}
+                onClick={() => setSelectedSetupId(setup.id)}
+                style={{ fontSize: '24px', textTransform: 'uppercase' }}
+              >
                 <span>{setup.name}</span>
                 {setup.isCustom && (
                   <div style={{ display: 'flex', gap: '10px' }}>
-                    <button
-                      onClick={(e) => handleRenameSetup(setup.id, setup.name, e)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        borderBottom: '1px solid currentColor',
-                        color: 'inherit',
-                        padding: 0,
-                        cursor: 'pointer',
-                        opacity: 0.8,
-                      }}
-                    >
-                      Rename
+                    <button onClick={(e) => handleRenameSetup(setup.id, setup.name, e)} className="setup-action-btn" title="Rename">
+                      <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                      </svg>
                     </button>
-                    <button
-                      onClick={(e) => handleDeleteSetup(setup.id, e)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        borderBottom: '1px solid currentColor',
-                        color: '#ff6b6b',
-                        padding: 0,
-                        cursor: 'pointer',
-                        opacity: 0.8,
-                      }}
-                    >
-                      Delete
+                    <button onClick={(e) => handleDeleteSetup(setup.id, e)} className="setup-action-btn delete" title="Delete">
+                      <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                      </svg>
                     </button>
                   </div>
                 )}
@@ -167,20 +188,7 @@ export const SensorSetupScreen: React.FC = () => {
             {selectedSetup?.sensors && selectedSetup.sensors.length > 0 ? (
               <>
                 {selectedSetup.sensors.map((sensor, i) => (
-                  <div
-                    key={i}
-                    className="sensor-card"
-                    style={{
-                      display: 'flex',
-                      gap: '20px',
-                      padding: '20px',
-                      background: 'rgba(255,255,255,0.05)',
-                      marginBottom: '15px',
-                      alignItems: 'center',
-                      borderRadius: '4px',
-                      justifyContent: 'space-between',
-                    }}
-                  >
+                  <div key={i} className="sensor-card">
                     <div style={{ fontWeight: 'bold' }}>{sensor.type}</div>
                     <div style={{ opacity: 0.8, color: '#aaa' }}>{sensor.loc}</div>
                     <div style={{ color: '#888', fontStyle: 'italic' }}>Computes: {sensor.comp}</div>
@@ -201,6 +209,7 @@ export const SensorSetupScreen: React.FC = () => {
                   flex: 1,
                   color: '#aaa',
                   gap: '20px',
+                  fontSize: '24px',
                 }}
               >
                 <div style={{ textAlign: 'center' }}>
