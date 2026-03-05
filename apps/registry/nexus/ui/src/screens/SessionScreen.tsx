@@ -110,57 +110,73 @@ export const SessionScreen: React.FC = () => {
           minHeight: 0,
         }}
       >
-        {currentSubjects.map((subject) => (
-          <div
-            key={subject.id}
-            className="subject-card"
-            style={{
-              background: 'rgba(231, 238, 243, 0.05)',
-              borderRadius: '4px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              overflow: 'hidden',
-              height: '100%',
-            }}
-          >
-            <div className="subject-info" style={{ padding: '20px', flex: 1 }}>
-              <h3 style={{ textAlign: 'center', margin: '0 0 15px 0', fontWeight: 500, fontSize: '32px' }}>{subject.name}</h3>
+        {currentSubjects.map((subject) => {
+          const isComplete = subject.sensorsPlaced >= subject.sensorsRequired && subject.sensorsRequired > 0;
+          return (
+            <div
+              key={subject.id}
+              className="subject-card"
+              style={{
+                background: 'rgba(231, 238, 243, 0.05)',
+                borderRadius: '4px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                overflow: 'hidden',
+                height: '100%',
+              }}
+            >
+              <div className="subject-info" style={{ padding: '20px', flex: 1 }}>
+                <h3 style={{ textAlign: 'center', margin: '0 0 15px 0', fontWeight: 500, fontSize: '32px' }}>{subject.name}</h3>
 
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px', color: '#ff6b6b' }}>
-                <div
-                  style={{
-                    width: '24px',
-                    height: '24px',
-                    borderRadius: '50%',
-                    background: '#ff6b6b',
-                    marginRight: '12px',
-                  }}
-                ></div>
-                <span style={{ textTransform: 'uppercase', fontWeight: 600, fontSize: '32px' }}>Sensors</span>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px', color: isComplete ? '#4CAF50' : '#ff6b6b' }}>
+                  <div
+                    style={{
+                      width: '24px',
+                      height: '24px',
+                      borderRadius: '50%',
+                      background: isComplete ? '#4CAF50' : '#ff6b6b',
+                      marginRight: '12px',
+                    }}
+                  ></div>
+                  <span style={{ textTransform: 'uppercase', fontWeight: 600, fontSize: '32px' }}>Sensors</span>
+                </div>
+
+                {isComplete ? (
+                  <div className="subject-stats" style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '24px' }}>
+                    {selectedSetup?.sensors.map((sensor) => (
+                      <div key={sensor.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'white' }}>
+                        <span>
+                          {sensor.type}: {sensor.loc}
+                        </span>
+                        <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#4CAF50', marginLeft: '10px' }}></div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="subject-stats" style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '32px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'rgba(255,255,255,0.7)' }}>
+                      <span>Required</span>
+                      <span style={{ color: 'white' }}>{subject.sensorsRequired}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'rgba(255,255,255,0.7)' }}>
+                      <span>Connected</span>
+                      <span style={{ color: 'white' }}>{subject.sensorsConnected}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'rgba(255,255,255,0.7)' }}>
+                      <span>Placed</span>
+                      <span style={{ color: 'white' }}>{subject.sensorsPlaced}</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div className="subject-stats" style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '32px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'rgba(255,255,255,0.7)' }}>
-                  <span>Required</span>
-                  <span style={{ color: 'white' }}>{subject.sensorsRequired}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'rgba(255,255,255,0.7)' }}>
-                  <span>Connected</span>
-                  <span style={{ color: 'white' }}>{subject.sensorsConnected}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'rgba(255,255,255,0.7)' }}>
-                  <span>Placed</span>
-                  <span style={{ color: 'white' }}>{subject.sensorsPlaced}</span>
-                </div>
-              </div>
+              <button className="panel-action-btn" onClick={() => navigate(`/assign-sensors?subjectId=${subject.id}`)}>
+                {isComplete ? 'Manage sensors' : 'Connect sensors'}
+              </button>
             </div>
-
-            <button className="panel-action-btn" onClick={() => navigate(`/assign-sensors?subjectId=${subject.id}`)}>
-              Connect sensors
-            </button>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Footer Buttons */}
@@ -177,7 +193,7 @@ export const SessionScreen: React.FC = () => {
       >
         <div></div> {/* Empty 1/3 */}
         <button className="nexus-btn secondary-btn" onClick={() => navigate('/assign-sensors')}>
-          Connect sensors
+          {allSensorsPlaced ? 'Manage sensors' : 'Connect sensors'}
         </button>
         <button
           className="nexus-btn continue-btn"

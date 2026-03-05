@@ -42,6 +42,8 @@ export const AssignSensorsScreen: React.FC = () => {
     navigate('/session');
   };
 
+  const allSensorsPlaced = subjects.length > 0 && subjects.every((s) => s.placedCount >= s.requiredCount);
+
   return (
     <main
       className="nexus-content assign-sensors-content"
@@ -88,7 +90,7 @@ export const AssignSensorsScreen: React.FC = () => {
                     width: '24px',
                     height: '24px',
                     borderRadius: '50%',
-                    background: '#ff6b6b', // Red for incomplete
+                    background: subject.placedCount >= subject.requiredCount ? '#4CAF50' : '#ff6b6b',
                     marginRight: '5px',
                   }}
                 />
@@ -133,7 +135,7 @@ export const AssignSensorsScreen: React.FC = () => {
           onMouseOver={(e) => (e.currentTarget.style.backgroundColor = 'rgba(89, 96, 246, 0.1)')}
           onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
         >
-          Find more sensors
+          {'Find more sensors'}
         </button>
         <button className="nexus-btn continue-btn" onClick={() => navigate('/session')}>
           Return to session
