@@ -5,6 +5,7 @@ import { Sensor } from '../store/atoms';
 
 export const SensorRow = ({ sensor }: { sensor: Sensor }) => {
   const [isOn, setIsOn] = useState(false);
+  const [isPlaced, setIsPlaced] = useState(false);
 
   return (
     <div
@@ -37,7 +38,7 @@ export const SensorRow = ({ sensor }: { sensor: Sensor }) => {
           style={{
             padding: '0 30px',
             height: '80px',
-            minWidth: 'auto',
+            minWidth: '210px',
             background: 'rgba(255, 255, 255, 0.1)',
             border: 'none',
             color: 'white',
@@ -47,6 +48,7 @@ export const SensorRow = ({ sensor }: { sensor: Sensor }) => {
             borderRadius: '15px',
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'center',
           }}
           onMouseOver={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)')}
           onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)')}
@@ -55,17 +57,20 @@ export const SensorRow = ({ sensor }: { sensor: Sensor }) => {
         </button>
         <button
           className="nexus-btn secondary-btn"
+          onClick={() => setIsPlaced(!isPlaced)}
           style={{
             padding: '0 30px',
             height: '80px',
-            minWidth: 'auto',
+            minWidth: '210px',
             fontSize: '24px',
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'center',
             borderRadius: '15px',
+            background: isPlaced ? 'rgba(59, 125, 35, 0.8)' : undefined,
           }}
         >
-          Place
+          {isPlaced ? 'Placed' : 'Place'}
         </button>
       </div>
     </div>
