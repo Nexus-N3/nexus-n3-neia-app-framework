@@ -59,9 +59,7 @@ export const AssignSensorsScreen: React.FC = () => {
       {/* Sub Header */}
       <div className="sub-header-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', alignItems: 'center' }}>
         <BackButton onClick={handleBack} />
-        <h2 className="screen-title" style={{ margin: 0 }}>
-          PLACE SENSORS
-        </h2>
+        <h2 className="screen-title">PLACE SENSORS</h2>
         <InfoButton />
       </div>
 

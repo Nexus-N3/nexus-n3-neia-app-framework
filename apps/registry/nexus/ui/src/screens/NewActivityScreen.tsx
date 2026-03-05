@@ -20,65 +20,47 @@ export const NewActivityScreen: React.FC = () => {
   };
 
   return (
-    <main className="nexus-content new-activity-content" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <main className="nexus-content new-activity-content">
       {/* Sub Header */}
-      <div className="sub-header-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '40px', alignItems: 'center' }}>
+      <div className="sub-header-row">
         <BackButton onClick={handleBack} />
-        <h2 className="screen-title" style={{ margin: 0 }}>
-          ACTIVITY NAME
-        </h2>
+        <h2 className="screen-title">ACTIVITY NAME</h2>
         <InfoButton />
       </div>
 
-      <div style={{ maxWidth: '600px', width: '100%', margin: '0 auto', flex: 1 }}>
+      <div className="session-form-container">
         {/* Activity Name Input */}
-        <div className="form-group" style={{ marginBottom: '40px' }}>
-          <label style={{ display: 'block', marginBottom: '10px', color: '#ccc', textTransform: 'uppercase' }}>Activity name</label>
+        <div className="form-group">
+          <label htmlFor="activity-name">Activity name</label>
           <input
+            id="activity-name"
             type="text"
             className="nexus-input"
             placeholder="(Default) Activity_1"
             value={activityName}
             onChange={(e) => setActivityName(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '15px',
-              background: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '4px',
-              color: 'white',
-            }}
           />
-          <div className="input-hint" style={{ fontStyle: 'italic' }}>
-            Group names can be edited once created
-          </div>
+          <div className="input-hint">Group names can be edited once created</div>
         </div>
 
-        {/* Separator */}
-        <div style={{ height: '1px', background: 'rgba(255, 255, 255, 0.1)', marginBottom: '40px' }}></div>
+        {/* Separator - kept custom as it's not in App.css */}
+        <div style={{ height: '1px', background: 'rgba(255, 255, 255, 0.1)', margin: '20px 0' }}></div>
 
         {/* Quick Selection */}
-        <div style={{ marginBottom: '40px' }}>
-          <h3 style={{ color: '#ccc', textTransform: 'uppercase', marginBottom: '20px' }}>Quick selection</h3>
+        <div>
+          <h3 style={{ marginBottom: '20px' }}>Quick selection</h3>
           <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
             {quickSelections.map((selection) => (
-              <button
+              <div
                 key={selection}
+                className={`setup-item centered ${activityName === selection ? 'selected' : ''}`}
                 onClick={() => setActivityName(selection)}
                 style={{
-                  background: 'transparent',
-                  border: '1px solid #E7EEF3',
-                  borderRadius: '10px',
-                  padding: '10px 20px',
-                  color: 'white',
-                  cursor: 'pointer',
-                  transition: 'background-color 0.2s',
+                  padding: '10px 30px', // Adjusted to match button size better while keeping style
                 }}
-                onMouseOver={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)')}
-                onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
               >
                 {selection}
-              </button>
+              </div>
             ))}
           </div>
         </div>

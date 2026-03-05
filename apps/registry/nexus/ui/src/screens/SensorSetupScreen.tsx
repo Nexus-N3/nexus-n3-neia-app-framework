@@ -66,7 +66,7 @@ export const SensorSetupScreen: React.FC = () => {
 
   return (
     <main className="nexus-content sensor-setup-content" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      <div className="sub-header-row">
+      <div className="sub-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <BackButton onClick={handleBack} />
         <h2 className="screen-title">SENSOR SETUP</h2>
         <InfoButton />
