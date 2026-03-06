@@ -47,7 +47,7 @@ export const SubjectsRequiredScreen: React.FC = () => {
         </button>
       </div>
 
-      <div className="session-form-container">
+      <div className="form-container">
         <div className="form-group">
           <label>Subject naming convention</label>
           <input

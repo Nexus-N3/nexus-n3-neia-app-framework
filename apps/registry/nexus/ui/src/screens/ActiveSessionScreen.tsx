@@ -48,7 +48,7 @@ export const ActiveSessionScreen: React.FC = () => {
   };
 
   return (
-    <ScreenLayout className="active-session-content">
+    <ScreenLayout className="screen-layout">
       {/* Header Row with Carousel */}
       <div className="sub-header-row relative compact">
         <div className="z-1">

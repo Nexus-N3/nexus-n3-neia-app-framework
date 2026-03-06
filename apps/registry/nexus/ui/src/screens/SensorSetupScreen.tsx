@@ -155,7 +155,7 @@ export const SensorSetupScreen: React.FC = () => {
   };
 
   return (
-    <main className="nexus-content sensor-setup-content">
+    <main className="nexus-content screen-layout">
       <div className="sub-header-row">
         <BackButton onClick={handleBack} disabled={isInitializing} />
         <h2 className="screen-title">SENSOR SETUP</h2>
@@ -163,12 +163,12 @@ export const SensorSetupScreen: React.FC = () => {
       </div>
 
       {errorMsg && (
-        <div className="sensor-setup-error">
+        <div className="error-banner">
           Error: {errorMsg}
         </div>
       )}
 
-      <div className="sensor-setup-grid">
+      <div className="split-panel-grid">
         {/* Left: Setup List */}
         <div className="setup-list-panel">
           <h3 className="setup-panel-header">DEFAULT SETUPS</h3>

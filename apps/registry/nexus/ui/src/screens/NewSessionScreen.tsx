@@ -49,7 +49,7 @@ export const NewSessionScreen: React.FC = () => {
         <InfoButton />
       </div>
 
-      <div className="session-form-container">
+      <div className="form-container">
         <div className="form-group">
           <label htmlFor="project-identifier">Project / User Identifier</label>
           <input

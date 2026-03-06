@@ -55,7 +55,7 @@ export const SessionScreen: React.FC = () => {
   const currentSubjects = subjects.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
 
   return (
-    <main className="nexus-content session-content">
+    <main className="nexus-content screen-layout">
       {/* Header Row with Carousel */}
       <div className="sub-header-row compact">
         <BackButton onClick={handleBack} />

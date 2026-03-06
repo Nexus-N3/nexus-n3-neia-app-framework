@@ -107,14 +107,14 @@ export const AddSensorScreen: React.FC = () => {
   };
 
   return (
-    <main className="nexus-content add-sensor-content">
+    <main className="nexus-content screen-layout">
       <div className="sub-header-row">
         <BackButton onClick={handleBack} />
         <h2 className="screen-title">ADD SENSOR</h2>
         <InfoButton />
       </div>
 
-      <div className="add-sensor-grid">
+      <div className="three-col-grid">
         {/* Column 1: SENSOR TYPE */}
         <div className="column-panel type-col">
           <div className="column-header">

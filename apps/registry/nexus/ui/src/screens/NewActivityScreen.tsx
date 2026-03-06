@@ -31,7 +31,7 @@ export const NewActivityScreen: React.FC = () => {
         <InfoButton />
       </div>
 
-      <div className="session-form-container">
+      <div className="form-container">
         {/* Activity Name Input */}
         <div className="form-group">
           <label htmlFor="activity-name">Activity name</label>

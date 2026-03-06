@@ -64,7 +64,7 @@ export const AssignSensorsScreen: React.FC = () => {
   const allSensorsPlaced = subjects.length > 0 && subjects.every((s) => s.placedCount >= s.requiredCount);
 
   return (
-    <main className="nexus-content assign-sensors-content">
+    <main className="nexus-content screen-layout stretch">
       {/* Sub Header */}
       <div className="sub-header-row compact">
         <BackButton onClick={handleBack} />
