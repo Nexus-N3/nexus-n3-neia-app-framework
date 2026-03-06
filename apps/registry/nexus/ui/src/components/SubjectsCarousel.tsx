@@ -7,9 +7,10 @@ interface SubjectsCarouselProps {
   totalPages: number;
   onPrev: () => void;
   onNext: () => void;
+  title?: string;
 }
 
-export const SubjectsCarousel: React.FC<SubjectsCarouselProps> = ({ currentPage, totalPages, onPrev, onNext }) => {
+export const SubjectsCarousel: React.FC<SubjectsCarouselProps> = ({ currentPage, totalPages, onPrev, onNext, title = 'Subjects' }) => {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '60px' }}>
       <button
@@ -26,7 +27,7 @@ export const SubjectsCarousel: React.FC<SubjectsCarouselProps> = ({ currentPage,
       >
         <img src={chevronLeft} alt="Previous" style={{ width: '32px', height: '32px', marginTop: '8px' }} />
       </button>
-      <span style={{ textTransform: 'uppercase', fontWeight: 500, fontSize: '48px' }}>Subjects</span>
+      <span style={{ textTransform: 'uppercase', fontWeight: 500, fontSize: '48px' }}>{title}</span>
       <button
         onClick={onNext}
         disabled={currentPage >= totalPages - 1}

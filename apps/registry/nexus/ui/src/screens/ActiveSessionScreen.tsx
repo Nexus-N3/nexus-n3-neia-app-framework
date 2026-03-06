@@ -114,7 +114,7 @@ export const ActiveSessionScreen: React.FC = () => {
               className="panel-action-btn primary"
               onClick={() => navigate(`/activity/subject/${subject.id}`)}
             >
-              View subject
+              View
             </button>
           </div>
         ))}

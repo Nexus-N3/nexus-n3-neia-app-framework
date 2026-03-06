@@ -4,11 +4,12 @@ import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
 import { SensorRow } from '../components/SensorRow';
+import { SubjectsCarousel } from '../components/SubjectsCarousel';
 import { subjectCountAtom, setupsAtom, selectedSetupIdAtom, placedSensorsAtom } from '../store/atoms';
 
 export const AssignSensorsScreen: React.FC = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const subjectIdParam = searchParams.get('subjectId');
   const targetSubjectId = subjectIdParam ? parseInt(subjectIdParam, 10) : null;
 
@@ -42,6 +43,18 @@ export const AssignSensorsScreen: React.FC = () => {
     navigate('/session');
   };
 
+  const handlePrevSubject = () => {
+    if (targetSubjectId && targetSubjectId > 1) {
+      setSearchParams({ subjectId: (targetSubjectId - 1).toString() });
+    }
+  };
+
+  const handleNextSubject = () => {
+    if (targetSubjectId && targetSubjectId < subjectCount) {
+      setSearchParams({ subjectId: (targetSubjectId + 1).toString() });
+    }
+  };
+
   const allSensorsPlaced = subjects.length > 0 && subjects.every((s) => s.placedCount >= s.requiredCount);
 
   return (
@@ -59,7 +72,17 @@ export const AssignSensorsScreen: React.FC = () => {
       {/* Sub Header */}
       <div className="sub-header-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', alignItems: 'center' }}>
         <BackButton onClick={handleBack} />
-        <h2 className="screen-title">PLACE SENSORS</h2>
+        {targetSubjectId ? (
+          <SubjectsCarousel
+            currentPage={targetSubjectId - 1}
+            totalPages={subjectCount}
+            onPrev={handlePrevSubject}
+            onNext={handleNextSubject}
+            title={`Subject_${targetSubjectId}`}
+          />
+        ) : (
+          <h2 className="screen-title">PLACE SENSORS</h2>
+        )}
         <InfoButton />
       </div>
 

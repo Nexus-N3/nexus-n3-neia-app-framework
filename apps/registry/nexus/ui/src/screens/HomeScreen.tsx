@@ -10,7 +10,10 @@ export const HomeScreen: React.FC = () => {
 
   return (
     <main className="nexus-content">
-      <h1 className="welcome-text">WELCOME TO NEXUS</h1>
+      <div className="sub-header-row centered">
+        <h1 className="welcome-text">WELCOME TO NEXUS</h1>
+      </div>
+      <div className="content-spacer"></div>
       <div className="screen-footer">
         <button className="nexus-btn" onClick={handleStartSession}>
           Start new session
