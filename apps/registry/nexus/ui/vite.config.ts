@@ -1,24 +1,26 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import { resolve } from "path";
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { resolve } from 'path';
 
 export default defineConfig({
   plugins: [react()],
   build: {
-    outDir: "assets",
+    outDir: 'assets',
     emptyOutDir: true,
-    assetsDir: "",
+    assetsDir: '',
     rollupOptions: {
-      input: resolve(__dirname, "index.html"),
+      input: resolve(__dirname, 'index.html'),
       output: {
-        entryFileNames: "index.js",
-        chunkFileNames: "chunk-[hash].js",
-        assetFileNames: "index.[ext]"
-      }
-    }
-  }
-  ,
+        entryFileNames: 'index.js',
+        chunkFileNames: 'chunk-[hash].js',
+        assetFileNames: 'index.[ext]',
+      },
+    },
+  },
   server: {
-    port: 3001
-  }
+    port: 3001,
+    proxy: {
+      '/api': 'http://localhost:8050',
+    },
+  },
 });

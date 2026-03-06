@@ -14,9 +14,12 @@ import { ActiveSessionScreen } from './screens/ActiveSessionScreen';
 import { NewActivityScreen } from './screens/NewActivityScreen';
 import { SubjectActivityScreen } from './screens/SubjectActivityScreen';
 import { BurgerMenu } from './components/BurgerMenu';
+import { ServerStatus } from './components/ServerStatus';
 import { sessionNameAtom } from './store/atoms';
+import { useServerReadiness } from './hooks/useServerReadiness';
 
 const AppContent = () => {
+  useServerReadiness(); // Request and listen for server readiness
   const location = useLocation();
   const [sessionName] = useAtom(sessionNameAtom);
   const isHome = location.pathname === '/';
@@ -38,7 +41,8 @@ const AppContent = () => {
         <div className="header-center">
           <span className="facility-name">{headerTitle}</span>
         </div>
-        <div className="header-right">
+        <div className="header-right" style={{ display: 'flex', alignItems: 'center' }}>
+          <ServerStatus />
           <BurgerMenu />
         </div>
       </header>

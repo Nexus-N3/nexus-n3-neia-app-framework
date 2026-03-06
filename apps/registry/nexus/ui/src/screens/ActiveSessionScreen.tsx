@@ -12,7 +12,7 @@ import { SegmentedControl } from '../components/SegmentedControl'; // Added Segm
 export const ActiveSessionScreen: React.FC = () => {
   const navigate = useNavigate();
   const [subjectCount] = useAtom(subjectCountAtom);
-  const [activeActivity, setActiveActivity] = useAtom(activeActivityAtom); // Use atom
+  const [activeActivity, setActiveActivity] = useAtom(activeActivityAtom);
 
   const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 4;

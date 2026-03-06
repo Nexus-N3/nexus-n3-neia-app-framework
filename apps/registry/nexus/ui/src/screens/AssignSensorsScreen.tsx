@@ -5,7 +5,7 @@ import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
 import { SensorRow } from '../components/SensorRow';
 import { SubjectsCarousel } from '../components/SubjectsCarousel';
-import { subjectCountAtom, setupsAtom, selectedSetupIdAtom, placedSensorsAtom } from '../store/atoms';
+import { subjectCountAtom, setupsAtom, selectedSetupIdAtom, placedSensorsAtom, activeActivityAtom } from '../store/atoms';
 
 export const AssignSensorsScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -17,6 +17,7 @@ export const AssignSensorsScreen: React.FC = () => {
   const [setups] = useAtom(setupsAtom);
   const [selectedSetupId] = useAtom(selectedSetupIdAtom);
   const [placedSensors] = useAtom(placedSensorsAtom);
+  const [activeActivity] = useAtom(activeActivityAtom);
 
   // Determine required sensors
   const selectedSetup = setups.find((s) => s.id === selectedSetupId);
@@ -40,7 +41,11 @@ export const AssignSensorsScreen: React.FC = () => {
   }
 
   const handleBack = () => {
-    navigate('/session');
+    if (activeActivity) {
+      navigate('/active-session');
+    } else {
+      navigate('/session');
+    }
   };
 
   const handlePrevSubject = () => {
@@ -158,7 +163,10 @@ export const AssignSensorsScreen: React.FC = () => {
         >
           {allSensorsPlaced ? 'Manage sensors' : 'Find more sensors'}
         </button>
-        <button className="nexus-btn continue-btn" onClick={() => navigate('/session')}>
+        <button
+          className="nexus-btn continue-btn"
+          onClick={() => (activeActivity ? navigate('/active-session') : navigate('/session'))}
+        >
           Return to session
         </button>
       </div>
