@@ -13,7 +13,7 @@ export const BatteryIcon = ({ level }: { level: number }) => {
   const color = level > 20 ? '#4caf50' : '#ff6b6b';
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+    <div className="battery-container">
       <svg width="65" height="65" viewBox="0 0 65 65" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x={X_OFFSET} y={Y_OFFSET} width={currentWidth} height={HEIGHT} rx="2" fill={color} />
         <path
@@ -24,7 +24,7 @@ export const BatteryIcon = ({ level }: { level: number }) => {
           strokeLinejoin="round"
         />
       </svg>
-      <span style={{ fontSize: '32px', color: '#ccc' }}>{level}%</span>
+      <span className="battery-level-text">{level}%</span>
     </div>
   );
 };

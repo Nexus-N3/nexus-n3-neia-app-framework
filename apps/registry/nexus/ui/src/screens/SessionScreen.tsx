@@ -55,86 +55,52 @@ export const SessionScreen: React.FC = () => {
   const currentSubjects = subjects.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
 
   return (
-    <main className="nexus-content session-content" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+    <main className="nexus-content session-content">
       {/* Header Row with Carousel */}
-      <div className="sub-header-row" style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="sub-header-row compact">
         <BackButton onClick={handleBack} />
-
         <SubjectsCarousel currentPage={currentPage} totalPages={totalPages} onPrev={handlePrevPage} onNext={handleNextPage} />
-
         <InfoButton />
       </div>
 
       {/* Grid Content */}
-      <div
-        className="subjects-grid"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gridTemplateRows: '1fr 1fr',
-          gap: '20px',
-          flex: 1,
-          width: '100%',
-          overflow: 'hidden',
-          minHeight: 0,
-        }}
-      >
+      <div className="subjects-grid">
         {currentSubjects.map((subject) => {
           const isComplete = subject.sensorsPlaced >= subject.sensorsRequired && subject.sensorsRequired > 0;
           return (
-            <div
-              key={subject.id}
-              className="subject-card"
-              style={{
-                background: 'rgba(231, 238, 243, 0.05)',
-                borderRadius: '4px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                overflow: 'hidden',
-                height: '100%',
-              }}
-            >
-              <div className="subject-info" style={{ padding: '20px', flex: 1 }}>
-                <h3 style={{ textAlign: 'center', margin: '0 0 15px 0' }}>{subject.name}</h3>
+            <div key={subject.id} className="subject-card">
+              <div className="subject-info">
+                <h3 className="subject-title">{subject.name}</h3>
 
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px', color: isComplete ? '#4CAF50' : '#ff6b6b' }}>
-                  <div
-                    style={{
-                      width: '24px',
-                      height: '24px',
-                      borderRadius: '50%',
-                      background: isComplete ? '#4CAF50' : '#ff6b6b',
-                      marginRight: '12px',
-                    }}
-                  ></div>
-                  <span style={{ textTransform: 'uppercase', fontWeight: 600, fontSize: '32px' }}>Sensors</span>
+                <div className={`status-row ${isComplete ? 'complete' : 'incomplete'}`}>
+                  <div className={`status-dot ${isComplete ? 'complete' : 'incomplete'}`}></div>
+                  <span className="status-text">Sensors</span>
                 </div>
 
                 {isComplete ? (
-                  <div className="subject-stats" style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '24px' }}>
+                  <div className="subject-stats-list compact">
                     {selectedSetup?.sensors.map((sensor) => (
-                      <div key={sensor.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'white' }}>
+                      <div key={sensor.id} className="stats-summary">
                         <span>
                           {sensor.type}: {sensor.loc}
                         </span>
-                        <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#4CAF50', marginLeft: '10px' }}></div>
+                        <div className="status-dot-small complete"></div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="subject-stats" style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '32px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'rgba(255,255,255,0.7)' }}>
+                  <div className="subject-stats-list">
+                    <div className="stat-row">
                       <span>Required</span>
-                      <span style={{ color: 'white' }}>{subject.sensorsRequired}</span>
+                      <span className="stat-value">{subject.sensorsRequired}</span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'rgba(255,255,255,0.7)' }}>
+                    <div className="stat-row">
                       <span>Connected</span>
-                      <span style={{ color: 'white' }}>{subject.sensorsConnected}</span>
+                      <span className="stat-value">{subject.sensorsConnected}</span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'rgba(255,255,255,0.7)' }}>
+                    <div className="stat-row">
                       <span>Placed</span>
-                      <span style={{ color: 'white' }}>{subject.sensorsPlaced}</span>
+                      <span className="stat-value">{subject.sensorsPlaced}</span>
                     </div>
                   </div>
                 )}
@@ -149,31 +115,12 @@ export const SessionScreen: React.FC = () => {
       </div>
 
       {/* Footer Buttons */}
-      <div
-        className="action-row"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr 1fr',
-          gap: '20px',
-          marginTop: '20px',
-          marginBottom: '20px',
-          width: '100%',
-        }}
-      >
-        <div></div> {/* Empty 1/3 */}
+      <div className="action-row">
+        <div></div>
         <button className="nexus-btn secondary-btn" onClick={() => navigate('/assign-sensors')}>
           {allSensorsPlaced ? 'Manage sensors' : 'Connect sensors'}
         </button>
-        <button
-          className="nexus-btn continue-btn"
-          onClick={() => navigate('/active-session')}
-          disabled={!allSensorsPlaced}
-          style={{
-            backgroundColor: allSensorsPlaced ? undefined : '#D9D9D9',
-            cursor: allSensorsPlaced ? 'pointer' : 'default',
-            color: allSensorsPlaced ? undefined : '#888',
-          }}
-        >
+        <button className="nexus-btn" onClick={() => navigate('/active-session')} disabled={!allSensorsPlaced}>
           Start session
         </button>
       </div>

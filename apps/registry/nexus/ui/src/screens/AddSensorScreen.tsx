@@ -107,56 +107,27 @@ export const AddSensorScreen: React.FC = () => {
   };
 
   return (
-    <main className="nexus-content add-sensor-content" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+    <main className="nexus-content add-sensor-content">
       <div className="sub-header-row">
         <BackButton onClick={handleBack} />
         <h2 className="screen-title">ADD SENSOR</h2>
         <InfoButton />
       </div>
 
-      <div
-        className="add-sensor-grid"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr 1fr', // Three equal columns
-          gridTemplateRows: '1fr auto', // Main content takes available space, buttons take auto
-          gap: '30px',
-          marginTop: '30px',
-          flex: 1, // Grow to fill the flex container
-          width: '100%',
-          overflow: 'hidden',
-          minHeight: 0,
-        }}
-      >
+      <div className="add-sensor-grid">
         {/* Column 1: SENSOR TYPE */}
-        <div
-          className="column-panel"
-          style={{
-            gridColumn: '1 / 2',
-            gridRow: '1 / 2',
-            display: 'flex',
-            flexDirection: 'column',
-            background: 'rgba(231, 238, 243, 0.05)',
-            borderRadius: '4px',
-            height: '100%',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ padding: '20px' }}>
-            <h3 style={{ margin: 0, textAlign: 'center' }}>SENSOR TYPE</h3>
-            <div style={{ color: '#fff', fontSize: '24px', marginTop: '5px', textAlign: 'center', textTransform: 'uppercase' }}>Select one</div>
+        <div className="column-panel type-col">
+          <div className="column-header">
+            <h3>SENSOR TYPE</h3>
+            <div className="column-subtext">Select one</div>
           </div>
 
-          <div
-            className="list-content"
-            style={{ flex: 1, overflowY: 'auto', padding: '0 10px 20px 10px', display: 'flex', flexDirection: 'column', gap: '20px' }}
-          >
+          <div className="list-content">
             {availableSensors.map((sensor) => (
               <div
                 key={sensor.id}
                 className={`setup-item ${selectedType === sensor.id ? 'selected' : ''}`}
                 onClick={() => setSelectedType(sensor.id)}
-                style={{ textTransform: 'uppercase' }}
               >
                 <span>{sensor.name}</span>
                 <div onClick={(e) => e.stopPropagation()}>
@@ -171,50 +142,32 @@ export const AddSensorScreen: React.FC = () => {
         </div>
 
         {/* Column 2: PLACEMENT */}
-        <div
-          className="column-panel"
-          style={{
-            gridColumn: '2 / 3',
-            gridRow: '1 / 2',
-            display: 'flex',
-            flexDirection: 'column',
-            background: 'rgba(231, 238, 243, 0.05)',
-            borderRadius: '4px',
-            height: '100%',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ padding: '20px' }}>
-            <h3 style={{ margin: 0, textAlign: 'center' }}>PLACEMENT</h3>
-            <div style={{ color: '#fff', fontSize: '24px', marginTop: '5px', textAlign: 'center', textTransform: 'uppercase' }}>Select one or more</div>
+        <div className="column-panel placement-col">
+          <div className="column-header">
+            <h3>PLACEMENT</h3>
+            <div className="column-subtext">Select one or more</div>
           </div>
 
-          <div className="list-content" style={{ flex: 1, overflowY: 'auto', padding: '0 20px 20px 20px' }}>
+          <div className="list-content">
             {selectedType ? (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <div className="placement-grid">
                 {supportedLocations[selectedType] ? (
-                  // Server provided locations
                   supportedLocations[selectedType].map((loc) => (
                     <button
                       key={loc}
-                      className={`setup-item centered ${selectedPlacements.includes(loc) ? 'selected' : ''}`}
+                      className={`placement-btn ${selectedPlacements.includes(loc) ? 'selected' : ''}`}
                       onClick={() => togglePlacement(loc)}
-                      style={{ width: '100%', textTransform: 'uppercase' }}
                     >
                       {loc.replace(/_/g, ' ')}
                     </button>
                   ))
                 ) : (
-                  // Fallback locations
                   FALLBACK_PLACEMENT_OPTIONS.map((opt) => (
                     <button
                       key={opt.id}
-                      className={`setup-item centered ${selectedPlacements.includes(opt.id) ? 'selected' : ''}`}
+                      className={`placement-btn ${selectedPlacements.includes(opt.id) ? 'selected' : ''}`}
                       onClick={() => togglePlacement(opt.id)}
-                      style={{ 
-                        width: '100%', 
-                        gridColumn: opt.colSpan === 2 ? '1 / 3' : 'auto' 
-                      }}
+                      style={opt.colSpan === 2 ? { gridColumn: '1 / 3' } : undefined}
                     >
                       {opt.label}
                     </button>
@@ -222,16 +175,7 @@ export const AddSensorScreen: React.FC = () => {
                 )}
               </div>
             ) : (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  height: '100%',
-                  color: '#aaa',
-                }}
-              >
+              <div className="empty-state-msg">
                 Select a sensor type first
               </div>
             )}
@@ -239,35 +183,21 @@ export const AddSensorScreen: React.FC = () => {
         </div>
 
         {/* Column 3: COMPUTATIONS */}
-        <div
-          className="column-panel"
-          style={{
-            gridColumn: '3 / 4',
-            gridRow: '1 / 2',
-            display: 'flex',
-            flexDirection: 'column',
-            background: 'rgba(231, 238, 243, 0.05)',
-            borderRadius: '4px',
-            height: '100%',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ padding: '20px' }}>
-            <h3 style={{ margin: 0, textAlign: 'center' }}>COMPUTATIONS</h3>
-            <div style={{ color: '#fff', fontSize: '24px', marginTop: '5px', textAlign: 'center', textTransform: 'uppercase' }}>Computations</div>
+        <div className="column-panel comp-col">
+          <div className="column-header">
+            <h3>COMPUTATIONS</h3>
+            <div className="column-subtext">Computations</div>
           </div>
 
-          <div className="list-content" style={{ flex: 1, overflowY: 'auto', padding: '0 10px 20px 10px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div className="list-content">
             {selectedType && supportedComputations[selectedType] ? (
-              // Show computations for selected sensor type
               supportedComputations[selectedType].map((comp, idx) => (
                 <div 
                     key={idx} 
-                    className={`setup-item ${selectedComputation === comp.name ? 'selected' : ''}`} 
-                    style={{ cursor: 'pointer', textTransform: 'uppercase' }}
+                    className={`setup-item computation-item ${selectedComputation === comp.name ? 'selected' : ''}`} 
                     onClick={() => setSelectedComputation(comp.name)}
                 >
-                  <span style={{ fontSize: '18px', textAlign: 'center', wordBreak: 'break-word', whiteSpace: 'normal', lineHeight: '1.2' }}>{comp.name.replace(/_/g, ' ')}</span>
+                  <span className="computation-name">{comp.name.replace(/_/g, ' ')}</span>
                   <div onClick={(e) => e.stopPropagation()}>
                     <InfoButton 
                       className="item-info-btn" 
@@ -277,49 +207,30 @@ export const AddSensorScreen: React.FC = () => {
                 </div>
               ))
             ) : selectedPlacements.length > 0 ? (
-              // Fallback if no specific computations found but placement selected
-              <div className="setup-item selected" style={{ cursor: 'default' }}>
+              <div className="setup-item selected">
                 <span>LOADING (default)</span>
                 <InfoButton className="item-info-btn" onClick={() => console.log('Info for LOADING')} />
               </div>
             ) : (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  height: '100%',
-                  color: '#aaa',
-                }}
-              >
+              <div className="empty-state-msg">
                 Select placement first
               </div>
             )}
           </div>
         </div>
 
-        <div
-          style={{
-            gridColumn: '3 / 4',
-            gridRow: '2 / 3',
-            display: 'flex',
-            marginTop: 'auto',
-          }}
+      </div>
+
+      <div className="action-row">
+        <div></div>
+        <div></div>
+        <button
+          className="nexus-btn"
+          disabled={!selectedType || selectedPlacements.length === 0}
+          onClick={handleAddSensor}
         >
-          <button
-            className="nexus-btn continue-btn"
-            style={{
-              width: '100%',
-              opacity: selectedType && selectedPlacements.length > 0 ? 1 : 0.5,
-              cursor: selectedType && selectedPlacements.length > 0 ? 'pointer' : 'not-allowed',
-            }}
-            disabled={!selectedType || selectedPlacements.length === 0}
-            onClick={handleAddSensor}
-          >
-            Add sensor
-          </button>
-        </div>
+          Add sensor
+        </button>
       </div>
     </main>
   );

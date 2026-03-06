@@ -7,7 +7,7 @@ interface ScreenLayoutProps {
 
 export const ScreenLayout: React.FC<ScreenLayoutProps> = ({ className, children }) => {
   return (
-    <main className={`nexus-content ${className || ''}`} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <main className={`nexus-content ${className || ''}`}>
       {children}
     </main>
   );

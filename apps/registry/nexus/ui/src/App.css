@@ -33,6 +33,8 @@
 
 .header-right {
   z-index: 1;
+  display: flex;
+  align-items: center;
 }
 
 .header-left .logo-img {
@@ -286,6 +288,7 @@
   align-items: center;
   transition: all 0.2s ease;
   font-size: 24px;
+  text-transform: uppercase;
 }
 
 .setup-item.centered {
@@ -679,4 +682,768 @@ h2 {
 
 .time-control-btn.spacing-left {
   margin-left: 20px;
+}
+
+/* ========================================
+   Screen-Specific Styles
+   ======================================== */
+
+/* --- Sensor Setup Screen --- */
+.sensor-setup-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.sensor-setup-error {
+  background: rgba(255, 100, 100, 0.2);
+  padding: 10px;
+  color: #ffaaaa;
+  margin: 0 20px;
+  border-radius: 4px;
+  border: 1px solid #ff5555;
+}
+
+.sensor-setup-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 20px;
+  flex: 1;
+  width: 100%;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.setup-list-panel {
+  grid-column: 1 / 2;
+  grid-row: 1 / 2;
+  display: flex;
+  flex-direction: column;
+  background: rgba(231, 238, 243, 0.05);
+  border-radius: 4px;
+  height: 100%;
+  overflow: hidden;
+}
+
+.setup-panel-header {
+  margin: 20px;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.setup-list {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 20px;
+  margin-left: 10px;
+  margin-right: 10px;
+  gap: 20px;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 20px;
+}
+
+.setup-item-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.sensor-list-panel {
+  grid-column: 2 / 3;
+  grid-row: 1 / 2;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.sensor-list-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding-bottom: 20px;
+}
+
+.sensor-info-type {
+  font-weight: bold;
+}
+
+.sensor-info-loc {
+  opacity: 0.8;
+  color: #aaa;
+}
+
+.sensor-info-comp {
+  color: #888;
+  font-style: italic;
+}
+
+.no-sensors-msg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  color: #aaa;
+  gap: 20px;
+  font-size: 24px;
+}
+
+.no-sensors-text-box {
+  text-align: center;
+}
+
+.no-sensors-title {
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+/* --- Add Sensor Screen --- */
+.add-sensor-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.add-sensor-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 30px;
+  margin-top: 30px;
+  flex: 1;
+  width: 100%;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.column-panel {
+  display: flex;
+  flex-direction: column;
+  background: rgba(231, 238, 243, 0.05);
+  border-radius: 4px;
+  height: 100%;
+  overflow: hidden;
+}
+
+.column-panel.type-col {
+  grid-column: 1 / 2;
+  grid-row: 1 / 2;
+}
+
+.column-panel.placement-col {
+  grid-column: 2 / 3;
+  grid-row: 1 / 2;
+}
+
+.column-panel.comp-col {
+  grid-column: 3 / 4;
+  grid-row: 1 / 2;
+}
+
+.column-header {
+  padding: 20px;
+}
+
+.column-header h3 {
+  margin: 0;
+  text-align: center;
+}
+
+.column-subtext {
+  color: #fff;
+  font-size: 24px;
+  margin-top: 5px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.list-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 10px 20px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.list-content.placement {
+  padding: 0 20px 20px 20px;
+  display: block;
+}
+
+.placement-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.placement-btn {
+  width: 100%;
+  min-height: 44px;
+  padding: 20px;
+  background: transparent;
+  border-radius: 10px;
+  border: 5px solid #fff;
+  color: #fff;
+  text-align: center;
+  cursor: pointer;
+  font-size: 24px;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+}
+
+.placement-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.placement-btn.selected {
+  background: rgba(255, 255, 255, 0.08);
+  border: 5px solid #5960f6;
+  color: #5960f6;
+}
+
+.empty-state-msg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #aaa;
+}
+
+.computation-item {
+  cursor: pointer;
+}
+
+.computation-item span {
+  font-size: 18px;
+  text-align: center;
+  word-break: break-word;
+  white-space: normal;
+  line-height: 1.2;
+}
+
+
+
+.cursor-default {
+  cursor: default !important;
+}
+
+/* --- Session Screen --- */
+.session-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.subjects-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 20px;
+  flex: 1;
+  width: 100%;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.subject-card {
+  background: rgba(231, 238, 243, 0.05);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  height: 100%;
+}
+
+.subject-info {
+  padding: 20px;
+  flex: 1;
+}
+
+.subject-title {
+  text-align: center;
+  margin: 0 0 15px 0;
+}
+
+.status-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.status-row.complete {
+  color: #4CAF50;
+}
+
+.status-row.incomplete {
+  color: #ff6b6b;
+}
+
+.status-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  margin-right: 12px;
+}
+
+.status-dot.complete {
+  background: #4CAF50;
+}
+
+.status-dot.incomplete {
+  background: #ff6b6b;
+}
+
+.status-text {
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 32px;
+}
+
+.subject-stats-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 24px;
+}
+
+.subject-stats-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: white;
+}
+
+.sensor-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #4CAF50;
+  margin-left: 10px;
+}
+
+.stats-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 24px;
+  color: white;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.stat-value {
+  color: white;
+}
+
+/* --- Assign Sensors Screen --- */
+.assign-sensors-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  align-items: stretch;
+}
+
+.sensors-scroll-container {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 10px;
+  width: 100%;
+  overflow-x: hidden;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+.subject-section {
+  margin-bottom: 30px;
+}
+
+.subject-header {
+  margin-bottom: 15px;
+}
+
+.subject-header-title {
+  margin: 0 0 5px 0;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.subject-stats-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ccc;
+  font-size: 32px;
+}
+
+.status-dot-small {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+
+.status-dot-small.complete {
+  background: #4CAF50;
+}
+
+.status-dot-small.incomplete {
+  background: #ff6b6b;
+}
+
+.stat-text-item {
+  color: #fff;
+}
+
+.sensors-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.no-sensors-empty {
+  font-style: italic;
+  color: #888;
+  padding: 10px;
+}
+
+/* --- Active Session Screen --- */
+.active-session-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.sub-header-row.relative {
+  position: relative;
+}
+
+.sub-header-row.compact {
+  margin-bottom: 20px;
+}
+
+.z-1 {
+  z-index: 1;
+}
+
+.absolute-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 0;
+}
+
+.subject-card-content {
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.subject-card-content.space-between {
+  justify-content: space-between;
+}
+
+.subject-card-title {
+  margin: 0;
+  text-align: center;
+}
+
+.bar-graph-wrapper {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --- New Activity Screen --- */
+.separator-line {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 20px 0;
+}
+
+.quick-selection-title {
+  margin-bottom: 20px;
+}
+
+.quick-selection-container {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.quick-selection-item {
+  padding: 10px 30px !important;
+}
+
+/* --- Subjects Required Screen --- */
+.fixed-width-counter {
+  width: 3ch;
+  display: inline-block;
+  text-align: center;
+}
+
+/* ========================================
+   Component Styles
+   ======================================== */
+
+/* Sensor Row */
+.sensor-row {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 16px 24px;
+  border-radius: 4px;
+  gap: 30px;
+}
+
+.sensor-name {
+  font-weight: 600;
+  min-width: 120px;
+}
+
+.sensor-location {
+  color: #aaa;
+  font-style: italic;
+  flex: 1;
+}
+
+.sensor-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.sensor-action-btn-large {
+  padding: 0 30px;
+  height: 80px;
+  min-width: 210px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 24px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sensor-action-btn-large:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.sensor-action-btn-large.placed {
+  background-color: rgba(59, 125, 35, 0.8);
+}
+
+.sensor-action-btn-large.placed:hover {
+  background-color: rgba(59, 125, 35, 1);
+}
+
+/* Carousel */
+.carousel {
+  display: flex;
+  align-items: center;
+  gap: 60px;
+}
+
+.carousel-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: white;
+  cursor: pointer;
+}
+
+.carousel-btn:disabled {
+  cursor: default;
+  opacity: 0.3;
+}
+
+.carousel-btn img {
+  width: 32px;
+  height: 32px;
+  margin-top: 8px;
+}
+
+.carousel-title {
+  text-transform: uppercase;
+  font-weight: 500;
+  font-size: 48px;
+}
+
+/* Segmented Control */
+.segmented-control {
+  display: inline-flex;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 40px;
+  overflow: hidden;
+  min-height: 80px;
+}
+
+.segmented-control-btn {
+  background: transparent;
+  color: white;
+  border: none;
+  padding: 12px 32px;
+  font-size: 24px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-radius: 36px;
+  font-weight: 500;
+  text-transform: uppercase;
+  min-width: 160px;
+}
+
+.segmented-control-btn.active {
+  background-color: #5960F6;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  width: 140px;
+  height: 80px;
+  border-radius: 40px;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.2s;
+  background: rgba(231, 238, 243, 0.1);
+}
+
+.toggle-switch.on {
+  background: rgba(76, 175, 80, 0.4);
+}
+
+.toggle-knob {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  position: absolute;
+  left: 0;
+  background: #8A92BF;
+  transition: left 0.2s cubic-bezier(0.4, 0.0, 0.2, 1), background-color 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch.on .toggle-knob {
+  background: #4caf50;
+  left: 60px;
+}
+
+/* Server Status */
+.server-status-container {
+  display: flex;
+  align-items: center;
+  margin-right: 20px;
+}
+
+.status-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.status-indicator.online {
+  background-color: #4CAF50;
+  box-shadow: 0 0 8px #4CAF50;
+}
+
+.status-indicator.offline {
+  background-color: #FF5722;
+}
+
+/* Battery Display */
+.battery-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.battery-level-text {
+  font-size: 32px;
+  color: #ccc;
+}
+
+/* ========================================
+   Layout Utilities
+   ======================================== */
+
+/* Unified footer action row (3-column grid) */
+.action-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.action-row .nexus-btn {
+  width: 100%;
+}
+
+/* Secondary (outlined) button */
+.secondary-btn {
+  background: transparent;
+  border: 1px solid #5960F6;
+  color: #5960F6;
+}
+
+.secondary-btn:hover {
+  background-color: rgba(89, 96, 246, 0.1);
+}
+
+/* Danger button */
+.nexus-btn-danger {
+  background-color: #c00000 !important;
+  transition: background-color 0.2s;
+  opacity: 0.8;
+}
+
+.nexus-btn-danger:hover {
+  background-color: #df0000 !important;
+  opacity: 1;
+}
+
+/* Success button */
+.nexus-btn-success {
+  background-color: #3B7D23 !important;
+  transition: background-color 0.2s;
+}
+
+.nexus-btn-success:hover {
+  background-color: #2E611B !important;
+}
+
+/* Disabled button states */
+.nexus-btn:disabled {
+  background-color: #D9D9D9;
+  cursor: default;
+  color: #888;
+}
+
+.icon-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

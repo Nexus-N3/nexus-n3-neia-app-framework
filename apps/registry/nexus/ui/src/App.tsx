@@ -48,7 +48,7 @@ const AppContent = () => {
         <div className="header-center">
           <span className="facility-name">{headerTitle}</span>
         </div>
-        <div className="header-right" style={{ display: 'flex', alignItems: 'center' }}>
+        <div className="header-right">
           <ServerStatus />
           <BurgerMenu />
         </div>

@@ -50,16 +50,16 @@ export const ActiveSessionScreen: React.FC = () => {
   return (
     <ScreenLayout className="active-session-content">
       {/* Header Row with Carousel */}
-      <div className="sub-header-row" style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative' }}>
-        <div style={{ zIndex: 1 }}>
+      <div className="sub-header-row relative compact">
+        <div className="z-1">
           <BackButton onClick={handleBack} />
         </div>
 
-        <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', zIndex: 0 }}>
+        <div className="absolute-center">
           <SubjectsCarousel currentPage={currentPage} totalPages={totalPages} onPrev={handlePrevPage} onNext={handleNextPage} />
         </div>
 
-        <div style={{ zIndex: 1 }}>
+        <div className="z-1">
           {activeActivity ? (
             <SegmentedControl
               value={viewMode}
@@ -75,37 +75,14 @@ export const ActiveSessionScreen: React.FC = () => {
         </div>
       </div>
 
-      <div
-        className="subjects-grid"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gridTemplateRows: '1fr 1fr',
-          gap: '20px',
-          flex: 1,
-          width: '100%',
-          overflow: 'hidden',
-        }}
-      >
+      <div className="subjects-grid">
         {currentSubjects.map((subject) => (
-          <div
-            key={subject.id}
-            className="subject-card"
-            style={{
-              background: 'rgba(231, 238, 243, 0.05)',
-              borderRadius: '4px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              overflow: 'hidden',
-              height: '100%',
-            }}
-          >
-            <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: activeActivity ? 'space-between' : 'center', alignItems: 'center' }}>
-              <h3 style={{ margin: '0', textAlign: 'center' }}>{subject.name}</h3>
+          <div key={subject.id} className="subject-card">
+            <div className={`subject-card-content ${activeActivity ? 'with-graph' : ''}`}>
+              <h3 className="subject-card-title">{subject.name}</h3>
               
               {activeActivity && (
-                <div style={{ width: '100%', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div className="bar-graph-wrapper">
                   <BarGraph variant="simple" />
                 </div>
               )}
@@ -122,56 +99,21 @@ export const ActiveSessionScreen: React.FC = () => {
       </div>
 
       {/* Footer Buttons */}
-      <div
-        className="action-row"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr 1fr',
-          gap: '20px',
-          marginTop: '20px',
-          marginBottom: '20px',
-          width: '100%',
-        }}
-      >
-        <div></div> {/* Empty 1/3 */}
+      <div className="action-row">
+        <div></div>
 
-        {/* Manage Sensors (Outlined) - Always visible */}
-        <button
-          className="nexus-btn secondary-btn"
-          onClick={() => navigate('/assign-sensors')}
-          style={{
-            background: 'transparent',
-            border: '1px solid #5960F6',
-            color: '#5960F6',
-            transition: 'background-color 0.2s',
-          }}
-          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = 'rgba(89, 96, 246, 0.1)')}
-          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-        >
+        <button className="nexus-btn secondary-btn" onClick={() => navigate('/assign-sensors')}>
           Manage sensors
         </button>
         
-        {/* Dynamic Action Button */}
         {activeActivity ? (
-           <button
-              className="nexus-btn continue-btn"
-              style={{ backgroundColor: '#c00000', transition: 'background-color 0.2s', opacity: 0.8 }}
-              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#df0000')}
-              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#c00000')}
-              onClick={handleEndActivity}
-            >
-              End activity
-            </button>
+          <button className="nexus-btn nexus-btn-danger" onClick={handleEndActivity}>
+            End activity
+          </button>
         ) : (
-            <button
-              className="nexus-btn continue-btn"
-              style={{ backgroundColor: '#3B7D23', transition: 'background-color 0.2s' }}
-              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#2E611B')}
-              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#3B7D23')}
-              onClick={() => navigate('/new-activity')}
-            >
-              Start new activity
-            </button>
+          <button className="nexus-btn nexus-btn-success" onClick={() => navigate('/new-activity')}>
+            Start new activity
+          </button>
         )}
       </div>
     </ScreenLayout>

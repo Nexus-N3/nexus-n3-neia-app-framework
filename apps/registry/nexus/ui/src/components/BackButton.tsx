@@ -12,7 +12,6 @@ export const BackButton: React.FC<BackButtonProps> = ({ onClick, className = '',
       className={`icon-btn back-btn ${className}`}
       onClick={onClick}
       disabled={disabled}
-      style={{ opacity: disabled ? 0.5 : 1, cursor: disabled ? 'not-allowed' : 'pointer' }}
       aria-label="Go back"
     >
       <svg width="70" height="70" viewBox="0 0 70 70" fill="none" xmlns="http://www.w3.org/2000/svg">

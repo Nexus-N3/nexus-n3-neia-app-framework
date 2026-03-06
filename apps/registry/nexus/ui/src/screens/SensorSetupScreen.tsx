@@ -155,82 +155,33 @@ export const SensorSetupScreen: React.FC = () => {
   };
 
   return (
-    <main className="nexus-content sensor-setup-content" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      <div className="sub-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <main className="nexus-content sensor-setup-content">
+      <div className="sub-header-row">
         <BackButton onClick={handleBack} disabled={isInitializing} />
         <h2 className="screen-title">SENSOR SETUP</h2>
         <InfoButton />
       </div>
 
       {errorMsg && (
-        <div style={{ background: 'rgba(255, 100, 100, 0.2)', padding: '10px', color: '#ffaaaa', margin: '0 20px', borderRadius: '4px', border: '1px solid #ff5555' }}>
+        <div className="sensor-setup-error">
           Error: {errorMsg}
         </div>
       )}
 
-      <div
-        className="sensor-setup-grid"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 2fr',
-          gap: '20px',
-          flex: 1,
-          width: '100%',
-          overflow: 'hidden',
-          minHeight: 0,
-        }}
-      >
-        {/* Top Left: Default Setups (spans 1 row) */}
-        <div
-          className="setup-list-panel"
-          style={{
-            gridColumn: '1 / 2',
-            gridRow: '1 / 2',
-            display: 'flex',
-            flexDirection: 'column',
-            background: 'rgba(231, 238, 243, 0.05)',
-            borderRadius: '4px',
-            height: '100%',
-            overflow: 'hidden',
-          }}
-        >
-          <h3
-            style={{
-              margin: '20px',
-              marginBottom: '30px',
-              textAlign: 'center',
-              fontSize: '32px',
-              fontWeight: 500,
-              color: '#fff',
-              textTransform: 'uppercase',
-            }}
-          >
-            DEFAULT SETUPS
-          </h3>
-          <div
-            className="setup-list"
-            style={{
-              flex: 1,
-              overflowY: 'auto',
-              marginBottom: '20px',
-              marginLeft: '10px',
-              marginRight: '10px',
-              gap: '20px',
-              display: 'flex',
-              flexDirection: 'column',
-              paddingBottom: '20px',
-            }}
-          >
+      <div className="sensor-setup-grid">
+        {/* Left: Setup List */}
+        <div className="setup-list-panel">
+          <h3 className="setup-panel-header">DEFAULT SETUPS</h3>
+          <div className="setup-list">
             {setups.map((setup) => (
               <div
                 key={setup.id}
                 className={`setup-item ${selectedSetupId === setup.id ? 'selected' : ''}`}
                 onClick={() => setSelectedSetupId(setup.id)}
-                style={{ fontSize: '24px', textTransform: 'uppercase' }}
               >
                 <span>{setup.name}</span>
                 {setup.isCustom && (
-                  <div style={{ display: 'flex', gap: '10px' }}>
+                  <div className="setup-item-controls">
                     <button onClick={(e) => handleRenameSetup(setup.id, setup.name, e)} className="setup-action-btn" title="Rename">
                       <svg
                         width="24"
@@ -273,26 +224,16 @@ export const SensorSetupScreen: React.FC = () => {
           </button>
         </div>
 
-        {/* Top Right: Sensor List */}
-        <div
-          className="sensor-list-panel"
-          style={{
-            gridColumn: '2 / 3',
-            gridRow: '1 / 2',
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100%',
-            overflow: 'hidden',
-          }}
-        >
-          <div className="sensor-list" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', paddingBottom: '20px' }}>
+        {/* Right: Sensor List */}
+        <div className="sensor-list-panel">
+          <div className="sensor-list-container">
             {selectedSetup?.sensors && selectedSetup.sensors.length > 0 ? (
               <>
                 {selectedSetup.sensors.map((sensor, i) => (
                   <div key={i} className="sensor-card">
-                    <div style={{ fontWeight: 'bold' }}>{sensor.type}</div>
-                    <div style={{ opacity: 0.8, color: '#aaa' }}>{sensor.loc}</div>
-                    <div style={{ color: '#888', fontStyle: 'italic' }}>Computes: {sensor.comp}</div>
+                    <div className="sensor-info-type">{sensor.type}</div>
+                    <div className="sensor-info-loc">{sensor.loc}</div>
+                    <div className="sensor-info-comp">Computes: {sensor.comp}</div>
                   </div>
                 ))}
                 {selectedSetup.isCustom && (
@@ -302,20 +243,10 @@ export const SensorSetupScreen: React.FC = () => {
                 )}
               </>
             ) : (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  flex: 1,
-                  color: '#aaa',
-                  gap: '20px',
-                  fontSize: '24px',
-                }}
-              >
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>NO SENSORS ADDED</div>
-                  <div style={{}}>Add new sensors to create your custom setup</div>
+              <div className="no-sensors-msg">
+                <div className="no-sensors-text-box">
+                  <div className="no-sensors-title">NO SENSORS ADDED</div>
+                  <div>Add new sensors to create your custom setup</div>
                 </div>
                 {selectedSetup.isCustom && (
                   <button className="add-sensor-btn" onClick={() => navigate('/add-sensor')}>
@@ -329,22 +260,12 @@ export const SensorSetupScreen: React.FC = () => {
       </div>
 
       {/* Footer Buttons */}
-      <div
-        className="action-row"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr 1fr',
-          gap: '20px',
-          marginTop: '20px',
-          marginBottom: '20px',
-          width: '100%',
-        }}
-      >
+      <div className="action-row">
         <div></div>
         <button className="nexus-btn secondary-btn" onClick={handleModifyDefault} disabled={isInitializing}>
           Modify default
         </button>
-        <button className="nexus-btn continue-btn" onClick={handleCreateSession} disabled={isInitializing}>
+        <button className="nexus-btn" onClick={handleCreateSession} disabled={isInitializing}>
           {isInitializing ? 'INITIALIZING...' : 'Create session'}
         </button>
       </div>

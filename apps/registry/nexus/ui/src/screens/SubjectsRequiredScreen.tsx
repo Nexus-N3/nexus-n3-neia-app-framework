@@ -37,7 +37,7 @@ export const SubjectsRequiredScreen: React.FC = () => {
             <rect width="60" height="10" rx="5" fill="currentColor" />
           </svg>
         </button>
-        <span className="counter-value" style={{ width: '3ch', display: 'inline-block', textAlign: 'center' }}>
+        <span className="counter-value fixed-width-counter">
           {subjectCount}
         </span>
         <button className="counter-btn" onClick={increment}>

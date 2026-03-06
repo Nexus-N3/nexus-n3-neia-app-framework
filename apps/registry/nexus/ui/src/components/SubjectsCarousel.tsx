@@ -12,35 +12,13 @@ interface SubjectsCarouselProps {
 
 export const SubjectsCarousel: React.FC<SubjectsCarouselProps> = ({ currentPage, totalPages, onPrev, onNext, title = 'Subjects' }) => {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '60px' }}>
-      <button
-        onClick={onPrev}
-        disabled={currentPage === 0}
-        style={{
-          background: 'none',
-          border: 'none',
-          padding: 0,
-          color: 'white',
-          cursor: currentPage === 0 ? 'default' : 'pointer',
-          opacity: currentPage === 0 ? 0.3 : 1,
-        }}
-      >
-        <img src={chevronLeft} alt="Previous" style={{ width: '32px', height: '32px', marginTop: '8px' }} />
+    <div className="carousel">
+      <button className="carousel-btn" onClick={onPrev} disabled={currentPage === 0}>
+        <img src={chevronLeft} alt="Previous" />
       </button>
-      <span style={{ textTransform: 'uppercase', fontWeight: 500, fontSize: '48px' }}>{title}</span>
-      <button
-        onClick={onNext}
-        disabled={currentPage >= totalPages - 1}
-        style={{
-          background: 'none',
-          border: 'none',
-          padding: 0,
-          color: 'white',
-          cursor: currentPage >= totalPages - 1 ? 'default' : 'pointer',
-          opacity: currentPage >= totalPages - 1 ? 0.3 : 1,
-        }}
-      >
-        <img src={chevronRight} alt="Next" style={{ width: '32px', height: '32px', marginTop: '8px' }} />
+      <span className="carousel-title">{title}</span>
+      <button className="carousel-btn" onClick={onNext} disabled={currentPage >= totalPages - 1}>
+        <img src={chevronRight} alt="Next" />
       </button>
     </div>
   );
