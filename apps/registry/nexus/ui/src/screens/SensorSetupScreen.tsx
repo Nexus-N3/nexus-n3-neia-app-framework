@@ -46,6 +46,17 @@ export const SensorSetupScreen: React.FC = () => {
     }
   };
 
+  const handleDeleteSensor = (sensorIndex: number) => {
+    if (!selectedSetup?.isCustom) return;
+    setSetups((prev) =>
+      prev.map((s) =>
+        s.id === selectedSetupId
+          ? { ...s, sensors: s.sensors.filter((_, i) => i !== sensorIndex) }
+          : s
+      )
+    );
+  };
+
   const handleAddCustomSetup = () => {
     const newSetup: Setup = {
       id: `custom-${Date.now()}`,
@@ -206,6 +217,9 @@ export const SensorSetupScreen: React.FC = () => {
                     <div className="sensor-info-type">{sensor.type}</div>
                     <div className="sensor-info-loc">{sensor.loc}</div>
                     <div className="sensor-info-comp">Computes: {sensor.comp}</div>
+                    {selectedSetup.isCustom && (
+                      <DeleteButton onClick={() => handleDeleteSensor(i)} title="Remove sensor" />
+                    )}
                   </div>
                 ))}
                 {selectedSetup.isCustom && (
