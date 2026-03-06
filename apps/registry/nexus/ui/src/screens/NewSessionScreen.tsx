@@ -3,12 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
-import { sessionNameAtom, activeActivityAtom } from '../store/atoms';
+import { sessionNameAtom } from '../store/atoms';
 
 export const NewSessionScreen: React.FC = () => {
   const navigate = useNavigate();
   const [sessionName, setSessionName] = useAtom(sessionNameAtom);
-  const [activeActivity] = useAtom(activeActivityAtom);
   const [projectIdentifier, setProjectIdentifier] = useState(() => {
     if (sessionName.includes(' / ')) {
       return sessionName.split(' / ')[0];
@@ -44,7 +43,7 @@ export const NewSessionScreen: React.FC = () => {
       <div className="sub-header-row">
         <BackButton onClick={handleBack} />
 
-        <h2 className="screen-title">{(activeActivity || 'SESSION NAME').toUpperCase()}</h2>
+        <h2 className="screen-title">{'SESSION NAME'}</h2>
 
         <InfoButton />
       </div>

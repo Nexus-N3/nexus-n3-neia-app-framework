@@ -31,7 +31,7 @@ export const SensorRow = ({ subjectId, sensor }: { subjectId: number; sensor: Se
           Identify
         </button>
         <button
-          className={`sensor-action-btn-large ${isPlaced ? 'placed' : ''}`}
+          className={`sensor-action-btn-large ${isPlaced ? 'placed' : 'primary'}`}
           onClick={togglePlaced}
         >
           {isPlaced ? 'Placed' : 'Place'}

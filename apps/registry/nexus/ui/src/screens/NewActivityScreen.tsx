@@ -23,7 +23,7 @@ export const NewActivityScreen: React.FC = () => {
   };
 
   return (
-    <main className="nexus-content new-activity-content">
+    <main className="nexus-content">
       {/* Sub Header */}
       <div className="sub-header-row">
         <BackButton onClick={handleBack} />
@@ -55,7 +55,7 @@ export const NewActivityScreen: React.FC = () => {
             {quickSelections.map((selection) => (
               <div
                 key={selection}
-                className={`setup-item centered quick-selection-item ${activityName === selection ? 'selected' : ''}`}
+                className={`setup-item centered ${activityName === selection ? 'selected' : ''}`}
                 onClick={() => setActivityName(selection)}
               >
                 {selection}

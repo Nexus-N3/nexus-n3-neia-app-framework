@@ -88,24 +88,6 @@
   /* The requirement says: "Then there's a gap and in the bottom there's a button" */
 }
 
-.start-session-btn {
-  background-color: #5960f6;
-  color: #e7eef3;
-  border: none;
-  border-radius: 15px; /* Rounded style */
-  padding: 12px 124px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.2s;
-  align-self: center;
-  margin-top: auto; /* Push to bottom if flex container has height */
-  margin-bottom: 40px;
-}
-
-.start-session-btn:hover {
-  background-color: #484ecf;
-}
-
 /* New Session Screen Styles */
 .sub-header-row {
   display: flex;
@@ -201,11 +183,6 @@
   background-color: #484ecf;
 }
 
-/* Specific overrides if needed */
-.start-session-btn {
-  padding: 12px 124px;
-}
-
 /* Subject Counter Styles */
 .subject-counter-container {
   display: flex;
@@ -275,7 +252,6 @@
 }
 
 .setup-item {
-  min-height: 44px;
   padding: 30px;
   background: transparent;
   border-radius: 10px;
@@ -289,6 +265,7 @@
   transition: all 0.2s ease;
   font-size: 24px;
   text-transform: uppercase;
+  line-height: 44px;
 }
 
 .setup-item.centered {
@@ -436,23 +413,6 @@ h2 {
   opacity: 1;
 }
 
-.metric-row {
-  display: flex;
-  justify-content: space-between;
-}
-
-.metric-row-labels {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 4px;
-}
-
-.metric-row-values {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
 .metric-col {
   display: flex;
   flex-direction: column;
@@ -463,13 +423,6 @@ h2 {
   color: #E7EEF3;
   text-transform: uppercase;
   font-size: 16px;
-}
-
-.metric-value-row {
-  display: flex;
-  justify-content: space-between;
-  font-weight: 500;
-  margin-top: 4px;
 }
 
 .metric-value-large {
@@ -586,8 +539,6 @@ h2 {
 
 /* Time Control area is now generalized .nexus-time-control */
 
-.opacity-60 { opacity: 0.6; }
-.opacity-80 { opacity: 0.8; }
 .font-medium { font-weight: 500; }
 .font-semibold { font-weight: 600; }
 
@@ -925,11 +876,6 @@ h2 {
 }
 
 
-
-.cursor-default {
-  cursor: default !important;
-}
-
 /* --- Session Screen --- */
 /* session-content removed - use .screen-layout */
 
@@ -1006,21 +952,6 @@ h2 {
   font-size: 24px;
 }
 
-.subject-stats-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: white;
-}
-
-.sensor-dot {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #4CAF50;
-  margin-left: 10px;
-}
-
 .stats-summary {
   display: flex;
   align-items: center;
@@ -1090,21 +1021,11 @@ h2 {
   background: #ff6b6b;
 }
 
-.stat-text-item {
-  color: #fff;
-}
-
 .sensors-list-container {
   display: flex;
   flex-direction: column;
   gap: 10px;
   width: 100%;
-}
-
-.no-sensors-empty {
-  font-style: italic;
-  color: #888;
-  padding: 10px;
 }
 
 /* --- Active Session Screen --- */
@@ -1172,9 +1093,6 @@ h2 {
   flex-wrap: wrap;
 }
 
-.quick-selection-item {
-  padding: 10px 30px !important;
-}
 
 /* --- Subjects Required Screen --- */
 .fixed-width-counter {
@@ -1239,6 +1157,14 @@ h2 {
 
 .sensor-action-btn-large.placed:hover {
   background-color: rgba(59, 125, 35, 1);
+}
+
+.sensor-action-btn-large.primary {
+  background-color: #5960F6;
+}
+
+.sensor-action-btn-large.primary:hover {
+  background-color: #484ecf;
 }
 
 /* Carousel */

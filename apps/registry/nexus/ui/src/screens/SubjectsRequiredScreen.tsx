@@ -22,7 +22,7 @@ export const SubjectsRequiredScreen: React.FC = () => {
   };
 
   return (
-    <main className="nexus-content subjects-required-content">
+    <main className="nexus-content">
       <div className="sub-header-row">
         <BackButton onClick={handleBack} />
 
