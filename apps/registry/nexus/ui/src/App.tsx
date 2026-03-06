@@ -15,13 +15,14 @@ import { NewActivityScreen } from './screens/NewActivityScreen';
 import { SubjectActivityScreen } from './screens/SubjectActivityScreen';
 import { BurgerMenu } from './components/BurgerMenu';
 import { ServerStatus } from './components/ServerStatus';
-import { sessionNameAtom } from './store/atoms';
+import { sessionNameAtom, activeActivityAtom } from './store/atoms';
 import { useServerReadiness } from './hooks/useServerReadiness';
 
 const AppContent = () => {
   useServerReadiness(); // Request and listen for server readiness
   const location = useLocation();
   const [sessionName] = useAtom(sessionNameAtom);
+  const [activeActivity] = useAtom(activeActivityAtom);
   const isHome = location.pathname === '/';
   const isSessionRelated =
     location.pathname === '/session' ||
@@ -30,7 +31,13 @@ const AppContent = () => {
     location.pathname === '/new-activity' ||
     location.pathname.startsWith('/activity/subject/');
 
-  const headerTitle = isHome ? 'LUNAR FACILITY EDGE' : isSessionRelated ? sessionName : 'CREATE NEW SESSION';
+  const headerTitle = isHome
+    ? 'LUNAR FACILITY EDGE'
+    : activeActivity
+    ? (activeActivity as string).toUpperCase()
+    : isSessionRelated
+    ? sessionName
+    : 'CREATE NEW SESSION';
 
   return (
     <div className="nexus-app">

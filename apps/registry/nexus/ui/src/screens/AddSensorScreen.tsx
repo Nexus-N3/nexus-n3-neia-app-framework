@@ -1,21 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAtom, useSetAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
-import { setupsAtom, selectedSetupIdAtom, Sensor } from '../store/atoms';
+import { setupsAtom, selectedSetupIdAtom, Sensor, supportedSensorsAtom, supportedLocationsAtom, supportedComputationsAtom } from '../store/atoms';
 
 interface SensorType {
   id: string;
   name: string;
 }
 
-const SENSOR_TYPES: SensorType[] = [
+const FALLBACK_SENSOR_TYPES: SensorType[] = [
   { id: 'movella', name: 'Movella DOT' },
   { id: 'movesense', name: 'Movesense HR+' },
 ];
 
-const PLACEMENT_OPTIONS = [
+const FALLBACK_PLACEMENT_OPTIONS = [
   { id: 'head', label: 'HEAD', row: 1, colSpan: 2 },
   { id: 'left_wrist', label: 'LEFT WRIST', row: 2, colSpan: 1 },
   { id: 'right_wrist', label: 'RIGHT WRIST', row: 2, colSpan: 1 },
@@ -30,30 +30,64 @@ export const AddSensorScreen: React.FC = () => {
   const navigate = useNavigate();
   const setSetups = useSetAtom(setupsAtom);
   const [selectedSetupId] = useAtom(selectedSetupIdAtom);
+  const [supportedSensors] = useAtom(supportedSensorsAtom);
+  const [supportedLocations] = useAtom(supportedLocationsAtom);
+  const [supportedComputations] = useAtom(supportedComputationsAtom);
+  
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedPlacements, setSelectedPlacements] = useState<string[]>([]);
+  const [selectedComputation, setSelectedComputation] = useState<string | null>(null);
+
+  // Derived state for sensors
+  const availableSensors: SensorType[] = supportedSensors.length > 0
+    ? supportedSensors.map(name => ({ id: name, name }))
+    : FALLBACK_SENSOR_TYPES;
+
+  // Default to first sensor type if available and none selected
+  useEffect(() => {
+    if (!selectedType && availableSensors.length > 0) {
+      setSelectedType(availableSensors[0].id);
+    }
+  }, [availableSensors, selectedType]);
+
+  // Default to first computation if available
+  useEffect(() => {
+    if (selectedType && supportedComputations[selectedType] && supportedComputations[selectedType].length > 0) {
+      const currentValid = supportedComputations[selectedType].some(c => c.name === selectedComputation);
+      if (!selectedComputation || !currentValid) {
+        setSelectedComputation(supportedComputations[selectedType][0].name);
+      }
+    } else {
+      setSelectedComputation(null);
+    }
+  }, [selectedType, supportedComputations]); // Removed selectedComputation from deps to avoid loop if logic was complex, but simple here.
 
   const handleBack = () => navigate(-1); // Go back
 
-  const togglePlacement = (id: string) => {
-    setSelectedPlacements((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]));
+  const togglePlacement = (loc: string) => {
+    setSelectedPlacements((prev) => (prev.includes(loc) ? prev.filter((p) => p !== loc) : [...prev, loc]));
   };
 
   const handleAddSensor = () => {
     if (!selectedType || selectedPlacements.length === 0) return;
 
-    const sensorTypeName = SENSOR_TYPES.find((t) => t.id === selectedType)?.name || selectedType;
+    // Use the selectedType directly as the name if from server, or look up from fallback
+    const sensorObj = availableSensors.find(s => s.id === selectedType);
+    const sensorTypeName = sensorObj ? sensorObj.name : selectedType;
 
-    const newSensors: Sensor[] = selectedPlacements.map((placementId, index) => {
-      const placementLabel = PLACEMENT_OPTIONS.find((opt) => opt.id === placementId)?.label || placementId;
-      // specific casing if needed, or just capitalize first letter
-      const loc = placementLabel.charAt(0) + placementLabel.slice(1).toLowerCase();
+    const newSensors: Sensor[] = selectedPlacements.map((loc, index) => {
+      // Find label if it's a fallback ID, otherwise use the loc string itself (cleaned up)
+      const fallbackOpt = FALLBACK_PLACEMENT_OPTIONS.find(opt => opt.id === loc);
+      const displayLoc = fallbackOpt ? fallbackOpt.label : loc.replace(/_/g, ' ');
+      
+      // Formatting similar to before: Capitalize
+      const formattedLoc = displayLoc.charAt(0) + displayLoc.slice(1).toLowerCase();
 
       return {
         id: `sensor-${Date.now()}-${index}`,
-        type: sensorTypeName.toUpperCase(),
-        loc: loc,
-        comp: 'Loading',
+        type: sensorTypeName,
+        loc: formattedLoc,
+        comp: selectedComputation || 'Loading',
       };
     });
 
@@ -117,18 +151,18 @@ export const AddSensorScreen: React.FC = () => {
             className="list-content"
             style={{ flex: 1, overflowY: 'auto', padding: '0 10px 20px 10px', display: 'flex', flexDirection: 'column', gap: '20px' }}
           >
-            {SENSOR_TYPES.map((type) => (
+            {availableSensors.map((sensor) => (
               <div
-                key={type.id}
-                className={`setup-item ${selectedType === type.id ? 'selected' : ''}`}
-                onClick={() => setSelectedType(type.id)}
+                key={sensor.id}
+                className={`setup-item ${selectedType === sensor.id ? 'selected' : ''}`}
+                onClick={() => setSelectedType(sensor.id)}
                 style={{ textTransform: 'uppercase' }}
               >
-                <span>{type.name}</span>
+                <span>{sensor.name}</span>
                 <div onClick={(e) => e.stopPropagation()}>
                   <InfoButton
                     className="item-info-btn"
-                    onClick={() => console.log('Info for', type.name)} // Placeholder
+                    onClick={() => console.log('Info for', sensor.name)}
                   />
                 </div>
               </div>
@@ -158,69 +192,34 @@ export const AddSensorScreen: React.FC = () => {
           <div className="list-content" style={{ flex: 1, overflowY: 'auto', padding: '0 20px 20px 20px' }}>
             {selectedType ? (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                <button
-                  className={`setup-item centered ${selectedPlacements.includes('head') ? 'selected' : ''}`}
-                  onClick={() => togglePlacement('head')}
-                  style={{ gridColumn: '1 / 3', width: '100%' }}
-                >
-                  HEAD
-                </button>
-
-                <button
-                  className={`setup-item centered ${selectedPlacements.includes('left_wrist') ? 'selected' : ''}`}
-                  onClick={() => togglePlacement('left_wrist')}
-                  style={{ width: '100%' }}
-                >
-                  LEFT WRIST
-                </button>
-
-                <button
-                  className={`setup-item centered ${selectedPlacements.includes('right_wrist') ? 'selected' : ''}`}
-                  onClick={() => togglePlacement('right_wrist')}
-                  style={{ width: '100%' }}
-                >
-                  RIGHT WRIST
-                </button>
-
-                <button
-                  className={`setup-item centered ${selectedPlacements.includes('waist') ? 'selected' : ''}`}
-                  onClick={() => togglePlacement('waist')}
-                  style={{ gridColumn: '1 / 3', width: '100%' }}
-                >
-                  WAIST
-                </button>
-
-                <button
-                  className={`setup-item centered ${selectedPlacements.includes('left_thigh') ? 'selected' : ''}`}
-                  onClick={() => togglePlacement('left_thigh')}
-                  style={{ width: '100%' }}
-                >
-                  LEFT THIGH
-                </button>
-
-                <button
-                  className={`setup-item centered ${selectedPlacements.includes('right_thigh') ? 'selected' : ''}`}
-                  onClick={() => togglePlacement('right_thigh')}
-                  style={{ width: '100%' }}
-                >
-                  RIGHT THIGH
-                </button>
-
-                <button
-                  className={`setup-item centered ${selectedPlacements.includes('left_ankle') ? 'selected' : ''}`}
-                  onClick={() => togglePlacement('left_ankle')}
-                  style={{ width: '100%' }}
-                >
-                  LEFT ANKLE
-                </button>
-
-                <button
-                  className={`setup-item centered ${selectedPlacements.includes('right_ankle') ? 'selected' : ''}`}
-                  onClick={() => togglePlacement('right_ankle')}
-                  style={{ width: '100%' }}
-                >
-                  RIGHT ANKLE
-                </button>
+                {supportedLocations[selectedType] ? (
+                  // Server provided locations
+                  supportedLocations[selectedType].map((loc) => (
+                    <button
+                      key={loc}
+                      className={`setup-item centered ${selectedPlacements.includes(loc) ? 'selected' : ''}`}
+                      onClick={() => togglePlacement(loc)}
+                      style={{ width: '100%', textTransform: 'uppercase' }}
+                    >
+                      {loc.replace(/_/g, ' ')}
+                    </button>
+                  ))
+                ) : (
+                  // Fallback locations
+                  FALLBACK_PLACEMENT_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.id}
+                      className={`setup-item centered ${selectedPlacements.includes(opt.id) ? 'selected' : ''}`}
+                      onClick={() => togglePlacement(opt.id)}
+                      style={{ 
+                        width: '100%', 
+                        gridColumn: opt.colSpan === 2 ? '1 / 3' : 'auto' 
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))
+                )}
               </div>
             ) : (
               <div
@@ -258,8 +257,27 @@ export const AddSensorScreen: React.FC = () => {
             <div style={{ color: '#fff', fontSize: '24px', marginTop: '5px', textAlign: 'center', textTransform: 'uppercase' }}>Computations</div>
           </div>
 
-          <div className="list-content" style={{ flex: 1, overflowY: 'auto', padding: '0 10px 20px 10px' }}>
-            {selectedPlacements.length > 0 ? (
+          <div className="list-content" style={{ flex: 1, overflowY: 'auto', padding: '0 10px 20px 10px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {selectedType && supportedComputations[selectedType] ? (
+              // Show computations for selected sensor type
+              supportedComputations[selectedType].map((comp, idx) => (
+                <div 
+                    key={idx} 
+                    className={`setup-item ${selectedComputation === comp.name ? 'selected' : ''}`} 
+                    style={{ cursor: 'pointer', textTransform: 'uppercase' }}
+                    onClick={() => setSelectedComputation(comp.name)}
+                >
+                  <span style={{ fontSize: '18px', textAlign: 'center', wordBreak: 'break-word', whiteSpace: 'normal', lineHeight: '1.2' }}>{comp.name.replace(/_/g, ' ')}</span>
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <InfoButton 
+                      className="item-info-btn" 
+                      onClick={() => console.log('Info for', comp.name)} 
+                    />
+                  </div>
+                </div>
+              ))
+            ) : selectedPlacements.length > 0 ? (
+              // Fallback if no specific computations found but placement selected
               <div className="setup-item selected" style={{ cursor: 'default' }}>
                 <span>LOADING (default)</span>
                 <InfoButton className="item-info-btn" onClick={() => console.log('Info for LOADING')} />

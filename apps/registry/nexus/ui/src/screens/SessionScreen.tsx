@@ -4,11 +4,12 @@ import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
 import { SubjectsCarousel } from '../components/SubjectsCarousel';
-import { subjectCountAtom, setupsAtom, selectedSetupIdAtom, placedSensorsAtom } from '../store/atoms';
+import { subjectCountAtom, setupsAtom, selectedSetupIdAtom, placedSensorsAtom, subjectPrefixAtom } from '../store/atoms';
 
 export const SessionScreen: React.FC = () => {
   const navigate = useNavigate();
   const [subjectCount] = useAtom(subjectCountAtom);
+  const [subjectPrefix] = useAtom(subjectPrefixAtom);
   const [setups] = useAtom(setupsAtom);
   const [selectedSetupId] = useAtom(selectedSetupIdAtom);
   const [placedSensors] = useAtom(placedSensorsAtom);
@@ -40,7 +41,7 @@ export const SessionScreen: React.FC = () => {
 
     return {
       id,
-      name: `Subject_${id}`,
+      name: `${subjectPrefix || 'Subject_'}${id}`,
       sensorsRequired: sensorsRequired,
       sensorsConnected: 0,
       sensorsPlaced: placedCount,

@@ -4,7 +4,7 @@ import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
 import { SubjectsCarousel } from '../components/SubjectsCarousel';
-import { subjectCountAtom, activeActivityAtom } from '../store/atoms'; // Added activeActivityAtom
+import { subjectCountAtom, activeActivityAtom, subjectPrefixAtom } from '../store/atoms'; // Added activeActivityAtom
 import { ScreenLayout } from '../components/ScreenLayout';
 import { BarGraph } from '../components/BarGraph'; // Added BarGraph
 import { SegmentedControl } from '../components/SegmentedControl'; // Added SegmentedControl
@@ -12,6 +12,7 @@ import { SegmentedControl } from '../components/SegmentedControl'; // Added Segm
 export const ActiveSessionScreen: React.FC = () => {
   const navigate = useNavigate();
   const [subjectCount] = useAtom(subjectCountAtom);
+  const [subjectPrefix] = useAtom(subjectPrefixAtom);
   const [activeActivity, setActiveActivity] = useAtom(activeActivityAtom);
 
   const [currentPage, setCurrentPage] = useState(0);
@@ -23,7 +24,7 @@ export const ActiveSessionScreen: React.FC = () => {
 
   const subjects = Array.from({ length: subjectCount }, (_, i) => ({
     id: i + 1,
-    name: `Subject_${i + 1}`,
+    name: `${subjectPrefix || 'Subject_'}${i + 1}`,
   }));
 
   const currentSubjects = subjects.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);

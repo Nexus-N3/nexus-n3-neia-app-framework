@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
-import { subjectCountAtom } from '../store/atoms';
+import { subjectCountAtom, subjectPrefixAtom } from '../store/atoms';
 
 export const SubjectsRequiredScreen: React.FC = () => {
   const navigate = useNavigate();
   const [subjectCount, setSubjectCount] = useAtom(subjectCountAtom);
+  const [subjectPrefix, setSubjectPrefix] = useAtom(subjectPrefixAtom);
 
   const increment = () => setSubjectCount((prev) => prev + 1);
   const decrement = () => setSubjectCount((prev) => (prev > 1 ? prev - 1 : 1));
@@ -49,8 +50,16 @@ export const SubjectsRequiredScreen: React.FC = () => {
       <div className="session-form-container">
         <div className="form-group">
           <label>Subject naming convention</label>
-          <input type="text" placeholder="(Default) Subject_[1]" className="nexus-input" />
-          <span className="input-hint">Individual subject names can be edited once created</span>
+          <input
+            type="text"
+            placeholder="(Default) Subject_[1]"
+            className="nexus-input"
+            value={subjectPrefix}
+            onChange={(e) => setSubjectPrefix(e.target.value)}
+          />
+          <span className="input-hint">
+            Individual subject names can be edited once created. Example: {subjectPrefix || 'Subject_'}[1]
+          </span>
         </div>
       </div>
 

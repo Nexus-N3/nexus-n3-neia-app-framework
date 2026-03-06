@@ -32,8 +32,8 @@ export const setupsAtom = atom<Setup[]>([
     name: 'loading',
     isCustom: false,
     sensors: [
-      { id: 'default-1', type: 'MOVELLA DOT', loc: 'Left ankle', comp: 'Loading' },
-      { id: 'default-2', type: 'MOVELLA DOT', loc: 'Right ankle', comp: 'Loading' },
+      { id: 'default-1', type: 'Movella DOT', loc: 'Left ankle', comp: 'Loading' },
+      { id: 'default-2', type: 'Movella DOT', loc: 'Right ankle', comp: 'Loading' },
     ],
   },
 ]);
@@ -41,6 +41,7 @@ export const setupsAtom = atom<Setup[]>([
 export const selectedSetupIdAtom = atom<string>('default');
 
 export const sessionNameAtom = atom<string>('');
+export const subjectPrefixAtom = atom<string>('');
 export const activeActivityAtom = atom<string | false>(false);
 export const subjectCountAtom = atom<number>(4);
 

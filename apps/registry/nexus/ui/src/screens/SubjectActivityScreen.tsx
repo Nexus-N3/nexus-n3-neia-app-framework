@@ -5,7 +5,7 @@ import { ScreenLayout } from '../components/ScreenLayout';
 import { SubjectsCarousel } from '../components/SubjectsCarousel';
 import { BackButton } from '../components/BackButton';
 import { BarGraph } from '../components/BarGraph';
-import { subjectCountAtom } from '../store/atoms';
+import { subjectCountAtom, subjectPrefixAtom } from '../store/atoms';
 import { SegmentedControl } from '../components/SegmentedControl';
 import chevronLeft from '../assets/chevron-left.svg';
 import chevronRight from '../assets/chevron-right.svg';
@@ -15,22 +15,11 @@ export const SubjectActivityScreen: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const subjectId = parseInt(id || '1', 10);
   const [subjectCount] = useAtom(subjectCountAtom);
+  const [subjectPrefix] = useAtom(subjectPrefixAtom);
   const [viewMode, setViewMode] = useState<'realtime' | 'periodic'>('realtime');
 
   const handleBack = () => {
     navigate('/active-session');
-  };
-
-  const handlePrevSubject = () => {
-    if (subjectId > 1) {
-      navigate(`/activity/subject/${subjectId - 1}`);
-    }
-  };
-
-  const handleNextSubject = () => {
-    if (subjectId < subjectCount) {
-      navigate(`/activity/subject/${subjectId + 1}`);
-    }
   };
 
   return (
@@ -42,11 +31,11 @@ export const SubjectActivityScreen: React.FC = () => {
 
         <div className="subject-header-center">
           <SubjectsCarousel
-            title={`Subject_${subjectId}`}
+            title={`${subjectPrefix || 'Subject_'}${subjectId}`}
             currentPage={subjectId - 1}
             totalPages={subjectCount}
-            onPrev={handlePrevSubject}
-            onNext={handleNextSubject}
+            onPrev={() => navigate(`/activity/subject/${subjectId - 1}`)}
+            onNext={() => navigate(`/activity/subject/${subjectId + 1}`)}
           />
         </div>
 

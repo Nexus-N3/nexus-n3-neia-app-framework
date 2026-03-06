@@ -5,7 +5,7 @@ import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
 import { SensorRow } from '../components/SensorRow';
 import { SubjectsCarousel } from '../components/SubjectsCarousel';
-import { subjectCountAtom, setupsAtom, selectedSetupIdAtom, placedSensorsAtom, activeActivityAtom } from '../store/atoms';
+import { subjectCountAtom, setupsAtom, selectedSetupIdAtom, placedSensorsAtom, activeActivityAtom, subjectPrefixAtom } from '../store/atoms';
 
 export const AssignSensorsScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -18,6 +18,7 @@ export const AssignSensorsScreen: React.FC = () => {
   const [selectedSetupId] = useAtom(selectedSetupIdAtom);
   const [placedSensors] = useAtom(placedSensorsAtom);
   const [activeActivity] = useAtom(activeActivityAtom);
+  const [subjectPrefix] = useAtom(subjectPrefixAtom);
 
   // Determine required sensors
   const selectedSetup = setups.find((s) => s.id === selectedSetupId);
@@ -29,8 +30,8 @@ export const AssignSensorsScreen: React.FC = () => {
     const subjectPlacedCount = requiredSensors.filter((s) => placedSensors.has(`${id}:${s.id}`)).length;
     return {
       id,
-      name: `Subject_${id}`,
-      requiredCount: requiredSensors.length,
+      name: `${subjectPrefix || 'Subject_'}${id}`,
+      requiredCount: requiredSensors ? requiredSensors.length : 0,
       connectedCount: 0, // Mocked for now
       placedCount: subjectPlacedCount,
     };
@@ -83,7 +84,7 @@ export const AssignSensorsScreen: React.FC = () => {
             totalPages={subjectCount}
             onPrev={handlePrevSubject}
             onNext={handleNextSubject}
-            title={`Subject_${targetSubjectId}`}
+            title={`${subjectPrefix || 'Subject_'}${targetSubjectId}`}
           />
         ) : (
           <h2 className="screen-title">PLACE SENSORS</h2>

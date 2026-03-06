@@ -3,19 +3,39 @@ import { useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
-import { sessionNameAtom } from '../store/atoms';
+import { sessionNameAtom, activeActivityAtom } from '../store/atoms';
 
 export const NewSessionScreen: React.FC = () => {
   const navigate = useNavigate();
   const [sessionName, setSessionName] = useAtom(sessionNameAtom);
-  const [projectIdentifier, setProjectIdentifier] = useState('');
+  const [activeActivity] = useAtom(activeActivityAtom);
+  const [projectIdentifier, setProjectIdentifier] = useState(() => {
+    if (sessionName.includes(' / ')) {
+      return sessionName.split(' / ')[0];
+    }
+    return '';
+  });
 
   const handleBack = () => {
     navigate('/');
   };
 
   const handleContinue = () => {
-    setSessionName(`${projectIdentifier} / ${sessionName}`);
+    const finalProject = projectIdentifier.trim() || 'LUNAR FACILITY';
+    let finalSession = sessionName;
+
+    if (sessionName.includes(' / ')) {
+      finalSession = sessionName.split(' / ')[1] || '';
+    }
+
+    finalSession = finalSession.trim();
+
+    if (!finalSession) {
+      const date = new Date();
+      finalSession = `Session [${date.toLocaleDateString()}]`;
+    }
+
+    setSessionName(`${finalProject} / ${finalSession}`);
     navigate('/subjects');
   };
 
@@ -24,7 +44,7 @@ export const NewSessionScreen: React.FC = () => {
       <div className="sub-header-row">
         <BackButton onClick={handleBack} />
 
-        <h2 className="screen-title">SESSION NAME</h2>
+        <h2 className="screen-title">{(activeActivity || 'SESSION NAME').toUpperCase()}</h2>
 
         <InfoButton />
       </div>
