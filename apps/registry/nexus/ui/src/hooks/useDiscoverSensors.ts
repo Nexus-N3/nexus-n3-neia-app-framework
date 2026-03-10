@@ -17,9 +17,11 @@ export const useDiscoverSensors = () => {
   const { subscribe, sendCommand } = useGatewaySocket();
   const [phase, setPhase] = useState<SensorFlowPhase>('idle');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [activeSubjectId, setActiveSubjectId] = useState<string | null>(null);
   const setDiscoveredSensors = useSetAtom(discoveredSensorsAtom);
   const setConnectedSensors = useSetAtom(connectedSensorsAtom);
   const autoConnectRef = useRef(false);
+  const connectSubjectIdsRef = useRef<string[] | null>(null);
   const phaseRef = useRef<SensorFlowPhase>('idle');
 
   useEffect(() => {
@@ -39,15 +41,28 @@ export const useDiscoverSensors = () => {
           autoConnectRef.current = false;
           phaseRef.current = 'connecting';
           setPhase('connecting');
-          sendCommand({ type: 'connect_all' }).catch((e) => {
+          const subjectIds = connectSubjectIdsRef.current;
+          const command =
+            subjectIds && subjectIds.length > 0
+              ? {
+                  type: 'connect_subjects',
+                  payload: { subject_ids: subjectIds },
+                }
+              : { type: 'connect_all' };
+
+          sendCommand(command).catch((e) => {
             console.error('[useDiscoverSensors] Network error:', e);
             setErrorMsg('Network error sending connect command');
             phaseRef.current = 'error';
             setPhase('error');
+            setActiveSubjectId(null);
+            connectSubjectIdsRef.current = null;
           });
         } else {
           phaseRef.current = 'done';
           setPhase('done');
+          setActiveSubjectId(null);
+          connectSubjectIdsRef.current = null;
         }
       }
 
@@ -63,6 +78,8 @@ export const useDiscoverSensors = () => {
         });
         phaseRef.current = 'done';
         setPhase('done');
+        setActiveSubjectId(null);
+        connectSubjectIdsRef.current = null;
       }
 
       // --- Errors ---
@@ -72,6 +89,8 @@ export const useDiscoverSensors = () => {
           phaseRef.current = 'error';
           setPhase('error');
           autoConnectRef.current = false;
+          setActiveSubjectId(null);
+          connectSubjectIdsRef.current = null;
         }
       }
     });
@@ -89,6 +108,8 @@ export const useDiscoverSensors = () => {
         phaseRef.current = 'error';
         setPhase('error');
         autoConnectRef.current = false;
+        setActiveSubjectId(null);
+        connectSubjectIdsRef.current = null;
       }
     },
     [sendCommand],
@@ -97,26 +118,49 @@ export const useDiscoverSensors = () => {
   /** Discover all sensors then automatically connect */
   const discoverAndConnect = useCallback(() => {
     autoConnectRef.current = true;
+    connectSubjectIdsRef.current = null;
     phaseRef.current = 'discovering';
     setPhase('discovering');
     setErrorMsg(null);
+    setActiveSubjectId(null);
     doSend({ type: 'discover_sensors' });
   }, [doSend]);
+
+  /** Discover sensors for a specific subject, then automatically connect that subject */
+  const discoverAndConnectForSubject = useCallback(
+    (subjectId: string) => {
+      autoConnectRef.current = true;
+      connectSubjectIdsRef.current = [subjectId];
+      phaseRef.current = 'discovering';
+      setPhase('discovering');
+      setErrorMsg(null);
+      setActiveSubjectId(subjectId);
+      doSend({
+        type: 'discover_sensors_for_subjects',
+        payload: { subject_ids: [subjectId] },
+      });
+    },
+    [doSend],
+  );
 
   /** Discover all sensors (no auto-connect) */
   const discoverAll = useCallback(() => {
     autoConnectRef.current = false;
+    connectSubjectIdsRef.current = null;
     phaseRef.current = 'discovering';
     setPhase('discovering');
     setErrorMsg(null);
+    setActiveSubjectId(null);
     doSend({ type: 'discover_sensors' });
   }, [doSend]);
 
   /** Connect all sensors */
   const connectAll = useCallback(() => {
+    connectSubjectIdsRef.current = null;
     phaseRef.current = 'connecting';
     setPhase('connecting');
     setErrorMsg(null);
+    setActiveSubjectId(null);
     doSend({ type: 'connect_all' });
   }, [doSend]);
 
@@ -124,9 +168,11 @@ export const useDiscoverSensors = () => {
   const discoverForSubject = useCallback(
     (subjectId: string) => {
       autoConnectRef.current = false;
+      connectSubjectIdsRef.current = [subjectId];
       phaseRef.current = 'discovering';
       setPhase('discovering');
       setErrorMsg(null);
+      setActiveSubjectId(subjectId);
       doSend({
         type: 'discover_sensors_for_subjects',
         payload: { subject_ids: [subjectId] },
@@ -140,6 +186,8 @@ export const useDiscoverSensors = () => {
     phaseRef.current = 'idle';
     setPhase('idle');
     setErrorMsg(null);
+    setActiveSubjectId(null);
+    connectSubjectIdsRef.current = null;
   }, []);
 
   const isBusy = phase === 'discovering' || phase === 'connecting';
@@ -148,7 +196,9 @@ export const useDiscoverSensors = () => {
     phase,
     isBusy,
     errorMsg,
+    activeSubjectId,
     discoverAndConnect,
+    discoverAndConnectForSubject,
     discoverAll,
     connectAll,
     discoverForSubject,

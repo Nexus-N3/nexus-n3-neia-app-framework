@@ -251,6 +251,125 @@
   background-color: #484ecf;
 }
 
+.panel-action-btn.danger {
+  background-color: #7a1f1f;
+}
+
+.panel-action-btn.danger:hover {
+  background-color: #662020;
+}
+
+.panel-action-btn.success {
+  background-color: #3B7D23;
+}
+
+.panel-action-btn.success:hover {
+  background-color: #2E611B;
+}
+
+.panel-action-btn.complete {
+  background-color: #4CAF50;
+  cursor: default;
+}
+
+.panel-action-btn.complete:hover {
+  background-color: #4CAF50;
+}
+
+.panel-action-btn:disabled {
+  opacity: 1;
+}
+
+.panel-action-row {
+  display: flex;
+  margin-top: auto;
+}
+
+.panel-action-row .panel-action-btn {
+  margin-top: 0;
+  border-radius: 0;
+}
+
+.panel-action-row .panel-action-btn.split-left {
+  border-radius: 0 0 0 4px;
+}
+
+.panel-action-row .panel-action-btn.split-right {
+  border-radius: 0 0 4px 0;
+}
+
+.subject-intensity-panel {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+  margin-top: 12px;
+  width: 100%;
+}
+
+.subject-intensity-values {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1 1 45%;
+  min-width: 0;
+}
+
+.subject-intensity-title {
+  text-align: center;
+  color: #e7eef3;
+  font-size: 18px;
+  font-weight: 500;
+  text-transform: uppercase;
+  margin-bottom: 30px;
+}
+
+.subject-intensity-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.subject-intensity-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 56px;
+}
+
+.subject-intensity-location {
+  color: rgba(231, 238, 243, 0.72);
+  font-size: 14px;
+  text-transform: uppercase;
+}
+
+.subject-intensity-value {
+  color: #e7eef3;
+  font-size: 22px;
+  font-weight: 700;
+  font-family: monospace;
+}
+
+.subject-intensity-graph {
+  flex: 1 1 55%;
+  min-width: 320px;
+  height: 140px;
+  padding: 8px 0;
+}
+
+.debug-empty-state {
+  color: rgba(231, 238, 243, 0.6);
+  font-size: 14px;
+  text-align: left;
+  padding: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+}
+
+.subject-intensity-empty {
+  width: 100%;
+}
+
 .setup-item {
   padding: 30px;
   background: transparent;
@@ -1215,6 +1334,18 @@ h2 {
   background-color: #484ecf;
 }
 
+.sensor-action-btn-large:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.sensor-row-error {
+  color: #ff8a8a;
+  font-size: 18px;
+  margin-left: auto;
+  padding-top: 8px;
+}
+
 /* Carousel */
 .carousel {
   display: flex;
@@ -1368,6 +1499,16 @@ h2 {
 
 .secondary-btn:hover {
   background-color: rgba(89, 96, 246, 0.1);
+}
+
+.disconnect-btn {
+  background: transparent;
+  border: 1px solid #7a1f1f;
+  color: #7a1f1f;
+}
+
+.disconnect-btn:hover {
+  background-color: rgba(122, 31, 31, 0.12);
 }
 
 /* Danger button */

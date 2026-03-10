@@ -45,7 +45,7 @@ export const selectedSetupIdAtom = atom<string>('default');
 export const sessionNameAtom = atom<string>('');
 export const subjectPrefixAtom = atom<string>('');
 export const activeActivityAtom = atom<string | false>(false);
-export const subjectCountAtom = atom<number>(4);
+export const subjectCountAtom = atom<number>(1);
 
 // Format: `${subjectId}:${sensorId}`
 export const placedSensorsAtom = atom<Set<string>>(new Set<string>());
@@ -66,3 +66,21 @@ export interface ConnectedSensorsMap {
   [subjectId: string]: string[];
 }
 export const connectedSensorsAtom = atom<ConnectedSensorsMap>({});
+
+export interface LatestSensorResult {
+  address: string;
+  location: string;
+  algorithmName: string;
+  bands: Array<{
+    bandName: string;
+    mag: number | null;
+  }>;
+}
+
+export interface LatestComputeResultsMap {
+  [subjectId: string]: {
+    [address: string]: LatestSensorResult;
+  };
+}
+
+export const latestComputeResultsAtom = atom<LatestComputeResultsMap>({});
