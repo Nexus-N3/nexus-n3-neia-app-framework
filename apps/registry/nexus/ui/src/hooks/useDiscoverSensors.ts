@@ -71,7 +71,10 @@ export const useDiscoverSensors = () => {
         const subjects = Array.isArray(msg.payload) ? msg.payload : [];
         setConnectedSensors((prev) => {
           const next: ConnectedSensorsMap = { ...prev };
-          subjects.forEach((s: { subject_id: string; connected_sensors: string[] }) => {
+          subjects.forEach((s: {
+            subject_id: string;
+            connected_sensors: Array<{ address: string; status: string; location: string | null }>;
+          }) => {
             next[s.subject_id] = s.connected_sensors ?? [];
           });
           return next;

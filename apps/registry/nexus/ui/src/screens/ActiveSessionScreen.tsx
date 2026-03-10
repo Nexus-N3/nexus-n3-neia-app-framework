@@ -13,6 +13,7 @@ import { useStopStream } from '../hooks/useStopStream';
 import { useDisconnectSensors } from '../hooks/useDisconnectSensors';
 import { useResetSessionState } from '../hooks/useResetSessionState';
 import { useLatestComputeResults } from '../hooks/useLatestComputeResults';
+import { useLatestIntermediateResults } from '../hooks/useLatestIntermediateResults';
 
 const locationPriority = (location: string) => {
   const normalized = location.toUpperCase();
@@ -40,6 +41,7 @@ export const ActiveSessionScreen: React.FC = () => {
   } = useDisconnectSensors();
   const { resetSessionState } = useResetSessionState();
   const { latestResults } = useLatestComputeResults();
+  const { latestIntermediateResults } = useLatestIntermediateResults();
 
   const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 4;
@@ -70,7 +72,7 @@ export const ActiveSessionScreen: React.FC = () => {
   const handleEndActivity = async () => {
     try {
       await stopStreamForAll();
-      setStoppedSubjects(new Set());
+      setStoppedSubjects(new Set(subjects.map((subject) => subject.name)));
       setActiveActivity(null);
     } catch {
       // Error state is handled by the hook for UI display.
@@ -161,7 +163,8 @@ export const ActiveSessionScreen: React.FC = () => {
 
       <div className="subjects-grid">
         {currentSubjects.map((subject) => {
-          const subjectResults = Object.values(latestResults[subject.name] ?? {}).sort((a, b) =>
+          const resultSource = viewMode === 'periodic' ? latestIntermediateResults : latestResults;
+          const subjectResults = Object.values(resultSource[subject.name] ?? {}).sort((a, b) =>
             locationPriority(a.location) - locationPriority(b.location),
           );
           const isSubjectStopped = stoppedSubjects.has(subject.name);
@@ -169,17 +172,18 @@ export const ActiveSessionScreen: React.FC = () => {
             location: result.location.replace(/_/g, ' '),
             value: getIntensityValue(result.bands),
           }));
+          const hasIntensityData = intensityRows.some((result) => result.value !== null);
           const [leftResult, rightResult] = intensityRows;
           const maxIntensity = Math.max(...intensityRows.map((result) => result.value ?? 0), 1);
           const graphData =
-            intensityRows.length > 0
+            hasIntensityData
               ? [
                   {
                     l: `${(((leftResult?.value ?? 0) / maxIntensity) * 100).toFixed(0)}%`,
                     r: `${(((rightResult?.value ?? 0) / maxIntensity) * 100).toFixed(0)}%`,
                   },
                 ]
-              : [{ l: '0%', r: '0%' }];
+              : [];
 
           return (
           <div key={subject.id} className="subject-card">
@@ -187,7 +191,7 @@ export const ActiveSessionScreen: React.FC = () => {
               <h3 className="subject-card-title">{subject.name}</h3>
 
               <div className="subject-intensity-panel">
-                {intensityRows.length > 0 ? (
+                {hasIntensityData ? (
                   <>
                     <div className="subject-intensity-values">
                       <div className="subject-intensity-title">INTENSITY</div>

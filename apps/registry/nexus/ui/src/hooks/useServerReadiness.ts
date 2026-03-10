@@ -13,13 +13,19 @@ import {
 import { useGatewaySocket } from './useGatewaySocket';
 
 export const useServerReadiness = () => {
-  const { subscribe, sendCommand } = useGatewaySocket();
+  const { connected, subscribe, sendCommand } = useGatewaySocket();
   const setServerReady = useSetAtom(serverReadyAtom);
   const setSupportedSensors = useSetAtom(supportedSensorsAtom);
   const setSupportedLocations = useSetAtom(supportedLocationsAtom);
   const setSupportedComputations = useSetAtom(supportedComputationsAtom);
   const setSetups = useSetAtom(setupsAtom);
   const setSiteName = useSetAtom(siteNameAtom);
+
+  useEffect(() => {
+    if (!connected) {
+      setServerReady(false);
+    }
+  }, [connected, setServerReady]);
 
   useEffect(() => {
     const unsubscribe = subscribe((msg) => {
@@ -74,8 +80,10 @@ export const useServerReadiness = () => {
     });
 
     // Send initial readiness check
+    setServerReady(false);
     sendCommand({ type: 'is_server_ready', payload: {} }).catch((error) => {
       console.error('Error checking server readiness:', error);
+      setServerReady(false);
     });
 
     return unsubscribe;
