@@ -30,7 +30,7 @@ export const AssignSensorsScreen: React.FC = () => {
     const subjectPlacedCount = requiredSensors.filter((s) => placedSensors.has(`${id}:${s.id}`)).length;
     return {
       id,
-      name: `${subjectPrefix || 'Subject_'}${id}`,
+      name: `${subjectPrefix}${id}`,
       requiredCount: requiredSensors ? requiredSensors.length : 0,
       connectedCount: 0, // Mocked for now
       placedCount: subjectPlacedCount,
@@ -74,7 +74,7 @@ export const AssignSensorsScreen: React.FC = () => {
             totalPages={subjectCount}
             onPrev={handlePrevSubject}
             onNext={handleNextSubject}
-            title={`${subjectPrefix || 'Subject_'}${targetSubjectId}`}
+            title={`${subjectPrefix}${targetSubjectId}`}
           />
         ) : (
           <h2 className="screen-title">PLACE SENSORS</h2>
@@ -112,9 +112,7 @@ export const AssignSensorsScreen: React.FC = () => {
       {/* Footer Buttons */}
       <div className="action-row">
         <div></div>
-        <button className="nexus-btn secondary-btn">
-          {allSensorsPlaced ? 'Manage sensors' : 'Find more sensors'}
-        </button>
+        <div></div>
         <button
           className="nexus-btn"
           onClick={() => (activeActivity ? navigate('/active-session') : navigate('/session'))}

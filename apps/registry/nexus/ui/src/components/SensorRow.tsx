@@ -1,11 +1,8 @@
-import React, { useState } from 'react';
 import { useAtom } from 'jotai';
-import { ToggleSwitch } from './ToggleSwitch';
 import { BatteryIcon } from './BatteryIcon';
 import { Sensor, placedSensorsAtom } from '../store/atoms';
 
 export const SensorRow = ({ subjectId, sensor }: { subjectId: number; sensor: Sensor }) => {
-  const [isOn, setIsOn] = useState(false);
   const [placedSensors, setPlacedSensors] = useAtom(placedSensorsAtom);
   const sensorKey = `${subjectId}:${sensor.id}`;
   const isPlaced = placedSensors.has(sensorKey);
@@ -22,7 +19,6 @@ export const SensorRow = ({ subjectId, sensor }: { subjectId: number; sensor: Se
 
   return (
     <div className="sensor-row">
-      <ToggleSwitch isOn={isOn} onToggle={() => setIsOn(!isOn)} />
       <span className="sensor-name">{sensor.type}</span>
       <BatteryIcon level={76} />
       <span className="sensor-location">{sensor.loc}</span>

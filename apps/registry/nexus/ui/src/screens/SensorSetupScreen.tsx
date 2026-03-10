@@ -149,7 +149,7 @@ export const SensorSetupScreen: React.FC = () => {
 
     // 3. Replicate for all subjects
     // Use user-defined prefix or default to 'Subject_'
-    const prefix = subjectPrefix !== '' ? subjectPrefix : 'Subject_';
+    const prefix = subjectPrefix;
 
     const subjectsPayload = Array.from({ length: subjectCount }, (_, i) => ({
       subject_id: `${prefix}${i + 1}`,
@@ -157,7 +157,7 @@ export const SensorSetupScreen: React.FC = () => {
     }));
 
     const payload = {
-      type: 'init_system',
+      type: 'init_system' as const,
       payload: {
         init_label: sessionName || `Session_${new Date().toISOString()}`,
         subjects: subjectsPayload
@@ -236,7 +236,7 @@ export const SensorSetupScreen: React.FC = () => {
                 </div>
                 {selectedSetup.isCustom && (
                   <button className="add-sensor-btn" onClick={() => navigate('/add-sensor')}>
-                    + add new sensor
+                    + add new sensor configuration
                   </button>
                 )}
               </div>

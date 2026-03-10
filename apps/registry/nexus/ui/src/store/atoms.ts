@@ -38,6 +38,8 @@ export const setupsAtom = atom<Setup[]>([
   },
 ]);
 
+export const siteNameAtom = atom<string>('Lunar facility');
+
 export const selectedSetupIdAtom = atom<string>('default');
 
 export const sessionNameAtom = atom<string>('');
@@ -52,3 +54,15 @@ export const serverReadyAtom = atom<boolean>(false);
 export const supportedSensorsAtom = atom<string[]>([]);
 export const supportedLocationsAtom = atom<Record<string, string[]>>({});
 export const supportedComputationsAtom = atom<Record<string, Computation[]>>({});
+
+// Discovered sensors per subject: { "subject_id": ["D4:22:CD:00:AA:6F", ...] }
+export interface DiscoveredSensorsMap {
+  [subjectId: string]: string[];
+}
+export const discoveredSensorsAtom = atom<DiscoveredSensorsMap>({});
+
+// Connected sensors per subject: { "subject_id": ["D4:22:CD:00:AA:6F (CONNECTED)", ...] }
+export interface ConnectedSensorsMap {
+  [subjectId: string]: string[];
+}
+export const connectedSensorsAtom = atom<ConnectedSensorsMap>({});

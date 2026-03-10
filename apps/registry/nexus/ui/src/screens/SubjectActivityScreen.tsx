@@ -31,7 +31,7 @@ export const SubjectActivityScreen: React.FC = () => {
 
         <div className="subject-header-center">
           <SubjectsCarousel
-            title={`${subjectPrefix || 'Subject_'}${subjectId}`}
+            title={`${subjectPrefix}${subjectId}`}
             currentPage={subjectId - 1}
             totalPages={subjectCount}
             onPrev={() => navigate(`/activity/subject/${subjectId - 1}`)}

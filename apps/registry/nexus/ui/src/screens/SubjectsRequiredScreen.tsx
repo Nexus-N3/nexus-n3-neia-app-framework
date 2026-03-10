@@ -10,7 +10,7 @@ export const SubjectsRequiredScreen: React.FC = () => {
   const [subjectCount, setSubjectCount] = useAtom(subjectCountAtom);
   const [subjectPrefix, setSubjectPrefix] = useAtom(subjectPrefixAtom);
 
-  const increment = () => setSubjectCount((prev) => prev + 1);
+  const increment = () => setSubjectCount((prev) => (prev < 10 ? prev + 1 : 10));
   const decrement = () => setSubjectCount((prev) => (prev > 1 ? prev - 1 : 1));
 
   const handleBack = () => {
@@ -18,6 +18,7 @@ export const SubjectsRequiredScreen: React.FC = () => {
   };
 
   const handleContinue = () => {
+    if (subjectPrefix.trim() === '') setSubjectPrefix('Subject_');
     navigate('/sensor-setup');
   };
 
@@ -58,7 +59,7 @@ export const SubjectsRequiredScreen: React.FC = () => {
             onChange={(e) => setSubjectPrefix(e.target.value)}
           />
           <span className="input-hint">
-            Individual subject names can be edited once created. Example: {subjectPrefix || 'Subject_'}[1]
+            Example: {subjectPrefix || "Subject_"}1
           </span>
         </div>
       </div>

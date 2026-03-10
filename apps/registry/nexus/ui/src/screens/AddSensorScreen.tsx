@@ -110,7 +110,7 @@ export const AddSensorScreen: React.FC = () => {
     <main className="nexus-content screen-layout">
       <div className="sub-header-row">
         <BackButton onClick={handleBack} />
-        <h2 className="screen-title">ADD SENSOR</h2>
+        <h2 className="screen-title">ADD SENSOR CONFIGURATION</h2>
         <InfoButton />
       </div>
 

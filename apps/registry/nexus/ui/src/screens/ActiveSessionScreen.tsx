@@ -24,7 +24,7 @@ export const ActiveSessionScreen: React.FC = () => {
 
   const subjects = Array.from({ length: subjectCount }, (_, i) => ({
     id: i + 1,
-    name: `${subjectPrefix || 'Subject_'}${i + 1}`,
+    name: `${subjectPrefix}${i + 1}`,
   }));
 
   const currentSubjects = subjects.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
@@ -92,7 +92,7 @@ export const ActiveSessionScreen: React.FC = () => {
               className="panel-action-btn primary"
               onClick={() => navigate(`/activity/subject/${subject.id}`)}
             >
-              View
+              View details
             </button>
           </div>
         ))}

@@ -4,7 +4,8 @@ import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
 import { SubjectsCarousel } from '../components/SubjectsCarousel';
-import { subjectCountAtom, setupsAtom, selectedSetupIdAtom, placedSensorsAtom, subjectPrefixAtom } from '../store/atoms';
+import { subjectCountAtom, setupsAtom, selectedSetupIdAtom, placedSensorsAtom, subjectPrefixAtom, discoveredSensorsAtom, connectedSensorsAtom } from '../store/atoms';
+import { useDiscoverSensors } from '../hooks/useDiscoverSensors';
 
 export const SessionScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -13,6 +14,9 @@ export const SessionScreen: React.FC = () => {
   const [setups] = useAtom(setupsAtom);
   const [selectedSetupId] = useAtom(selectedSetupIdAtom);
   const [placedSensors] = useAtom(placedSensorsAtom);
+  const [discoveredSensors] = useAtom(discoveredSensorsAtom);
+  const [connectedSensors] = useAtom(connectedSensorsAtom);
+  const { phase, isBusy, errorMsg: discoverError, discoverAndConnect, discoverAll, connectAll, discoverForSubject, dismiss } = useDiscoverSensors();
 
   // Pagination state (we show 4 items at a time in a 2x2 grid)
   const [currentPage, setCurrentPage] = useState(0);
@@ -37,15 +41,19 @@ export const SessionScreen: React.FC = () => {
   // Generate subjects based on count
   const subjects = Array.from({ length: subjectCount }, (_, i) => {
     const id = i + 1;
+    const subjectId = `${subjectPrefix}${id}`;
     const placedCount = selectedSetup ? selectedSetup.sensors.filter((s) => placedSensors.has(`${id}:${s.id}`)).length : 0;
+    const discovered = discoveredSensors[subjectId.toLowerCase()] ?? discoveredSensors[subjectId] ?? [];
+    const connected = connectedSensors[subjectId.toLowerCase()] ?? connectedSensors[subjectId] ?? [];
 
     return {
       id,
-      name: `${subjectPrefix || 'Subject_'}${id}`,
+      name: subjectId,
       sensorsRequired: sensorsRequired,
-      sensorsConnected: 0,
+      sensorsDiscovered: discovered.length,
+      sensorsConnected: connected.length,
       sensorsPlaced: placedCount,
-      status: 'red', // Default status
+      status: 'red',
     };
   });
 
@@ -107,7 +115,7 @@ export const SessionScreen: React.FC = () => {
               </div>
 
               <button className="panel-action-btn" onClick={() => navigate(`/assign-sensors?subjectId=${subject.id}`)}>
-                {isComplete ? 'Manage sensors' : 'Connect sensors'}
+                {'Connect subject'}
               </button>
             </div>
           );
@@ -116,14 +124,36 @@ export const SessionScreen: React.FC = () => {
 
       {/* Footer Buttons */}
       <div className="action-row">
-        <div></div>
-        <button className="nexus-btn secondary-btn" onClick={() => navigate('/assign-sensors')}>
-          {allSensorsPlaced ? 'Manage sensors' : 'Connect sensors'}
+        <button className="nexus-btn secondary-btn" onClick={() => discoverAndConnect()} disabled={isBusy}>
+          Discover &amp; Connect
         </button>
-        <button className="nexus-btn" onClick={() => navigate('/active-session')} disabled={!allSensorsPlaced}>
+        <button className="nexus-btn secondary-btn" onClick={() => navigate('/assign-sensors')}>
+          {'Connect all subjects'}
+        </button>
+        <button className="nexus-btn" onClick={() => navigate('/new-activity')} disabled={!allSensorsPlaced}>
           Start session
         </button>
       </div>
+
+      {/* Overlay Modal */}
+      {(isBusy || phase === 'error') && (
+        <div className="overlay-backdrop" onClick={phase === 'error' ? dismiss : undefined}>
+          <div className="overlay-modal" onClick={(e) => e.stopPropagation()}>
+            {isBusy && <div className="overlay-spinner" />}
+            <div className="overlay-status">
+              {phase === 'discovering' && 'Discovering sensors...'}
+              {phase === 'connecting' && 'Connecting to sensors...'}
+              {phase === 'error' && 'Sensor setup failed'}
+            </div>
+            {discoverError && <div className="overlay-error">{discoverError}</div>}
+            {phase === 'error' && (
+              <button className="nexus-btn" onClick={dismiss}>
+                Dismiss
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </main>
   );
 };

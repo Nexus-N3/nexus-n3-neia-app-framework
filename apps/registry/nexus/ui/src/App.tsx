@@ -15,12 +15,14 @@ import { NewActivityScreen } from './screens/NewActivityScreen';
 import { SubjectActivityScreen } from './screens/SubjectActivityScreen';
 import { BurgerMenu } from './components/BurgerMenu';
 import { ServerStatus } from './components/ServerStatus';
-import { sessionNameAtom, activeActivityAtom } from './store/atoms';
+import { sessionNameAtom, activeActivityAtom, siteNameAtom } from './store/atoms';
+import { GatewaySocketProvider } from './hooks/useGatewaySocket';
 import { useServerReadiness } from './hooks/useServerReadiness';
 
 const AppContent = () => {
   useServerReadiness(); // Request and listen for server readiness
   const location = useLocation();
+  const [title] = useAtom(siteNameAtom);
   const [sessionName] = useAtom(sessionNameAtom);
   const [activeActivity] = useAtom(activeActivityAtom);
   const isHome = location.pathname === '/';
@@ -32,7 +34,7 @@ const AppContent = () => {
     location.pathname.startsWith('/activity/subject/');
 
   const headerTitle = isHome
-    ? 'LUNAR FACILITY EDGE'
+    ? title
     : activeActivity
     ? (activeActivity as string).toUpperCase()
     : isSessionRelated
@@ -76,7 +78,9 @@ const AppContent = () => {
 const App = () => {
   return (
     <BrowserRouter>
-      <AppContent />
+      <GatewaySocketProvider>
+        <AppContent />
+      </GatewaySocketProvider>
     </BrowserRouter>
   );
 };
