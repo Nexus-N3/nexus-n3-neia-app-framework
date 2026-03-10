@@ -20,7 +20,7 @@ export const NewSessionScreen: React.FC = () => {
   };
 
   const handleContinue = () => {
-    const finalProject = projectIdentifier.trim() || 'LUNAR FACILITY';
+    const finalProject = projectIdentifier.trim() || 'Project';
     let finalSession = sessionName;
 
     if (sessionName.includes(' / ')) {
@@ -66,7 +66,7 @@ export const NewSessionScreen: React.FC = () => {
           <input
             id="session-identifier"
             type="text"
-            placeholder="(Default) Session [X] [Date]"
+            placeholder="(Default) Session"
             className="nexus-input"
             value={sessionName.includes(' / ') ? sessionName.split(' / ')[1] : sessionName}
             onChange={(e) => setSessionName(e.target.value)}
