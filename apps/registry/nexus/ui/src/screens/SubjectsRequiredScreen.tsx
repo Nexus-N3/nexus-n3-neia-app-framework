@@ -53,7 +53,7 @@ export const SubjectsRequiredScreen: React.FC = () => {
           <label>Subject naming convention</label>
           <input
             type="text"
-            placeholder="(Default) Subject_[1]"
+            placeholder="(Default) Subject_1"
             className="nexus-input"
             value={subjectPrefix}
             onChange={(e) => setSubjectPrefix(e.target.value)}

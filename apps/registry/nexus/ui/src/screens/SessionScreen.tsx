@@ -6,6 +6,7 @@ import { InfoButton } from '../components/InfoButton';
 import { SubjectsCarousel } from '../components/SubjectsCarousel';
 import { subjectCountAtom, setupsAtom, selectedSetupIdAtom, placedSensorsAtom, subjectPrefixAtom, discoveredSensorsAtom, connectedSensorsAtom } from '../store/atoms';
 import { useDiscoverSensors } from '../hooks/useDiscoverSensors';
+import { useDisconnectSensors } from '../hooks/useDisconnectSensors';
 
 export const SessionScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -16,7 +17,8 @@ export const SessionScreen: React.FC = () => {
   const [placedSensors] = useAtom(placedSensorsAtom);
   const [discoveredSensors] = useAtom(discoveredSensorsAtom);
   const [connectedSensors] = useAtom(connectedSensorsAtom);
-  const { phase, isBusy, errorMsg: discoverError, discoverAndConnect, discoverAll, connectAll, discoverForSubject, dismiss } = useDiscoverSensors();
+  const { phase, isBusy, activeSubjectId, errorMsg: discoverError, discoverAndConnect, discoverAndConnectForSubject, dismiss } = useDiscoverSensors();
+  const { disconnectAll, isDisconnecting, errorMsg: disconnectError, dismissError: dismissDisconnectError } = useDisconnectSensors();
 
   // Pagination state (we show 4 items at a time in a 2x2 grid)
   const [currentPage, setCurrentPage] = useState(0);
@@ -75,6 +77,18 @@ export const SessionScreen: React.FC = () => {
       <div className="subjects-grid">
         {currentSubjects.map((subject) => {
           const isComplete = subject.sensorsPlaced >= subject.sensorsRequired && subject.sensorsRequired > 0;
+          const isConnected = subject.sensorsConnected > 0;
+          const isSubjectBusy = isBusy && activeSubjectId === subject.name;
+          const buttonLabel = isComplete ? 'Subject Connected' : isConnected ? 'Place sensors' : isSubjectBusy ? 'Connecting...' : 'Connect subject';
+          const handleSubjectAction = () => {
+            if (isComplete || isConnected) {
+              navigate(`/assign-sensors?subjectId=${subject.id}`);
+              return;
+            }
+
+            discoverAndConnectForSubject(subject.name);
+          };
+
           return (
             <div key={subject.id} className="subject-card">
               <div className="subject-info">
@@ -113,9 +127,12 @@ export const SessionScreen: React.FC = () => {
                   </div>
                 )}
               </div>
-
-              <button className="panel-action-btn" onClick={() => navigate(`/assign-sensors?subjectId=${subject.id}`)}>
-                {'Connect subject'}
+              <button
+                className={`panel-action-btn ${isComplete ? 'complete' : ''}`}
+                onClick={handleSubjectAction}
+                disabled={isBusy && !isConnected}
+              >
+                {buttonLabel}
               </button>
             </div>
           );
@@ -124,30 +141,35 @@ export const SessionScreen: React.FC = () => {
 
       {/* Footer Buttons */}
       <div className="action-row">
-        <button className="nexus-btn secondary-btn" onClick={() => discoverAndConnect()} disabled={isBusy}>
-          Discover &amp; Connect
+        <button className="nexus-btn disconnect-btn" onClick={() => disconnectAll()} disabled={isBusy || isDisconnecting}>
+          {isDisconnecting ? 'Disconnecting sensors...' : 'Disconnect sensors'}
         </button>
-        <button className="nexus-btn secondary-btn" onClick={() => navigate('/assign-sensors')}>
+        <button className="nexus-btn secondary-btn" onClick={() => discoverAndConnect()} disabled={isBusy || isDisconnecting}>
           {'Connect all subjects'}
         </button>
-        <button className="nexus-btn" onClick={() => navigate('/new-activity')} disabled={!allSensorsPlaced}>
-          Start session
+        <button className="nexus-btn" onClick={() => navigate('/new-activity')} disabled={!allSensorsPlaced || isDisconnecting}>
+          Create Activity
         </button>
       </div>
 
       {/* Overlay Modal */}
-      {(isBusy || phase === 'error') && (
-        <div className="overlay-backdrop" onClick={phase === 'error' ? dismiss : undefined}>
+      {(isBusy || phase === 'error' || disconnectError) && (
+        <div
+          className="overlay-backdrop"
+          onClick={phase === 'error' ? dismiss : disconnectError ? dismissDisconnectError : undefined}
+        >
           <div className="overlay-modal" onClick={(e) => e.stopPropagation()}>
             {isBusy && <div className="overlay-spinner" />}
             <div className="overlay-status">
               {phase === 'discovering' && 'Discovering sensors...'}
               {phase === 'connecting' && 'Connecting to sensors...'}
               {phase === 'error' && 'Sensor setup failed'}
+              {disconnectError && 'Disconnect failed'}
             </div>
             {discoverError && <div className="overlay-error">{discoverError}</div>}
-            {phase === 'error' && (
-              <button className="nexus-btn" onClick={dismiss}>
+            {disconnectError && <div className="overlay-error">{disconnectError}</div>}
+            {(phase === 'error' || disconnectError) && (
+              <button className="nexus-btn" onClick={disconnectError ? dismissDisconnectError : dismiss}>
                 Dismiss
               </button>
             )}

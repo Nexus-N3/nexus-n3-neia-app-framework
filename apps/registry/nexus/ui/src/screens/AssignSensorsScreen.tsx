@@ -5,7 +5,7 @@ import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
 import { SensorRow } from '../components/SensorRow';
 import { SubjectsCarousel } from '../components/SubjectsCarousel';
-import { subjectCountAtom, setupsAtom, selectedSetupIdAtom, placedSensorsAtom, activeActivityAtom, subjectPrefixAtom } from '../store/atoms';
+import { subjectCountAtom, setupsAtom, selectedSetupIdAtom, placedSensorsAtom, activeActivityAtom, subjectPrefixAtom, connectedSensorsAtom } from '../store/atoms';
 
 export const AssignSensorsScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -19,6 +19,7 @@ export const AssignSensorsScreen: React.FC = () => {
   const [placedSensors] = useAtom(placedSensorsAtom);
   const [activeActivity] = useAtom(activeActivityAtom);
   const [subjectPrefix] = useAtom(subjectPrefixAtom);
+  const [connectedSensors] = useAtom(connectedSensorsAtom);
 
   // Determine required sensors
   const selectedSetup = setups.find((s) => s.id === selectedSetupId);
@@ -27,12 +28,14 @@ export const AssignSensorsScreen: React.FC = () => {
   // Generate subjects (this should ideally be shared state, but keeping consistent with SessionScreen logic)
   let subjects = Array.from({ length: subjectCount }, (_, i) => {
     const id = i + 1;
+    const subjectName = `${subjectPrefix}${id}`;
     const subjectPlacedCount = requiredSensors.filter((s) => placedSensors.has(`${id}:${s.id}`)).length;
+    const connected = connectedSensors[subjectName.toLowerCase()] ?? connectedSensors[subjectName] ?? [];
     return {
       id,
-      name: `${subjectPrefix}${id}`,
+      name: subjectName,
       requiredCount: requiredSensors ? requiredSensors.length : 0,
-      connectedCount: 0, // Mocked for now
+      connectedCount: connected.length,
       placedCount: subjectPlacedCount,
     };
   });
@@ -60,8 +63,6 @@ export const AssignSensorsScreen: React.FC = () => {
       setSearchParams({ subjectId: (targetSubjectId + 1).toString() });
     }
   };
-
-  const allSensorsPlaced = subjects.length > 0 && subjects.every((s) => s.placedCount >= s.requiredCount);
 
   return (
     <main className="nexus-content screen-layout stretch">
@@ -99,12 +100,12 @@ export const AssignSensorsScreen: React.FC = () => {
             </div>
 
             {/* Sensors List */}
-            <div className="sensors-list-container">
-              {requiredSensors.map((sensor, idx) => (
-                <SensorRow key={`${subject.id}-${idx}`} subjectId={subject.id} sensor={sensor} />
-              ))}
-              {requiredSensors.length === 0 && <div className="empty-state-msg">No sensors required for this setup.</div>}
-            </div>
+              <div className="sensors-list-container">
+                {requiredSensors.map((sensor, idx) => (
+                  <SensorRow key={`${subject.id}-${idx}`} subjectId={subject.id} subjectName={subject.name} sensor={sensor} />
+                ))}
+                {requiredSensors.length === 0 && <div className="empty-state-msg">No sensors required for this setup.</div>}
+              </div>
           </div>
         ))}
       </div>
