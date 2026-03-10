@@ -10,9 +10,23 @@ interface BarGraphProps {
   variant?: 'simple' | 'detailed';
   data?: BarGroup[];
   labels?: string[];
+  emptyMessage?: string;
+  leftLabel?: string;
+  rightLabel?: string;
+  topLabel?: string;
+  midLabel?: string;
 }
 
-export const BarGraph: React.FC<BarGraphProps> = ({ variant = 'detailed', data, labels }) => {
+export const BarGraph: React.FC<BarGraphProps> = ({
+  variant = 'detailed',
+  data,
+  labels,
+  emptyMessage = 'Waiting for compute results...',
+  leftLabel = 'Left',
+  rightLabel = 'Right',
+  topLabel = '10 BW/s',
+  midLabel = '5',
+}) => {
   const isSimple = variant === 'simple';
 
   // Default data for detailed view (5 bars)
@@ -32,6 +46,15 @@ export const BarGraph: React.FC<BarGraphProps> = ({ variant = 'detailed', data, 
   ];
 
   const graphData = data || (isSimple ? defaultSimpleData : defaultDetailedData);
+  const columnWidth = `${100 / Math.max(graphData.length, 1)}%`;
+
+  if (graphData.length === 0) {
+    return (
+      <div className="bar-graph-empty">
+        {emptyMessage}
+      </div>
+    );
+  }
 
   if (isSimple) {
     return (
@@ -82,7 +105,7 @@ export const BarGraph: React.FC<BarGraphProps> = ({ variant = 'detailed', data, 
             pointerEvents: 'none',
           }}
         >
-          <span style={{ position: 'absolute', right: 0, top: '-20px', fontSize: '12px', color: 'rgba(255, 255, 255, 0.6)' }}>10 BW/s</span>
+          <span style={{ position: 'absolute', right: 0, top: '-20px', fontSize: '12px', color: 'rgba(255, 255, 255, 0.6)' }}>{topLabel}</span>
         </div>
         {/* Middle Line (5) */}
         <div
@@ -95,7 +118,7 @@ export const BarGraph: React.FC<BarGraphProps> = ({ variant = 'detailed', data, 
             pointerEvents: 'none',
           }}
         >
-          <span style={{ position: 'absolute', right: 0, top: '-20px', fontSize: '12px', color: 'rgba(255, 255, 255, 0.6)' }}>5</span>
+          <span style={{ position: 'absolute', right: 0, top: '-20px', fontSize: '12px', color: 'rgba(255, 255, 255, 0.6)' }}>{midLabel}</span>
         </div>
         {/* Bottom Line (Solid) */}
         <div
@@ -126,7 +149,7 @@ export const BarGraph: React.FC<BarGraphProps> = ({ variant = 'detailed', data, 
           }}
         >
           {graphData.map((heights, i) => (
-            <div key={i} style={{ display: 'flex', gap: '6px', alignItems: 'flex-end', height: '100%', width: '14%' }}>
+            <div key={i} style={{ display: 'flex', gap: '6px', alignItems: 'flex-end', height: '100%', width: columnWidth, maxWidth: '96px' }}>
               {/* Left Bar (Darker) */}
               <div style={{ flex: 1, height: heights.l, backgroundColor: '#5960F6', borderRadius: '4px 4px 0 0' }}></div>
               {/* Right Bar (Lighter) */}
@@ -148,13 +171,24 @@ export const BarGraph: React.FC<BarGraphProps> = ({ variant = 'detailed', data, 
             boxSizing: 'border-box',
           }}
         >
-          {labels.map((label) => (
-            <div key={label} style={{ width: '14%', textAlign: 'center', fontSize: '14px', color: 'rgba(255, 255, 255, 0.6)' }}>
+          {labels.map((label, index) => (
+            <div key={`${label}-${index}`} style={{ width: columnWidth, maxWidth: '96px', textAlign: 'center', fontSize: '14px', color: 'rgba(255, 255, 255, 0.6)' }}>
               {label}
             </div>
           ))}
         </div>
       )}
+
+      <div className="bar-graph-legend">
+        <div className="bar-graph-legend-item">
+          <span className="bar-graph-legend-swatch left"></span>
+          <span>{leftLabel}</span>
+        </div>
+        <div className="bar-graph-legend-item">
+          <span className="bar-graph-legend-swatch right"></span>
+          <span>{rightLabel}</span>
+        </div>
+      </div>
     </div>
   );
 };

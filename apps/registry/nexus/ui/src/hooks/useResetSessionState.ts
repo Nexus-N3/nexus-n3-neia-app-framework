@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useSetAtom } from 'jotai';
 import {
   activeActivityAtom,
+  computeResultsHistoryAtom,
   connectedSensorsAtom,
   discoveredSensorsAtom,
   latestComputeResultsAtom,
@@ -22,6 +23,7 @@ export const useResetSessionState = () => {
   const setDiscoveredSensors = useSetAtom(discoveredSensorsAtom);
   const setConnectedSensors = useSetAtom(connectedSensorsAtom);
   const setLatestComputeResults = useSetAtom(latestComputeResultsAtom);
+  const setComputeResultsHistory = useSetAtom(computeResultsHistoryAtom);
 
   const resetSessionState = useCallback(() => {
     setSessionName('');
@@ -33,8 +35,10 @@ export const useResetSessionState = () => {
     setDiscoveredSensors({});
     setConnectedSensors({});
     setLatestComputeResults({});
+    setComputeResultsHistory({});
   }, [
     setActiveActivity,
+    setComputeResultsHistory,
     setConnectedSensors,
     setDiscoveredSensors,
     setLatestComputeResults,

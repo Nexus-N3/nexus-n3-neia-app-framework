@@ -1,10 +1,16 @@
 import React from 'react';
+import { useAtom } from 'jotai';
 import { useNavigate } from 'react-router-dom';
+import { serverReadyAtom } from '../store/atoms';
 
 export const HomeScreen: React.FC = () => {
   const navigate = useNavigate();
+  const [serverReady] = useAtom(serverReadyAtom);
 
   const handleStartSession = () => {
+    if (!serverReady) {
+      return;
+    }
     navigate('/new-session');
   };
 
@@ -15,8 +21,8 @@ export const HomeScreen: React.FC = () => {
       </div>
       <div className="content-spacer"></div>
       <div className="screen-footer">
-        <button className="nexus-btn" onClick={handleStartSession}>
-          Start new session
+        <button className="nexus-btn" onClick={handleStartSession} disabled={!serverReady}>
+          {serverReady ? 'Start new session' : 'Server unavailable'}
         </button>
       </div>
     </main>

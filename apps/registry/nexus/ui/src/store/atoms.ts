@@ -73,6 +73,9 @@ export interface LatestSensorResult {
   algorithmName: string;
   bands: Array<{
     bandName: string;
+    x: number | null;
+    y: number | null;
+    z: number | null;
     mag: number | null;
   }>;
 }
@@ -84,3 +87,15 @@ export interface LatestComputeResultsMap {
 }
 
 export const latestComputeResultsAtom = atom<LatestComputeResultsMap>({});
+
+export interface SubjectResultHistoryEntry {
+  timestamp: number;
+  resultCount: number;
+  results: LatestSensorResult[];
+}
+
+export interface ComputeResultsHistoryMap {
+  [subjectId: string]: SubjectResultHistoryEntry[];
+}
+
+export const computeResultsHistoryAtom = atom<ComputeResultsHistoryMap>({});

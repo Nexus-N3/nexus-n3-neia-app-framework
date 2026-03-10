@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
 import './App.css';
 import logo from './assets/logo.svg';
@@ -15,16 +15,19 @@ import { NewActivityScreen } from './screens/NewActivityScreen';
 import { SubjectActivityScreen } from './screens/SubjectActivityScreen';
 import { BurgerMenu } from './components/BurgerMenu';
 import { ServerStatus } from './components/ServerStatus';
-import { sessionNameAtom, activeActivityAtom, siteNameAtom } from './store/atoms';
+import { RetryServerButton } from './components/RetryServerButton';
+import { sessionNameAtom, activeActivityAtom, siteNameAtom, serverReadyAtom } from './store/atoms';
 import { GatewaySocketProvider } from './hooks/useGatewaySocket';
 import { useServerReadiness } from './hooks/useServerReadiness';
 
 const AppContent = () => {
   useServerReadiness(); // Request and listen for server readiness
   const location = useLocation();
+  const navigate = useNavigate();
   const [title] = useAtom(siteNameAtom);
   const [sessionName] = useAtom(sessionNameAtom);
   const [activeActivity] = useAtom(activeActivityAtom);
+  const [serverReady] = useAtom(serverReadyAtom);
   const isHome = location.pathname === '/';
   const isSessionRelated =
     location.pathname === '/session' ||
@@ -41,6 +44,12 @@ const AppContent = () => {
     ? sessionName
     : 'CREATE NEW SESSION';
 
+  React.useEffect(() => {
+    if (!serverReady && location.pathname !== '/') {
+      navigate('/', { replace: true });
+    }
+  }, [location.pathname, navigate, serverReady]);
+
   return (
     <div className="nexus-app">
       <header className="nexus-header">
@@ -52,6 +61,7 @@ const AppContent = () => {
         </div>
         <div className="header-right">
           <ServerStatus />
+          {!serverReady && <RetryServerButton />}
           <BurgerMenu />
         </div>
       </header>
