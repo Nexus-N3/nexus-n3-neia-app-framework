@@ -1,6 +1,14 @@
 import React from 'react';
 
-export const BatteryIcon = ({ level }: { level: number }) => {
+export const BatteryIcon = ({ level }: { level: number | null }) => {
+  if (level === null) {
+    return (
+      <div className="battery-container">
+        <span className="battery-level-text">-</span>
+      </div>
+    );
+  }
+
   // Constants for the inner fill rectangle
   // Outline bounds roughly: x[2.7, 51.5], y[16.2, 48.8]
   // Stroke width is 4, so inner available space is approx x[4.7, 49.5], y[18.2, 46.8]

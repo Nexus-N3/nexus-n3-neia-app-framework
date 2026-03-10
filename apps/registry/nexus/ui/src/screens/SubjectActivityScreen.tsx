@@ -10,6 +10,7 @@ import { SegmentedControl } from '../components/SegmentedControl';
 import chevronLeft from '../assets/chevron-left.svg';
 import chevronRight from '../assets/chevron-right.svg';
 import { useLatestComputeResults } from '../hooks/useLatestComputeResults';
+import { useLatestIntermediateResults } from '../hooks/useLatestIntermediateResults';
 
 interface BandValues {
   x: number | null;
@@ -38,6 +39,11 @@ const getIntensityValue = (
 const formatLocationLabel = (location: string) => location.replace(/_/g, ' ');
 
 const formatPercent = (value: number | null) => (value !== null ? `${value.toFixed(0)}%` : '-');
+const formatSignedPercent = (value: number | null | undefined) =>
+  typeof value === 'number' ? `${value.toFixed(0)}%` : '-';
+const normalizeLocationKey = (value: string) => value.replace(/\s+/g, '_').toUpperCase();
+const formatRatio = (left: number | null | undefined, right: number | null | undefined) =>
+  typeof left === 'number' && typeof right === 'number' ? `${left.toFixed(4)}:${right.toFixed(4)}` : '-';
 
 export const SubjectActivityScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -48,8 +54,13 @@ export const SubjectActivityScreen: React.FC = () => {
   const [viewMode, setViewMode] = useState<'realtime' | 'periodic'>('realtime');
   const [historyOffset, setHistoryOffset] = useState(0);
   const { resultHistory } = useLatestComputeResults();
+  const { latestIntermediateResults, latestIntermediateComparisons } = useLatestIntermediateResults();
   const subjectKey = `${subjectPrefix}${subjectId}`;
   const subjectHistory = resultHistory[subjectKey] ?? [];
+  const periodicSensorResults = Object.values(latestIntermediateResults[subjectKey] ?? {}).sort(
+    (a, b) => locationPriority(a.location) - locationPriority(b.location),
+  );
+  const periodicComparison = latestIntermediateComparisons[subjectKey]?.[0];
   const maxOffset = Math.max(subjectHistory.length - HISTORY_WINDOW_SIZE, 0);
   const windowStart = Math.max(subjectHistory.length - HISTORY_WINDOW_SIZE - historyOffset, 0);
   const windowEnd = subjectHistory.length - historyOffset;
@@ -213,6 +224,34 @@ export const SubjectActivityScreen: React.FC = () => {
   const chartLabels = chartSeries.map((entry) => entry.resultCount.toString());
   const leftLocationLabel = chartSeries.find((entry) => entry.leftValue !== null)?.leftLocation ?? 'Left ankle';
   const rightLocationLabel = chartSeries.find((entry) => entry.rightValue !== null)?.rightLocation ?? 'Right ankle';
+  const periodicSensorSummaries = periodicSensorResults.map((result) => {
+    const band = getBandValues(result.bands);
+
+    return {
+      address: result.address,
+      location: formatLocationLabel(result.location),
+      intensity: band?.mag ?? null,
+      v: band?.x ?? null,
+      ml: band?.y ?? null,
+      ap: band?.z ?? null,
+    };
+  });
+  const periodicComparisonBand = periodicComparison?.data['0-6'];
+  const periodicComparisonTitle = periodicComparison?.pair
+    ? `${periodicComparison.pair[0].replace(/_/g, ' ')} vs ${periodicComparison.pair[1].replace(/_/g, ' ')}`
+    : 'Comparison';
+  const periodicLeftSensor = periodicComparison?.pair?.[0]
+    ? periodicSensorSummaries.find((sensor) => normalizeLocationKey(sensor.location) === normalizeLocationKey(periodicComparison.pair[0]))
+    : periodicSensorSummaries.find((sensor) => normalizeLocationKey(sensor.location).includes('LEFT'));
+  const periodicRightSensor = periodicComparison?.pair?.[1]
+    ? periodicSensorSummaries.find((sensor) => normalizeLocationKey(sensor.location) === normalizeLocationKey(periodicComparison.pair[1]))
+    : periodicSensorSummaries.find((sensor) => normalizeLocationKey(sensor.location).includes('RIGHT'));
+  const periodicRatioLabel =
+    periodicLeftSensor && periodicRightSensor
+      ? `${periodicLeftSensor.location}:${periodicRightSensor.location}`
+      : periodicComparison?.pair
+      ? `${periodicComparison.pair[0].replace(/_/g, ' ')}:${periodicComparison.pair[1].replace(/_/g, ' ')}`
+      : 'Left:Right';
 
   const handleBack = () => {
     navigate('/active-session');
@@ -247,9 +286,127 @@ export const SubjectActivityScreen: React.FC = () => {
         </div>
       </div>
 
+      {viewMode === 'periodic' ? (
+        <div className="subject-content-grid periodic-subject-grid">
+          <div className="metric-panel">
+            <h3 className="performance-header">Sensor Summary</h3>
+            <div className="performance-subtitle">Intermediate 0-6 band</div>
+
+            <div className="text-white">
+              {periodicSensorSummaries.length > 0 ? (
+                periodicSensorSummaries.map((sensor) => (
+                  <div key={sensor.address} className="metric-container">
+                    <h4 className="metric-title">{sensor.location}</h4>
+                    <hr className="metric-separator" />
+                    <div className="periodic-intensity-block">
+                      <div className="metric-cell periodic-intensity-cell">
+                        <span className="metric-label">INTENSITY</span>
+                        <span className="metric-value-large text-primary mt-4">
+                          {sensor.intensity !== null ? sensor.intensity.toFixed(4) : '-'} <span className="metric-unit">bw/s</span>
+                        </span>
+                      </div>
+                      <div className="periodic-axes-row">
+                        <div className="metric-cell">
+                          <span className="metric-label">V</span>
+                          <span className="metric-value-large text-primary mt-4">
+                            {sensor.v !== null ? sensor.v.toFixed(4) : '-'}
+                          </span>
+                        </div>
+                        <div className="metric-cell">
+                          <span className="metric-label">ML</span>
+                          <span className="metric-value-large text-primary mt-4">
+                            {sensor.ml !== null ? sensor.ml.toFixed(4) : '-'}
+                          </span>
+                        </div>
+                        <div className="metric-cell">
+                          <span className="metric-label">AP</span>
+                          <span className="metric-value-large text-primary mt-4">
+                            {sensor.ap !== null ? sensor.ap.toFixed(4) : '-'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="subject-history-empty">Waiting for intermediate results...</div>
+              )}
+            </div>
+          </div>
+
+          <div className="metric-panel">
+            <h3 className="performance-header">Comparison Summary</h3>
+            <div className="performance-subtitle">{periodicComparisonTitle}</div>
+
+            <div className="text-white">
+              <div className="metric-container">
+                <h4 className="metric-title">0-6 BAND DIFFERENCE</h4>
+                <hr className="metric-separator" />
+                {periodicComparisonBand ? (
+                  <div className="periodic-intensity-block">
+                      <div className="metric-cell periodic-intensity-cell">
+                        <span className="metric-label">INTENSITY</span>
+                        <span className="metric-value-large text-secondary mt-4">
+                          {formatSignedPercent(periodicComparisonBand.mag)}
+                        </span>
+                        <span className="metric-ratio-text">
+                          <span className="metric-ratio-label">{periodicRatioLabel}</span>
+                          <span className="metric-ratio-value">
+                            {formatRatio(periodicLeftSensor?.intensity, periodicRightSensor?.intensity)}
+                          </span>
+                        </span>
+                      </div>
+                      <div className="periodic-axes-row">
+                        <div className="metric-cell">
+                          <span className="metric-label">V</span>
+                          <span className="metric-value-large text-secondary mt-4">
+                            {formatSignedPercent(periodicComparisonBand.x)}
+                          </span>
+                          <span className="metric-ratio-text">
+                            <span className="metric-ratio-label">{periodicRatioLabel}</span>
+                            <span className="metric-ratio-value">
+                              {formatRatio(periodicLeftSensor?.v, periodicRightSensor?.v)}
+                            </span>
+                          </span>
+                        </div>
+                        <div className="metric-cell">
+                          <span className="metric-label">ML</span>
+                          <span className="metric-value-large text-secondary mt-4">
+                            {formatSignedPercent(periodicComparisonBand.y)}
+                          </span>
+                          <span className="metric-ratio-text">
+                            <span className="metric-ratio-label">{periodicRatioLabel}</span>
+                            <span className="metric-ratio-value">
+                              {formatRatio(periodicLeftSensor?.ml, periodicRightSensor?.ml)}
+                            </span>
+                          </span>
+                        </div>
+                        <div className="metric-cell">
+                          <span className="metric-label">AP</span>
+                          <span className="metric-value-large text-secondary mt-4">
+                            {formatSignedPercent(periodicComparisonBand.z)}
+                          </span>
+                          <span className="metric-ratio-text">
+                            <span className="metric-ratio-label">{periodicRatioLabel}</span>
+                            <span className="metric-ratio-value">
+                              {formatRatio(periodicLeftSensor?.ap, periodicRightSensor?.ap)}
+                            </span>
+                          </span>
+                        </div>
+                      </div>
+                  </div>
+                ) : (
+                  <div className="subject-history-empty">Waiting for comparison data...</div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
       <div className="subject-content-grid">
         <div className="metric-panel">
-          <h3 className="performance-header">Performance (running averages)</h3>
+          <h3 className="performance-header">Performance</h3>
+          <div className="performance-subtitle">Running averages</div>
 
           <div className="text-white">
             <div className="metric-container">
@@ -373,6 +530,7 @@ export const SubjectActivityScreen: React.FC = () => {
           </div>
         </div>
       </div>
+      )}
 
     </ScreenLayout>
   );

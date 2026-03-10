@@ -47,7 +47,7 @@ export const useLatestComputeResults = () => {
       const address = payload.result?.address;
       const resultCount = payload.result?.result_count;
 
-      if (!subjectId || !address || typeof resultCount !== 'number') {
+      if (!subjectId || !address) {
         return;
       }
 
@@ -79,7 +79,14 @@ export const useLatestComputeResults = () => {
 
       setResultHistory((prev) => {
         const subjectEntries = [...(prev[subjectId] ?? [])];
-        const existingIndex = subjectEntries.findIndex((entry) => entry.resultCount === resultCount);
+        const historyResultCount =
+          typeof resultCount === 'number'
+            ? resultCount
+            : (subjectEntries[subjectEntries.length - 1]?.resultCount ?? 0) + 1;
+        const existingIndex =
+          typeof resultCount === 'number'
+            ? subjectEntries.findIndex((entry) => entry.resultCount === historyResultCount)
+            : -1;
         const nextTimestamp = Date.now();
 
         if (existingIndex >= 0) {
@@ -97,7 +104,7 @@ export const useLatestComputeResults = () => {
         } else {
           subjectEntries.push({
             timestamp: nextTimestamp,
-            resultCount,
+            resultCount: historyResultCount,
             results: [nextResult],
           });
         }

@@ -1,4 +1,0 @@
-
-
-2. if a user moves back and forth through screens and ends up at "create session" does a new session actually get created or does it keep what was done before?
-3. back button needs to take the user back through the flow. it currently takes to seeminly random places

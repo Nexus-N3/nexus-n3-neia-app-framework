@@ -13,21 +13,30 @@ import { AssignSensorsScreen } from './screens/AssignSensorsScreen';
 import { ActiveSessionScreen } from './screens/ActiveSessionScreen';
 import { NewActivityScreen } from './screens/NewActivityScreen';
 import { SubjectActivityScreen } from './screens/SubjectActivityScreen';
-import { BurgerMenu } from './components/BurgerMenu';
+import { ResetButton } from './components/ResetButton';
 import { ServerStatus } from './components/ServerStatus';
 import { RetryServerButton } from './components/RetryServerButton';
-import { sessionNameAtom, activeActivityAtom, siteNameAtom, serverReadyAtom } from './store/atoms';
+import { activeActivityAtom, connectedSensorsAtom, sessionNameAtom, siteNameAtom, serverReadyAtom } from './store/atoms';
 import { GatewaySocketProvider } from './hooks/useGatewaySocket';
 import { useServerReadiness } from './hooks/useServerReadiness';
+import { useBatteryUpdates } from './hooks/useBatteryUpdates';
+import { useConnectedSensorUpdates } from './hooks/useConnectedSensorUpdates';
+import { useDisconnectSensors } from './hooks/useDisconnectSensors';
+import { useResetSessionState } from './hooks/useResetSessionState';
 
 const AppContent = () => {
   useServerReadiness(); // Request and listen for server readiness
+  useBatteryUpdates();
+  useConnectedSensorUpdates();
   const location = useLocation();
   const navigate = useNavigate();
   const [title] = useAtom(siteNameAtom);
   const [sessionName] = useAtom(sessionNameAtom);
   const [activeActivity] = useAtom(activeActivityAtom);
+  const [connectedSensors] = useAtom(connectedSensorsAtom);
   const [serverReady] = useAtom(serverReadyAtom);
+  const { disconnectAll, isDisconnecting } = useDisconnectSensors();
+  const { resetSessionState } = useResetSessionState();
   const isHome = location.pathname === '/';
   const isSessionRelated =
     location.pathname === '/session' ||
@@ -50,6 +59,21 @@ const AppContent = () => {
     }
   }, [location.pathname, navigate, serverReady]);
 
+  const hasConnectedSensors = Object.values(connectedSensors).some((sensors) => sensors.length > 0);
+
+  const handleReset = React.useCallback(async () => {
+    if (hasConnectedSensors) {
+      try {
+        await disconnectAll();
+      } catch {
+        // Hook stores UI error state; continue resetting local UI state.
+      }
+    }
+
+    resetSessionState();
+    navigate('/', { replace: true });
+  }, [disconnectAll, hasConnectedSensors, navigate, resetSessionState]);
+
   return (
     <div className="nexus-app">
       <header className="nexus-header">
@@ -62,7 +86,7 @@ const AppContent = () => {
         <div className="header-right">
           <ServerStatus />
           {!serverReady && <RetryServerButton />}
-          <BurgerMenu />
+          <ResetButton onClick={handleReset} disabled={isDisconnecting} />
         </div>
       </header>
 

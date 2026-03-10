@@ -61,11 +61,28 @@ export interface DiscoveredSensorsMap {
 }
 export const discoveredSensorsAtom = atom<DiscoveredSensorsMap>({});
 
-// Connected sensors per subject: { "subject_id": ["D4:22:CD:00:AA:6F (CONNECTED)", ...] }
+export interface ConnectedSensorInfo {
+  address: string;
+  status: string;
+  location: string | null;
+}
+
+// Connected sensors per subject keyed by subject id.
 export interface ConnectedSensorsMap {
-  [subjectId: string]: string[];
+  [subjectId: string]: ConnectedSensorInfo[];
 }
 export const connectedSensorsAtom = atom<ConnectedSensorsMap>({});
+
+export interface BatteryStatusInfo {
+  batteryLevel: number | null;
+  isCharging: boolean | null;
+}
+
+export interface BatteryStatusMap {
+  [address: string]: BatteryStatusInfo;
+}
+
+export const batteryStatusesAtom = atom<BatteryStatusMap>({});
 
 export interface LatestSensorResult {
   address: string;
@@ -87,6 +104,18 @@ export interface LatestComputeResultsMap {
 }
 
 export const latestComputeResultsAtom = atom<LatestComputeResultsMap>({});
+export const latestIntermediateResultsAtom = atom<LatestComputeResultsMap>({});
+
+export interface IntermediateComparisonResult {
+  pair: string[];
+  data: Record<string, { x?: number | null; y?: number | null; z?: number | null; mag?: number | null }>;
+}
+
+export interface LatestIntermediateComparisonsMap {
+  [subjectId: string]: IntermediateComparisonResult[];
+}
+
+export const latestIntermediateComparisonsAtom = atom<LatestIntermediateComparisonsMap>({});
 
 export interface SubjectResultHistoryEntry {
   timestamp: number;

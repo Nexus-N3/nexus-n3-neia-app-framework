@@ -13,6 +13,7 @@ import { useStopStream } from '../hooks/useStopStream';
 import { useDisconnectSensors } from '../hooks/useDisconnectSensors';
 import { useResetSessionState } from '../hooks/useResetSessionState';
 import { useLatestComputeResults } from '../hooks/useLatestComputeResults';
+import { useLatestIntermediateResults } from '../hooks/useLatestIntermediateResults';
 
 const locationPriority = (location: string) => {
   const normalized = location.toUpperCase();
@@ -40,6 +41,7 @@ export const ActiveSessionScreen: React.FC = () => {
   } = useDisconnectSensors();
   const { resetSessionState } = useResetSessionState();
   const { latestResults } = useLatestComputeResults();
+  const { latestIntermediateResults } = useLatestIntermediateResults();
 
   const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 4;
@@ -161,7 +163,8 @@ export const ActiveSessionScreen: React.FC = () => {
 
       <div className="subjects-grid">
         {currentSubjects.map((subject) => {
-          const subjectResults = Object.values(latestResults[subject.name] ?? {}).sort((a, b) =>
+          const resultSource = viewMode === 'periodic' ? latestIntermediateResults : latestResults;
+          const subjectResults = Object.values(resultSource[subject.name] ?? {}).sort((a, b) =>
             locationPriority(a.location) - locationPriority(b.location),
           );
           const isSubjectStopped = stoppedSubjects.has(subject.name);

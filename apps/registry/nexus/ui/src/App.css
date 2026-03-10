@@ -47,15 +47,25 @@
   text-transform: uppercase;
 }
 
-.header-right .burger-menu {
-  background: none;
-  border: none;
+.reset-header-btn {
+  background: transparent;
+  border: 1px solid rgba(231, 238, 243, 0.5);
+  color: #e7eef3;
+  border-radius: 999px;
+  padding: 8px 16px;
   cursor: pointer;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.reset-header-btn:hover {
+  background: rgba(231, 238, 243, 0.08);
+}
+
+.reset-header-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 
 /* Line under the header */
@@ -86,6 +96,22 @@
   flex-grow: 1; /* Pushes content down or just adds space */
   /* If the button should be at the bottom, use flex-grow here */
   /* The requirement says: "Then there's a gap and in the bottom there's a button" */
+}
+
+.home-screen-header {
+  margin-bottom: 0;
+}
+
+.home-screen-actions {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.home-screen-actions .nexus-btn {
+  min-width: 800px;
 }
 
 /* New Session Screen Styles */
@@ -569,6 +595,15 @@ h2 {
   margin-bottom: 16px;
 }
 
+.performance-subtitle {
+  font-size: 16px;
+  color: rgba(231, 238, 243, 0.72);
+  text-transform: uppercase;
+  text-align: center;
+  margin-top: -4px;
+  margin-bottom: 20px;
+}
+
 .metric-panel {
   display: flex;
   flex-direction: column;
@@ -630,6 +665,10 @@ h2 {
   gap: 20px;
   flex: 1;
   min-height: 0;
+}
+
+.periodic-subject-grid {
+  grid-template-columns: 1fr 1fr;
 }
 
 .graph-panel-column {
@@ -811,6 +850,50 @@ h2 {
   min-height: 120px;
   color: rgba(231, 238, 243, 0.72);
   font-size: 18px;
+}
+
+.periodic-sensor-grid,
+.periodic-comparison-grid {
+  grid-template-columns: 1fr 1fr;
+}
+
+.periodic-intensity-block {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.periodic-intensity-cell {
+  align-items: center;
+}
+
+.periodic-axes-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.metric-ratio-text {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: rgba(231, 238, 243, 0.72);
+  font-size: 14px;
+  letter-spacing: 0.12em;
+}
+
+.metric-ratio-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.metric-ratio-value {
+  display: inline-block;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
 /* ========================================
@@ -1314,9 +1397,9 @@ h2 {
 }
 
 .quick-selection-container {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 15px;
-  flex-wrap: wrap;
 }
 
 
