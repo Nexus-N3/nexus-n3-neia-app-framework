@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAtom } from 'jotai';
 import { ScreenLayout } from '../components/ScreenLayout';
@@ -53,6 +53,11 @@ export const SubjectActivityScreen: React.FC = () => {
   const [subjectPrefix] = useAtom(subjectPrefixAtom);
   const [viewMode, setViewMode] = useState<'realtime' | 'periodic'>('realtime');
   const [historyOffset, setHistoryOffset] = useState(0);
+  const [prevSubjectId, setPrevSubjectId] = useState(subjectId);
+  if (prevSubjectId !== subjectId) {
+    setPrevSubjectId(subjectId);
+    setHistoryOffset(0);
+  }
   const { resultHistory } = useLatestComputeResults();
   const { latestIntermediateResults, latestIntermediateComparisons } = useLatestIntermediateResults();
   const subjectKey = `${subjectPrefix}${subjectId}`;
@@ -191,13 +196,9 @@ export const SubjectActivityScreen: React.FC = () => {
     },
   ];
 
-  useEffect(() => {
-    setHistoryOffset(0);
-  }, [subjectId]);
-
-  useEffect(() => {
-    setHistoryOffset((prev) => Math.min(prev, maxOffset));
-  }, [maxOffset]);
+  if (historyOffset > maxOffset) {
+    setHistoryOffset(maxOffset);
+  }
 
   const chartSeries = visibleHistory.map((entry) => {
     const sortedResults = [...entry.results].sort((a, b) => locationPriority(a.location) - locationPriority(b.location));
