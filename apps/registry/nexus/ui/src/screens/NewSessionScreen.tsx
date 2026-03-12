@@ -39,7 +39,7 @@ export const NewSessionScreen: React.FC = () => {
   };
 
   return (
-    <main className="nexus-content">
+    <main className="nexus-content screen-layout new-session-screen">
       <div className="sub-header-row">
         <BackButton onClick={handleBack} />
 

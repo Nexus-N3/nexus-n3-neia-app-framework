@@ -22,7 +22,9 @@ export const SessionScreen: React.FC = () => {
 
   // Pagination state (we show 4 items at a time in a 2x2 grid)
   const [currentPage, setCurrentPage] = useState(0);
-  const itemsPerPage = 4;
+  const isCompactViewport =
+    typeof window !== 'undefined' && window.innerWidth <= 800 && window.innerHeight <= 400;
+  const itemsPerPage = isCompactViewport ? 1 : 4;
   const totalPages = Math.ceil(subjectCount / itemsPerPage);
 
   const selectedSetup = setups.find((s) => s.id === selectedSetupId);
