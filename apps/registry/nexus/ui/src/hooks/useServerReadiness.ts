@@ -5,6 +5,7 @@ import {
   supportedSensorsAtom,
   supportedLocationsAtom,
   supportedComputationsAtom,
+  setupsAtom,
   type SupportedSensor,
   type Computation,
   siteNameAtom,
@@ -17,6 +18,7 @@ export const useServerReadiness = () => {
   const setSupportedSensors = useSetAtom(supportedSensorsAtom);
   const setSupportedLocations = useSetAtom(supportedLocationsAtom);
   const setSupportedComputations = useSetAtom(supportedComputationsAtom);
+  const setSetups = useSetAtom(setupsAtom);
   const setSiteName = useSetAtom(siteNameAtom);
 
   useEffect(() => {
@@ -56,6 +58,23 @@ export const useServerReadiness = () => {
 
           setSupportedLocations(locMap);
           setSupportedComputations(compMap);
+
+          // Update default setup name and sensor comp to the 1st computation
+          const firstSensorType = sensors[0];
+          if (firstSensorType && Array.isArray(firstSensorType.computations) && firstSensorType.computations.length > 0) {
+            const firstCompName = firstSensorType.computations[0].name;
+            setSetups((prev) =>
+              prev.map((setup) =>
+                setup.id === 'default'
+                  ? {
+                      ...setup,
+                      name: firstCompName,
+                      sensors: setup.sensors.map((s) => ({ ...s, comp: firstCompName })),
+                    }
+                  : setup,
+              ),
+            );
+          }
         }
       }
     });
@@ -68,5 +87,5 @@ export const useServerReadiness = () => {
     });
 
     return unsubscribe;
-  }, [subscribe, sendCommand, setServerReady, setSupportedSensors, setSupportedLocations, setSupportedComputations, setSiteName]);
+  }, [subscribe, sendCommand, setServerReady, setSupportedSensors, setSupportedLocations, setSupportedComputations, setSetups, setSiteName]);
 };

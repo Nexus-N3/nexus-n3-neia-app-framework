@@ -6,7 +6,7 @@ body {
   height: 100%;
   box-sizing: border-box;
   font-family: 'Montserrat', sans-serif;
-  font-size: 32px;
+  font-size: clamp(12px, 4vw, 32px);
   letter-spacing: 0.26em; /* 26% letter spacing */
   background-color: #071d28; /* As requested background color */
   color: #fff;
@@ -18,7 +18,7 @@ select,
 textarea {
   font-family: 'Montserrat', sans-serif;
   letter-spacing: 0.26em;
-  font-size: inherit; /* Inherit the 32px unless overridden */
+  font-size: inherit; /* Inherit the font size from the root element */
 }
 
 #root {
