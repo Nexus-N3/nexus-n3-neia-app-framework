@@ -1994,9 +1994,23 @@ h2 {
   }
 
   .sensor-setup-screen .action-row {
-    margin-top: 6px;
-    margin-bottom: 0;
-    gap: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    gap: 0;
+  }
+
+  .sensor-setup-screen .setup-list-panel > .panel-action-btn,
+  .sensor-setup-screen .action-row > div,
+  .sensor-setup-screen .action-row .secondary-btn {
+    display: none;
+  }
+
+  .sensor-setup-screen .action-row .nexus-btn {
+    width: min(100%, 600px);
+    min-width: 0;
   }
 
   .screen-footer .nexus-btn,
