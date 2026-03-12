@@ -168,7 +168,7 @@ export const SensorSetupScreen: React.FC = () => {
   };
 
   return (
-    <main className="nexus-content screen-layout">
+    <main className="nexus-content screen-layout sensor-setup-screen">
       <div className="sub-header-row">
         <BackButton onClick={handleBack} disabled={isInitializing} />
         <h2 className="screen-title">SENSOR SETUP</h2>
