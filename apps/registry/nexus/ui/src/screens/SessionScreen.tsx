@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
+import { ScreenHeader } from '../components/ScreenHeader';
+import { StatusOverlay } from '../components/StatusOverlay';
 import { SubjectsCarousel } from '../components/SubjectsCarousel';
 import { subjectCountAtom, setupsAtom, selectedSetupIdAtom, placedSensorsAtom, subjectPrefixAtom, discoveredSensorsAtom, connectedSensorsAtom } from '../store/atoms';
 import { useDiscoverSensors } from '../hooks/useDiscoverSensors';
@@ -69,11 +71,12 @@ export const SessionScreen: React.FC = () => {
   return (
     <main className="nexus-content screen-layout">
       {/* Header Row with Carousel */}
-      <div className="sub-header-row compact">
-        <BackButton onClick={handleBack} />
-        <SubjectsCarousel currentPage={currentPage} totalPages={totalPages} onPrev={handlePrevPage} onNext={handleNextPage} />
-        <InfoButton />
-      </div>
+      <ScreenHeader
+        className="compact"
+        left={<BackButton onClick={handleBack} />}
+        center={<SubjectsCarousel currentPage={currentPage} totalPages={totalPages} onPrev={handlePrevPage} onNext={handleNextPage} />}
+        right={<InfoButton />}
+      />
 
       {/* Grid Content */}
       <div className="subjects-grid">
@@ -155,29 +158,22 @@ export const SessionScreen: React.FC = () => {
       </div>
 
       {/* Overlay Modal */}
-      {(isBusy || phase === 'error' || disconnectError) && (
-        <div
-          className="overlay-backdrop"
-          onClick={phase === 'error' ? dismiss : disconnectError ? dismissDisconnectError : undefined}
-        >
-          <div className="overlay-modal" onClick={(e) => e.stopPropagation()}>
-            {isBusy && <div className="overlay-spinner" />}
-            <div className="overlay-status">
-              {phase === 'discovering' && 'Discovering sensors...'}
-              {phase === 'connecting' && 'Connecting to sensors...'}
-              {phase === 'error' && 'Sensor setup failed'}
-              {disconnectError && 'Disconnect failed'}
-            </div>
-            {discoverError && <div className="overlay-error">{discoverError}</div>}
-            {disconnectError && <div className="overlay-error">{disconnectError}</div>}
-            {(phase === 'error' || disconnectError) && (
-              <button className="nexus-btn" onClick={disconnectError ? dismissDisconnectError : dismiss}>
-                Dismiss
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+      <StatusOverlay
+        busy={isBusy}
+        statusText={
+          phase === 'discovering'
+            ? 'Discovering sensors...'
+            : phase === 'connecting'
+              ? 'Connecting to sensors...'
+              : phase === 'error'
+                ? 'Sensor setup failed'
+                : disconnectError
+                  ? 'Disconnect failed'
+                  : null
+        }
+        errors={[discoverError, disconnectError]}
+        onDismiss={disconnectError ? dismissDisconnectError : phase === 'error' ? dismiss : undefined}
+      />
     </main>
   );
 };

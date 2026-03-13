@@ -59,16 +59,17 @@ export const useServerReadiness = () => {
           setSupportedLocations(locMap);
           setSupportedComputations(compMap);
 
-          // Update default setup name and sensor comp to the 1st computation
+          // Keep the default setup label stable and only refresh its default computation.
           const firstSensorType = sensors[0];
           if (firstSensorType && Array.isArray(firstSensorType.computations) && firstSensorType.computations.length > 0) {
-            const firstCompName = firstSensorType.computations[0].name;
+            const firstCompName =
+              firstSensorType.computations.find((comp) => comp.name === 'standard_loading_intensity')?.name ??
+              firstSensorType.computations[0].name;
             setSetups((prev) =>
               prev.map((setup) =>
                 setup.id === 'default'
                   ? {
                       ...setup,
-                      name: firstCompName,
                       sensors: setup.sensors.map((s) => ({ ...s, comp: firstCompName })),
                     }
                   : setup,

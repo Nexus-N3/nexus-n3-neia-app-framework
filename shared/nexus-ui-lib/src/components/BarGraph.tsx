@@ -28,8 +28,6 @@ export const BarGraph: React.FC<BarGraphProps> = ({
   midLabel = '5',
 }) => {
   const isSimple = variant === 'simple';
-  const isCompactViewport =
-    typeof window !== 'undefined' && window.innerWidth <= 800 && window.innerHeight <= 400;
 
   // Default data for detailed view (5 bars)
   const defaultDetailedData: BarGroup[] = [
@@ -59,20 +57,16 @@ export const BarGraph: React.FC<BarGraphProps> = ({
   }
 
   if (isSimple) {
-    const containerGap = isCompactViewport ? '10px' : '40px';
-    const containerPadding = isCompactViewport ? '0 8px' : '0 30px';
-    const pairGap = isCompactViewport ? '4px' : '8px';
-
     return (
       <div
         style={{
           display: 'flex',
-          gap: containerGap,
+          gap: '40px',
           alignItems: 'flex-end',
           height: '100%',
           width: '100%',
           justifyContent: 'center',
-          padding: containerPadding,
+          padding: '0 30px',
           boxSizing: 'border-box',
         }}
       >
@@ -81,7 +75,7 @@ export const BarGraph: React.FC<BarGraphProps> = ({
             key={i}
             style={{
               display: 'flex',
-              gap: pairGap,
+              gap: '8px',
               opacity: heights.opacity !== undefined ? heights.opacity : 1,
               alignItems: 'flex-end',
               height: '100%',

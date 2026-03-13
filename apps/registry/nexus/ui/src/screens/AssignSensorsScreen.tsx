@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
+import { ScreenHeader } from '../components/ScreenHeader';
 import { SensorRow } from '../components/SensorRow';
 import { SubjectsCarousel } from '../components/SubjectsCarousel';
 import { subjectCountAtom, setupsAtom, selectedSetupIdAtom, placedSensorsAtom, activeActivityAtom, subjectPrefixAtom, connectedSensorsAtom } from '../store/atoms';
@@ -65,23 +66,26 @@ export const AssignSensorsScreen: React.FC = () => {
   };
 
   return (
-    <main className="nexus-content screen-layout stretch">
+    <main className="nexus-content screen-layout stretch assign-sensors-screen">
       {/* Sub Header */}
-      <div className="sub-header-row compact">
-        <BackButton onClick={handleBack} />
-        {targetSubjectId ? (
-          <SubjectsCarousel
-            currentPage={targetSubjectId - 1}
-            totalPages={subjectCount}
-            onPrev={handlePrevSubject}
-            onNext={handleNextSubject}
-            title={`${subjectPrefix}${targetSubjectId}`}
-          />
-        ) : (
-          <h2 className="screen-title">PLACE SENSORS</h2>
-        )}
-        <InfoButton />
-      </div>
+      <ScreenHeader
+        className="compact"
+        left={<BackButton onClick={handleBack} />}
+        center={
+          targetSubjectId ? (
+            <SubjectsCarousel
+              currentPage={targetSubjectId - 1}
+              totalPages={subjectCount}
+              onPrev={handlePrevSubject}
+              onNext={handleNextSubject}
+              title={`${subjectPrefix}${targetSubjectId}`}
+            />
+          ) : (
+            <h2 className="screen-title">PLACE SENSORS</h2>
+          )
+        }
+        right={<InfoButton />}
+      />
 
       <div className="sensors-scroll-container">
         {subjects.map((subject) => (

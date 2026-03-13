@@ -1,10 +1,20 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAtom } from 'jotai';
+import { useAtom, useSetAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
+import { ErrorBanner } from '../components/ErrorBanner';
 import { InfoButton } from '../components/InfoButton';
+import { ScreenHeader } from '../components/ScreenHeader';
 import { SubjectsCarousel } from '../components/SubjectsCarousel';
-import { subjectCountAtom, activeActivityAtom, subjectPrefixAtom } from '../store/atoms'; // Added activeActivityAtom
+import {
+  subjectCountAtom,
+  activeActivityAtom,
+  subjectPrefixAtom,
+  latestComputeResultsAtom,
+  latestIntermediateResultsAtom,
+  latestIntermediateComparisonsAtom,
+  computeResultsHistoryAtom,
+} from '../store/atoms';
 import { ScreenLayout } from '../components/ScreenLayout';
 import { BarGraph } from '../components/BarGraph'; // Added BarGraph
 import { SegmentedControl } from '../components/SegmentedControl'; // Added SegmentedControl
@@ -14,6 +24,7 @@ import { useDisconnectSensors } from '../hooks/useDisconnectSensors';
 import { useResetSessionState } from '../hooks/useResetSessionState';
 import { useLatestComputeResults } from '../hooks/useLatestComputeResults';
 import { useLatestIntermediateResults } from '../hooks/useLatestIntermediateResults';
+import type { SubjectResultHistoryEntry } from '../store/atoms';
 
 const locationPriority = (location: string) => {
   const normalized = location.toUpperCase();
@@ -25,11 +36,70 @@ const locationPriority = (location: string) => {
 const getIntensityValue = (bands: Array<{ bandName: string; mag: number | null }>) =>
   bands.find((band) => band.bandName === '0-6')?.mag ?? null;
 
+const buildSimpleGraphData = (
+  intensityRows: Array<{ location: string; value: number | null }>,
+  subjectHistory: SubjectResultHistoryEntry[],
+) => {
+  const latestEntry = subjectHistory[subjectHistory.length - 1];
+  const previousEntry = subjectHistory[subjectHistory.length - 2];
+
+  const buildPair = (rows: Array<{ location: string; value: number | null }>, maxIntensity: number, opacity?: number) => {
+    const leftRow = rows.find((row) => locationPriority(row.location) === 0);
+    const rightRow = rows.find((row) => locationPriority(row.location) === 1);
+
+    return {
+      l: `${((((leftRow?.value ?? 0) || 0) / maxIntensity) * 100).toFixed(0)}%`,
+      r: `${((((rightRow?.value ?? 0) || 0) / maxIntensity) * 100).toFixed(0)}%`,
+      ...(opacity !== undefined ? { opacity } : {}),
+    };
+  };
+
+  if (!latestEntry) {
+    return [];
+  }
+
+  const latestRows = latestEntry.results
+    .map((result) => ({
+      location: result.location.replace(/_/g, ' '),
+      value: getIntensityValue(result.bands),
+    }))
+    .sort((a, b) => locationPriority(a.location) - locationPriority(b.location));
+
+  const previousRows = previousEntry
+    ? previousEntry.results
+        .map((result) => ({
+          location: result.location.replace(/_/g, ' '),
+          value: getIntensityValue(result.bands),
+        }))
+        .sort((a, b) => locationPriority(a.location) - locationPriority(b.location))
+    : [];
+
+  const sourceRows = latestRows.length > 0 ? latestRows : intensityRows;
+  const maxIntensity = Math.max(
+    1,
+    ...sourceRows.map((row) => row.value ?? 0),
+    ...previousRows.map((row) => row.value ?? 0),
+  );
+
+  if (previousRows.length > 0) {
+    return [
+      buildPair(previousRows, maxIntensity, 0.5),
+      buildPair(sourceRows, maxIntensity, 1),
+    ];
+  }
+
+  return [buildPair(sourceRows, maxIntensity, 1)];
+};
+
 export const ActiveSessionScreen: React.FC = () => {
   const navigate = useNavigate();
   const [subjectCount] = useAtom(subjectCountAtom);
   const [subjectPrefix] = useAtom(subjectPrefixAtom);
   const [activeActivity, setActiveActivity] = useAtom(activeActivityAtom);
+  const setLatestComputeResults = useSetAtom(latestComputeResultsAtom);
+  const setLatestIntermediateResults = useSetAtom(latestIntermediateResultsAtom);
+  const setLatestIntermediateComparisons = useSetAtom(latestIntermediateComparisonsAtom);
+  const setComputeResultsHistory = useSetAtom(computeResultsHistoryAtom);
   const [stoppedSubjects, setStoppedSubjects] = useState<Set<string>>(new Set());
   const { startStreamForSubjects, isStarting, errorMsg: startError, dismissError: dismissStartError } = useStartStream();
   const { stopStreamForAll, stopStreamForSubjects, isStopping, errorMsg, dismissError } = useStopStream();
@@ -40,11 +110,13 @@ export const ActiveSessionScreen: React.FC = () => {
     dismissError: dismissDisconnectError,
   } = useDisconnectSensors();
   const { resetSessionState } = useResetSessionState();
-  const { latestResults } = useLatestComputeResults();
+  const { latestResults, resultHistory } = useLatestComputeResults();
   const { latestIntermediateResults } = useLatestIntermediateResults();
 
   const [currentPage, setCurrentPage] = useState(0);
-  const itemsPerPage = 4;
+  const isCompactViewport =
+    typeof window !== 'undefined' && window.innerWidth <= 800 && window.innerHeight <= 400;
+  const itemsPerPage = isCompactViewport ? 1 : 4;
   const totalPages = Math.ceil(subjectCount / itemsPerPage);
   
   // Local state for view mode (only relevant when active)
@@ -96,6 +168,27 @@ export const ActiveSessionScreen: React.FC = () => {
     const activityTag = typeof activeActivity === 'string' && activeActivity ? activeActivity : 'Activity_1';
 
     try {
+      setLatestComputeResults((prev) => {
+        const next = { ...prev };
+        delete next[subjectId];
+        return next;
+      });
+      setLatestIntermediateResults((prev) => {
+        const next = { ...prev };
+        delete next[subjectId];
+        return next;
+      });
+      setLatestIntermediateComparisons((prev) => {
+        const next = { ...prev };
+        delete next[subjectId];
+        return next;
+      });
+      setComputeResultsHistory((prev) => {
+        const next = { ...prev };
+        delete next[subjectId];
+        return next;
+      });
+
       await startStreamForSubjects(activityTag, [subjectId]);
       setStoppedSubjects((prev) => {
         const next = new Set(prev);
@@ -118,35 +211,26 @@ export const ActiveSessionScreen: React.FC = () => {
   };
 
   return (
-    <ScreenLayout className="screen-layout">
+    <ScreenLayout className="screen-layout active-session-screen">
       {startError && (
-        <div className="error-banner" onClick={dismissStartError}>
-          {startError}
-        </div>
+        <ErrorBanner message={startError} onDismiss={dismissStartError} />
       )}
       {errorMsg && (
-        <div className="error-banner" onClick={dismissError}>
-          {errorMsg}
-        </div>
+        <ErrorBanner message={errorMsg} onDismiss={dismissError} />
       )}
       {disconnectError && (
-        <div className="error-banner" onClick={dismissDisconnectError}>
-          {disconnectError}
-        </div>
+        <ErrorBanner message={disconnectError} onDismiss={dismissDisconnectError} />
       )}
 
-      {/* Header Row with Carousel */}
-      <div className="sub-header-row relative compact">
-        <div className="z-1">
-          <BackButton onClick={handleBack} />
-        </div>
-
-        <div className="absolute-center">
-          <SubjectsCarousel currentPage={currentPage} totalPages={totalPages} onPrev={handlePrevPage} onNext={handleNextPage} />
-        </div>
-
-        <div className="z-1">
-          {activeActivity ? (
+      <ScreenHeader
+        className="relative compact"
+        leftWrapperClassName="z-1"
+        centerWrapperClassName="absolute-center"
+        rightWrapperClassName="z-1"
+        left={<BackButton onClick={handleBack} />}
+        center={<SubjectsCarousel currentPage={currentPage} totalPages={totalPages} onPrev={handlePrevPage} onNext={handleNextPage} />}
+        right={
+          activeActivity ? (
             <SegmentedControl
               value={viewMode}
               onChange={(value) => setViewMode(value as 'realtime' | 'periodic')}
@@ -157,9 +241,9 @@ export const ActiveSessionScreen: React.FC = () => {
             />
           ) : (
             <InfoButton />
-          )}
-        </div>
-      </div>
+          )
+        }
+      />
 
       <div className="subjects-grid">
         {currentSubjects.map((subject) => {
@@ -173,50 +257,80 @@ export const ActiveSessionScreen: React.FC = () => {
             value: getIntensityValue(result.bands),
           }));
           const hasIntensityData = intensityRows.some((result) => result.value !== null);
-          const [leftResult, rightResult] = intensityRows;
-          const maxIntensity = Math.max(...intensityRows.map((result) => result.value ?? 0), 1);
           const graphData =
             hasIntensityData
-              ? [
-                  {
-                    l: `${(((leftResult?.value ?? 0) / maxIntensity) * 100).toFixed(0)}%`,
-                    r: `${(((rightResult?.value ?? 0) / maxIntensity) * 100).toFixed(0)}%`,
-                  },
-                ]
+              ? viewMode === 'realtime'
+                ? buildSimpleGraphData(intensityRows, resultHistory[subject.name] ?? [])
+                : buildSimpleGraphData(intensityRows, [])
               : [];
 
           return (
-          <div key={subject.id} className="subject-card">
-            <div className={`subject-card-content ${activeActivity ? 'with-graph' : ''}`}>
-              <h3 className="subject-card-title">{subject.name}</h3>
-
-              <div className="subject-intensity-panel">
+          <div key={subject.id} className="subject-card active-session-card">
+            {isCompactViewport ? (
+              <div className="compact-active-session-card">
+                <h3 className="subject-card-title">{subject.name}</h3>
                 {hasIntensityData ? (
-                  <>
-                    <div className="subject-intensity-values">
-                      <div className="subject-intensity-title">INTENSITY</div>
-                      <div className="subject-intensity-grid">
-                        {intensityRows.map((result) => (
-                          <div key={`${subject.name}-${result.location}`} className="subject-intensity-cell">
-                            <span className="subject-intensity-location">{result.location}</span>
-                            <span className="subject-intensity-value">
+                  <div className="compact-active-session-body">
+                    <div className="compact-intensity-values">
+                      <div className="compact-intensity-title">INTENSITY</div>
+                      <div className="compact-intensity-columns">
+                        <div className="compact-intensity-labels">
+                          {intensityRows.map((result) => (
+                            <span key={`${subject.name}-${result.location}-label`} className="compact-intensity-location">
+                              {result.location}
+                            </span>
+                          ))}
+                        </div>
+                        <div className="compact-intensity-metrics">
+                          {intensityRows.map((result) => (
+                            <span key={`${subject.name}-${result.location}-value`} className="compact-intensity-value">
                               {result.value !== null ? result.value.toFixed(4) : '-'}
                             </span>
-                          </div>
-                        ))}
-                        {intensityRows.length === 1 && <div className="subject-intensity-cell" />}
+                          ))}
+                        </div>
                       </div>
                     </div>
-                    <div className="subject-intensity-graph">
-                    <BarGraph variant="simple" data={graphData} />
+                    <div className="compact-intensity-chart">
+                      <BarGraph variant="simple" data={graphData} />
                     </div>
-                  </>
+                  </div>
                 ) : (
                   <div className="debug-empty-state subject-intensity-empty">Waiting for compute results...</div>
                 )}
               </div>
-            </div>
-            <div className="panel-action-row">
+            ) : (
+              <div className={`subject-card-content active-session-card-content ${activeActivity ? 'with-graph' : ''}`}>
+                <h3 className="subject-card-title">{subject.name}</h3>
+
+                <div className="subject-intensity-panel active-session-intensity-panel">
+                  {hasIntensityData ? (
+                    <>
+                      <div className="subject-intensity-values">
+                        <div className="subject-intensity-title">INTENSITY</div>
+                        <div className="subject-intensity-grid">
+                          {intensityRows.map((result) => (
+                            <div key={`${subject.name}-${result.location}`} className="subject-intensity-cell">
+                              <span className="subject-intensity-location">{result.location}</span>
+                              <span className="subject-intensity-value">
+                                {result.value !== null ? result.value.toFixed(4) : '-'}
+                              </span>
+                            </div>
+                          ))}
+                          {intensityRows.length === 1 && <div className="subject-intensity-cell" />}
+                        </div>
+                      </div>
+                      <div className="subject-intensity-graph">
+                        <BarGraph variant="simple" data={graphData} />
+                      </div>
+                    </>
+                  ) : (
+                    <div className="debug-empty-state subject-intensity-empty">Waiting for compute results...</div>
+                  )}
+                </div>
+              </div>
+            )}
+            {!isCompactViewport && (
+            <div className="panel-action-row active-session-card-actions">
               <button
                 className={`panel-action-btn ${isSubjectStopped ? 'success' : 'danger'} split-left`}
                 onClick={() => (isSubjectStopped ? handleStartSubjectActivity(subject.name) : handleStopSubjectActivity(subject.name))}
@@ -232,6 +346,7 @@ export const ActiveSessionScreen: React.FC = () => {
                 View details
               </button>
             </div>
+            )}
           </div>
         );
         })}

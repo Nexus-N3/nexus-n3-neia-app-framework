@@ -29,11 +29,11 @@ export interface Setup {
 export const setupsAtom = atom<Setup[]>([
   {
     id: 'default',
-    name: 'loading',
+    name: 'Loading intensity',
     isCustom: false,
     sensors: [
-      { id: 'default-1', type: 'Movella DOT', loc: 'Left ankle', comp: 'Loading' },
-      { id: 'default-2', type: 'Movella DOT', loc: 'Right ankle', comp: 'Loading' },
+      { id: 'default-1', type: 'Movella DOT', loc: 'Left ankle', comp: 'standard_loading_intensity' },
+      { id: 'default-2', type: 'Movella DOT', loc: 'Right ankle', comp: 'standard_loading_intensity' },
     ],
   },
 ]);

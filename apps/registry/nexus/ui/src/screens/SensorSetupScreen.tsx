@@ -167,6 +167,22 @@ export const SensorSetupScreen: React.FC = () => {
     await initSystem(payload);
   };
 
+  const buildSetupSummary = (setup: Setup) => {
+    const sensorTypeCounts = new Map<string, number>();
+    setup.sensors.forEach((sensor) => {
+      sensorTypeCounts.set(sensor.type, (sensorTypeCounts.get(sensor.type) ?? 0) + 1);
+    });
+
+    const uniqueLocations = Array.from(new Set(setup.sensors.map((sensor) => sensor.loc)));
+
+    return {
+      title: setup.name.length > 0 ? `${setup.name.charAt(0).toUpperCase()}${setup.name.slice(1).toLowerCase()}` : setup.name,
+      groupedTypes: Array.from(sensorTypeCounts.entries()).map(([type, count]) => `${count}x ${type}`),
+      locations: uniqueLocations.length > 0 ? [uniqueLocations.join(' ')] : [],
+      computations: Array.from(new Set(setup.sensors.map((sensor) => sensor.comp).filter(Boolean))),
+    };
+  };
+
   return (
     <main className="nexus-content screen-layout sensor-setup-screen">
       <div className="sub-header-row">
@@ -187,12 +203,39 @@ export const SensorSetupScreen: React.FC = () => {
           <h3 className="setup-panel-header">DEFAULT SETUPS</h3>
           <div className="setup-list">
             {setups.map((setup) => (
+              (() => {
+                const summary = buildSetupSummary(setup);
+                return (
               <div
                 key={setup.id}
                 className={`setup-item ${selectedSetupId === setup.id ? 'selected' : ''}`}
                 onClick={() => setSelectedSetupId(setup.id)}
               >
-                <span>{setup.name}</span>
+                <div className="setup-item-main">
+                  <span className="setup-item-title">{summary.title}</span>
+                  <div className="setup-item-summary">
+                    <>
+                      {summary.groupedTypes.map((line) => (
+                        <div key={`${setup.id}-${line}`} className="setup-item-summary-line">
+                          {line}
+                        </div>
+                      ))}
+                      {summary.locations.map((location) => (
+                        <div key={`${setup.id}-${location}`} className="setup-item-summary-line">
+                          {location}
+                        </div>
+                      ))}
+                      {summary.computations.map((computation) => (
+                        <div
+                          key={`${setup.id}-${computation}`}
+                          className="setup-item-summary-line setup-item-summary-line-computes"
+                        >
+                          {computation}
+                        </div>
+                      ))}
+                    </>
+                  </div>
+                </div>
                 {setup.isCustom && (
                   <div className="setup-item-controls">
                     <EditButton onClick={(e) => handleRenameSetup(setup.id, setup.name, e)} title="Rename" />
@@ -200,6 +243,8 @@ export const SensorSetupScreen: React.FC = () => {
                   </div>
                 )}
               </div>
+                );
+              })()
             ))}
           </div>
           <button className="panel-action-btn" onClick={handleAddCustomSetup}>

@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
 import './App.css';
+import './styles/App.compact.css';
 import logo from './assets/logo.svg';
 import { HomeScreen } from './screens/HomeScreen';
 import { NewSessionScreen } from './screens/NewSessionScreen';

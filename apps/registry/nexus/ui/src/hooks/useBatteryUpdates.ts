@@ -1,37 +1,15 @@
 import { useEffect } from 'react';
 import { useSetAtom } from 'jotai';
 import { batteryStatusesAtom } from '../store/atoms';
-import { useGatewaySocket } from './useGatewaySocket';
+import { useBatteryUpdatesCore } from './useBatteryUpdatesCore';
 
 export const useBatteryUpdates = () => {
-  const { subscribe } = useGatewaySocket();
   const setBatteryStatuses = useSetAtom(batteryStatusesAtom);
+  const { batteryStatuses } = useBatteryUpdatesCore();
 
   useEffect(() => {
-    const unsubscribe = subscribe((msg) => {
-      if (msg.type !== 'battery_update' || !msg.payload || typeof msg.payload !== 'object') {
-        return;
-      }
+    setBatteryStatuses(batteryStatuses);
+  }, [batteryStatuses, setBatteryStatuses]);
 
-      const payload = msg.payload as {
-        address?: string;
-        battery_level?: number | null;
-        is_charging?: boolean | null;
-      };
-
-      if (!payload.address) {
-        return;
-      }
-
-      setBatteryStatuses((prev) => ({
-        ...prev,
-        [payload.address]: {
-          batteryLevel: typeof payload.battery_level === 'number' ? payload.battery_level : null,
-          isCharging: typeof payload.is_charging === 'boolean' ? payload.is_charging : null,
-        },
-      }));
-    });
-
-    return unsubscribe;
-  }, [setBatteryStatuses, subscribe]);
+  return { batteryStatuses };
 };
