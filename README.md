@@ -13,6 +13,7 @@ This repo contains:
 
 Quick start docs live in docs/.
 UI screen size guidelines: see `docs/design.md`.
+App display/layout contract: see `docs/app_contract.md`.
 UI-owned voice flow design: see `docs/voice_flow_ui.md`.
 Offline deployment guide: see `DEPLOYMENT.md`.
 Ansible deployment guide: see `deployment/ansible/README.md`.

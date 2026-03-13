@@ -5,6 +5,7 @@
   "description": "Offline voice control for NEIA.",
   "app_type": "demo",
   "developer": "RS Nexus",
+  "layout_mode": "takeover",
   "entry_ui": "ui/assets/index.js",
   "style": "ui/assets/index.css",
   "mount": "NeiaVoiceMount",

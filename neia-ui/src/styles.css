@@ -118,6 +118,10 @@ body::-webkit-scrollbar,
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
 }
 
+.panel h2 {
+  color: #e7e7e7;
+}
+
 .panel.wide {
   grid-column: 1 / -1;
 }
@@ -152,6 +156,37 @@ body::-webkit-scrollbar,
 }
 
 .shell-tabs .tab.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 12px 22px rgba(58, 49, 97, 0.2);
+}
+
+.category-tabs {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 10px 0 18px;
+}
+
+.category-tabs .tab {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #3f3f3f;
+  padding: 8px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.category-tabs .tab:hover {
+  border-color: var(--accent-2);
+  box-shadow: 0 10px 18px rgba(58, 49, 97, 0.12);
+  transform: translateY(-1px);
+}
+
+.category-tabs .tab.active {
   background: var(--accent);
   color: #fff;
   border-color: transparent;
@@ -230,9 +265,9 @@ body::-webkit-scrollbar,
 
 .app-card-footer {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 18px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .app-developer {
@@ -267,8 +302,8 @@ li {
   display: flex;
   gap: 8px;
   align-items: center;
-  margin-top: 6px;
-  width: 100%;
+  justify-content: flex-end;
+  flex-shrink: 0;
 }
 
 button {
@@ -300,7 +335,7 @@ button.secondary {
 }
 
 .actions .square-btn {
-  width: 72px;
+  width: 96px;
   height: 72px;
   padding: 0;
   border-radius: 12px;
@@ -379,6 +414,16 @@ button.secondary {
     font-size: 13px;
   }
 
+  .category-tabs {
+    gap: 8px;
+    margin: 8px 0 14px;
+  }
+
+  .category-tabs .tab {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
   .panel {
     padding: 12px 14px;
   }
@@ -411,6 +456,11 @@ button.secondary {
     font-size: 12px;
   }
 
+  .app-card-footer {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
   button {
     padding: 6px 10px;
     font-size: 13px;
@@ -424,7 +474,7 @@ button.secondary {
   }
 
   .actions .square-btn {
-    width: 52px;
+    width: 72px;
     height: 52px;
     border-radius: 10px;
     font-size: 10px;
@@ -432,6 +482,71 @@ button.secondary {
 
   .app-mount.full {
     min-height: 55vh;
+  }
+}
+
+@media (max-width: 800px) and (max-height: 400px) {
+  .shell {
+    padding: 12px 10px 18px;
+  }
+
+  .panel {
+    padding: 10px 12px 12px;
+  }
+
+  .app-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .app-card {
+    min-width: 0;
+    padding: 8px 9px;
+    gap: 6px;
+  }
+
+  .app-card-header {
+    gap: 8px;
+  }
+
+  .app-card-title strong {
+    font-size: 13px;
+  }
+
+  .app-card-desc {
+    font-size: 11px;
+    line-height: 1.15;
+  }
+
+  .app-card-footer {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .app-developer {
+    font-size: 10px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .actions {
+    gap: 6px;
+    margin-left: auto;
+  }
+
+  .actions .launch-btn {
+    width: 72px;
+    height: 40px;
+    font-size: 11px;
+  }
+
+  .actions .square-btn {
+    width: 64px;
+    height: 40px;
+    font-size: 10px;
+    margin-left: 0;
   }
 }
 
@@ -472,7 +587,7 @@ button.secondary {
   margin: 0;
   border: none;
   border-radius: 0;
-  padding: 0 12px 12px;
+  padding: 0;
   background: #000000;
   display: flex;
   align-items: stretch;
@@ -493,6 +608,20 @@ button.secondary {
   height: 100%;
   width: 100%;
   max-width: 100%;
+}
+
+.app-mount.takeover.layout-framed {
+  padding: 12px;
+  overflow: auto;
+  overflow-x: auto;
+}
+
+.app-stage.layout-framed {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 0;
 }
 
 @media (min-width: 1600px) and (min-height: 850px) {
@@ -521,6 +650,17 @@ button.secondary {
   .shell-tabs .tab {
     padding: 14px 24px;
     font-size: 20px;
+    border-radius: 999px;
+  }
+
+  .category-tabs {
+    gap: 14px;
+    margin: 14px 0 22px;
+  }
+
+  .category-tabs .tab {
+    padding: 12px 20px;
+    font-size: 18px;
     border-radius: 999px;
   }
 
@@ -575,9 +715,17 @@ button.secondary {
     padding: 0 18px 18px;
   }
 
+  .app-mount.takeover.layout-framed {
+    padding: 18px;
+  }
+
   .app-stage {
     width: min(100%, 1780px);
     padding-top: 20px;
+  }
+
+  .app-stage.layout-framed {
+    padding-top: 0;
   }
 
   .startup-robot {
@@ -779,6 +927,16 @@ body.display-profile-1920x1080 .shell-tabs .tab {
   padding: 15px 30px;
 }
 
+body.display-profile-1920x1080 .category-tabs {
+  gap: 16px;
+  margin: 16px 0 24px;
+}
+
+body.display-profile-1920x1080 .category-tabs .tab {
+  font-size: 20px;
+  padding: 12px 24px;
+}
+
 body.display-profile-1920x1080 .shell-body {
   gap: 26px;
   margin-bottom: 28px;
@@ -836,7 +994,7 @@ body.display-profile-1920x1080 .actions .launch-btn {
 }
 
 body.display-profile-1920x1080 .actions .square-btn {
-  width: 104px;
+  width: 128px;
   height: 104px;
   border-radius: 16px;
   font-size: 17px;
@@ -852,9 +1010,17 @@ body.display-profile-1920x1080 .app-mount.takeover {
   padding: 0 22px 22px;
 }
 
+body.display-profile-1920x1080 .app-mount.takeover.layout-framed {
+  padding: 22px;
+}
+
 body.display-profile-1920x1080 .app-stage {
   width: min(100%, 1820px);
   padding-top: 24px;
+}
+
+body.display-profile-1920x1080 .app-stage.layout-framed {
+  padding-top: 0;
 }
 
 body.display-profile-1920x1080 .startup-overlay {

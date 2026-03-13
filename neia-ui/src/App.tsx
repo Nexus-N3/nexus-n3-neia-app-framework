@@ -22,6 +22,7 @@ type AppManifest = {
   entry_ui?: string | null;
   style?: string | null;
   mount?: string | null;
+  layout_mode?: string | null;
   dev_entry_ui?: string | null;
   dev_mount?: string | null;
 };
@@ -81,11 +82,17 @@ function getAssetUrl(appId: string, assetPath?: string | null) {
 
 function getAppType(manifest: AppManifest) {
   const type = manifest.app_type ? manifest.app_type.toLowerCase() : "";
-  return type === "demo" ? "demo" : "app";
+  if (type === "demo") return "demo";
+  if (type === "workflow") return "workflow";
+  return "app";
 }
 
 function getDeveloper(manifest: AppManifest) {
   return manifest.developer || "Unknown developer";
+}
+
+function getLayoutMode(manifest?: AppManifest | null) {
+  return manifest?.layout_mode === "framed" ? "framed" : "takeover";
 }
 
 function loadScript(src: string): Promise<void> {
@@ -251,6 +258,7 @@ export default function App() {
   const [appView, setAppView] = useState<AppInfo | null>(null);
   const [appViewError, setAppViewError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"installed" | "available">("installed");
+  const [activeCategory, setActiveCategory] = useState<"apps" | "workflows" | "demos">("apps");
   const route = useHashRoute();
   const isAppRoute = /^\/app\/[^/]+$/.test(route);
   const [startupStage, setStartupStage] = useState<StartupStage>(
@@ -408,8 +416,9 @@ export default function App() {
   }, [appView]);
 
   if (appView || appViewError) {
+    const layoutMode = getLayoutMode(appView?.manifest);
     return (
-      <div className="app-shell takeover">
+      <div className={`app-shell takeover layout-${layoutMode}`}>
         <header className="app-topbar">
           <button className="secondary" onClick={() => void backToDashboard()}>
             Back to Dashboard
@@ -417,17 +426,69 @@ export default function App() {
         </header>
         {appViewError ? <p className="error">{appViewError}</p> : null}
         {launchError ? <p className="error">{launchError}</p> : null}
-        <div className="app-mount takeover">
-          <div id="app-mount" className="app-stage" />
+        <div className={`app-mount takeover layout-${layoutMode}`}>
+          <div id="app-mount" className={`app-stage layout-${layoutMode}`} />
         </div>
       </div>
     );
   }
 
-  const demoApps = installed.filter((app) => getAppType(app.manifest) === "demo");
-  const realApps = installed.filter((app) => getAppType(app.manifest) !== "demo");
-  const demoAvailable = available.filter((app) => getAppType(app.manifest) === "demo");
-  const realAvailable = available.filter((app) => getAppType(app.manifest) !== "demo");
+  const installedApps = installed.filter((app) => getAppType(app.manifest) === "app");
+  const installedWorkflows = installed.filter((app) => getAppType(app.manifest) === "workflow");
+  const installedDemos = installed.filter((app) => getAppType(app.manifest) === "demo");
+  const availableApps = available.filter((app) => getAppType(app.manifest) === "app");
+  const availableWorkflows = available.filter((app) => getAppType(app.manifest) === "workflow");
+  const availableDemos = available.filter((app) => getAppType(app.manifest) === "demo");
+
+  const selectedInstalled =
+    activeCategory === "apps"
+      ? installedApps
+      : activeCategory === "workflows"
+        ? installedWorkflows
+        : installedDemos;
+  const selectedAvailable =
+    activeCategory === "apps"
+      ? availableApps
+      : activeCategory === "workflows"
+        ? availableWorkflows
+        : availableDemos;
+  const selectedTitle =
+    activeCategory === "apps" ? "Apps" : activeCategory === "workflows" ? "Workflows" : "Demos";
+  const emptyInstalledMessage =
+    activeCategory === "apps"
+      ? "No apps installed."
+      : activeCategory === "workflows"
+        ? "No workflows installed."
+        : "No demo apps installed.";
+  const emptyAvailableMessage =
+    activeCategory === "apps"
+      ? "No apps available."
+      : activeCategory === "workflows"
+        ? "No workflows available."
+        : "No demo apps available.";
+
+  const renderCategoryTabs = () => (
+    <div className="category-tabs" role="tablist" aria-label="App categories">
+      <button
+        className={activeCategory === "apps" ? "tab active" : "tab"}
+        onClick={() => setActiveCategory("apps")}
+      >
+        Apps
+      </button>
+      <button
+        className={activeCategory === "workflows" ? "tab active" : "tab"}
+        onClick={() => setActiveCategory("workflows")}
+      >
+        Workflows
+      </button>
+      <button
+        className={activeCategory === "demos" ? "tab active" : "tab"}
+        onClick={() => setActiveCategory("demos")}
+      >
+        Demos
+      </button>
+    </div>
+  );
 
   const renderAppCard = (app: AppInfo, actions: React.ReactNode) => {
     const iconUrl = getAssetUrl(app.manifest.id, app.manifest.icon || undefined);
@@ -485,36 +546,19 @@ export default function App() {
         {activeTab === "installed" ? (
           <div className="panel wide">
             <h2>Installed Apps</h2>
+            {renderCategoryTabs()}
             {loading ? (
               <p>Loading...</p>
             ) : installed.length === 0 ? (
               <p>No apps installed.</p>
             ) : (
               <div className="app-section">
-                <h3>Demo Apps</h3>
-                {demoApps.length === 0 ? (
-                  <p className="muted">No demo apps installed.</p>
+                <h3>{selectedTitle}</h3>
+                {selectedInstalled.length === 0 ? (
+                  <p className="muted">{emptyInstalledMessage}</p>
                 ) : (
                   <div className="app-grid">
-                    {demoApps.map((app) =>
-                      renderAppCard(
-                        app,
-                        <>
-                          <button className="launch-btn" onClick={() => launch(app)}>Launch</button>
-                          <button className="secondary square-btn" onClick={() => uninstall(app.manifest.id)}>
-                            Uninstall
-                          </button>
-                        </>
-                      )
-                    )}
-                  </div>
-                )}
-                <h3>Apps</h3>
-                {realApps.length === 0 ? (
-                  <p className="muted">No apps installed.</p>
-                ) : (
-                  <div className="app-grid">
-                    {realApps.map((app) =>
+                    {selectedInstalled.map((app) =>
                       renderAppCard(
                         app,
                         <>
@@ -533,31 +577,19 @@ export default function App() {
         ) : (
           <div className="panel wide">
             <h2>Available Apps</h2>
+            {renderCategoryTabs()}
             {loading ? (
               <p>Loading...</p>
             ) : available.length === 0 ? (
               <p>No apps available.</p>
             ) : (
               <div className="app-section">
-                <h3>Demo Apps</h3>
-                {demoAvailable.length === 0 ? (
-                  <p className="muted">No demo apps available.</p>
+                <h3>{selectedTitle}</h3>
+                {selectedAvailable.length === 0 ? (
+                  <p className="muted">{emptyAvailableMessage}</p>
                 ) : (
                   <div className="app-grid">
-                    {demoAvailable.map((app) =>
-                      renderAppCard(
-                        app,
-                        <button onClick={() => install(app.manifest.id)}>Install</button>
-                      )
-                    )}
-                  </div>
-                )}
-                <h3>Apps</h3>
-                {realAvailable.length === 0 ? (
-                  <p className="muted">No apps available.</p>
-                ) : (
-                  <div className="app-grid">
-                    {realAvailable.map((app) =>
+                    {selectedAvailable.map((app) =>
                       renderAppCard(
                         app,
                         <button onClick={() => install(app.manifest.id)}>Install</button>
