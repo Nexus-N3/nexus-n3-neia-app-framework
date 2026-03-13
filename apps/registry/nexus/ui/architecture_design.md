@@ -90,6 +90,14 @@ Reusable visual building blocks and small interaction widgets.
 
 Hooks are the main application service layer.
 
+The current direction of the hook layer is to separate:
+
+- gateway transport and event parsing
+- reusable workflow logic
+- app-specific Jotai synchronization
+
+This refactor is being done inside `nexus/ui` first so the existing application remains the reference implementation while hook boundaries are proven in a real workflow.
+
 - `useGatewaySocket.tsx`
   - Owns the shared WebSocket connection.
   - Exposes `subscribe()` for event listeners.
@@ -128,6 +136,41 @@ Hooks are the main application service layer.
 
 - `useDisconnectSensors.ts`
   - Sends `disconnect_all`.
+
+#### Hook refactor pattern
+
+For reusable sensor and gateway workflows, the codebase now prefers a two-layer pattern:
+
+- core hooks
+  - no `store/atoms` imports
+  - own local async state
+  - parse gateway events
+  - return state and actions
+- app adapter hooks
+  - connect core hook output to Jotai atoms
+  - preserve current app behavior
+  - keep Nexus-specific state choices out of the reusable boundary
+
+Current examples:
+
+- `useDisconnectSensorsCore.ts`
+- `useBatteryUpdatesCore.ts`
+- `useConnectedSensorUpdatesCore.ts`
+- `useDiscoverSensorsCore.ts`
+
+with corresponding app adapters:
+
+- `useDisconnectSensors.ts`
+- `useBatteryUpdates.ts`
+- `useConnectedSensorUpdates.ts`
+- `useDiscoverSensors.ts`
+
+Reasoning:
+
+- Reusable hooks should return values and actions rather than directly mutating global store.
+- Sensor workflows such as discover/connect/disconnect are useful beyond the Nexus app, but Jotai atom choices are application-specific.
+- This split makes it possible to copy stable hooks into a shared library later without dragging in Nexus state architecture.
+- It also improves testability because the core workflow can be exercised without mounting the whole app store.
 
 - `useLatestComputeResults.ts`
   - Subscribes to `compute_result`.
@@ -379,6 +422,23 @@ Design:
 - linear workflow
 - shared styling and layout
 
+Compact-screen variation:
+
+- on small `800x400` style displays, the flow is intentionally simplified
+- default values are pre-applied so the user can move from Home directly to `SubjectsRequiredScreen`
+- the compact flow minimizes text entry and favors click-through selection
+- back navigation differs in a few places from desktop because the compact path intentionally skips some setup screens
+
+#### Desktop vs compact flow
+
+| Step | Desktop flow | Compact flow | Reason |
+| --- | --- | --- | --- |
+| Home start action | `Home -> NewSessionScreen` | `Home -> SubjectsRequiredScreen` | compact mode skips avoidable text entry and applies defaults |
+| Session naming | explicit session naming screen | default session naming is applied automatically | small screens favor speed and fewer keyboard interactions |
+| Subjects required back action | back to `NewSessionScreen` | back to `Home` | compact mode skipped session naming, so back should follow the actual path taken |
+| Form inputs | visible where part of the normal setup flow | hidden or reduced where defaults are safe | constrained environments benefit from click-through interactions |
+| Footer actions | more actions may remain visible together | secondary actions may be reduced or hidden | preserve the primary operational action and keep touch targets large |
+
 ### 3. Session overview and sensor assignment
 
 Screens:
@@ -450,6 +510,45 @@ Patterns:
 
 `index.css` provides document-level normalization and scrollbar styling.
 
+`styles/App.compact.css` provides compact-screen overrides for constrained devices and operator displays.
+
+### Compact-screen design rationale
+
+The compact design is not just a scaled-down desktop UI. It is a simplified operational flow for constrained environments.
+
+Goals:
+
+- reduce operator effort on small touch targets
+- keep the main workflow readable at a distance
+- minimize keyboard usage and text entry
+- make the next action obvious at every step
+
+Screen-size principle:
+
+- larger screens can support more complex features, richer context, and more simultaneous controls without overwhelming the operator
+- smaller screens need more standardized flows, fewer branching choices, and stronger prioritization of the next action
+- compact mode therefore trades flexibility for clarity, speed, and operational consistency
+
+Design choices:
+
+- larger primary buttons
+  - footer CTAs are intentionally tall and easy to hit on small touch displays
+  - high-priority actions anchor to the bottom of the screen where possible
+- simplified click-through flow
+  - compact mode skips avoidable text-input screens when defaults are safe
+  - the operator advances through a standardized sequence instead of filling forms
+- less typing
+  - compact views hide or de-emphasize text inputs where defaults are acceptable
+  - subject naming and session naming default to predictable values
+- denser but more structured cards
+  - compact cards are reorganized rather than uniformly shrunk
+  - content is reduced to the operational minimum needed for the current step
+- fewer concurrent actions
+  - compact screens remove lower-priority controls when they compete with the main workflow
+  - examples include removing secondary per-subject actions in compact activity monitoring
+
+This means compact mode is intentionally a different interaction design, not a pixel-for-pixel responsive variant of desktop.
+
 ## Architectural Strengths
 
 - Clear separation between screens, hooks, and store.
@@ -457,6 +556,8 @@ Patterns:
 - Jotai keeps shared state simple and explicit.
 - Event-driven updates fit the edge streaming model well.
 - Global listeners for long-lived events avoid screen-mount timing bugs.
+- The hook refactor creates a cleaner path to a future shared UI/hook library without breaking the reference app first.
+- Compact mode is now treated as a constrained-environment workflow, which produces clearer operator behavior than a pure responsive shrink.
 
 ## Architectural Risks and Tradeoffs
 
@@ -472,6 +573,8 @@ Patterns:
 - Split `App.css` into screen- or domain-scoped stylesheets.
 - Add typed gateway message definitions shared between backend contract docs and frontend parsing.
 - Add a formal error/banner system at the app shell level instead of screen-local duplication.
+- Continue moving hook logic into store-agnostic cores before copying stable APIs into `shared/nexus-ui-lib`.
+- Document compact-flow-specific route decisions separately from desktop flow so skipped-screen behavior remains explicit.
 - Add integration tests around:
   - connection/disconnection
   - battery propagation
