@@ -8,8 +8,9 @@
   "icon": "icon.png",
   "supports_online": true,
   "supports_offline": true,
-  "entry_ui": "ui/assets/index.js?v=2",
-  "style": "ui/assets/index.css?v=2",
+  "layout_mode": "framed",
+  "entry_ui": "ui/assets/index.js?v=4",
+  "style": "ui/assets/index.css?v=4",
   "mount": "NexusMount",
   "dev_entry_ui": "http://localhost:3001/src/main.tsx",
   "dev_mount": "NexusMount"
