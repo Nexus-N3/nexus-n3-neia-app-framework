@@ -29,6 +29,7 @@ export const useDisconnectSensors = () => {
 
   return {
     disconnectAll: disconnectState.disconnectAll,
+    disconnectCount: disconnectState.disconnectCount,
     isDisconnecting: disconnectState.isDisconnecting,
     errorMsg: disconnectState.errorMsg,
     dismissError: disconnectState.dismissError,

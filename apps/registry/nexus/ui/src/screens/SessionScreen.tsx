@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
@@ -9,6 +9,7 @@ import { SubjectsCarousel } from '../components/SubjectsCarousel';
 import { subjectCountAtom, setupsAtom, selectedSetupIdAtom, placedSensorsAtom, subjectPrefixAtom, discoveredSensorsAtom, connectedSensorsAtom } from '../store/atoms';
 import { useDiscoverSensors } from '../hooks/useDiscoverSensors';
 import { useDisconnectSensors } from '../hooks/useDisconnectSensors';
+import { useResetSessionState } from '../hooks/useResetSessionState';
 
 export const SessionScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -20,7 +21,9 @@ export const SessionScreen: React.FC = () => {
   const [discoveredSensors] = useAtom(discoveredSensorsAtom);
   const [connectedSensors] = useAtom(connectedSensorsAtom);
   const { phase, isBusy, activeSubjectId, errorMsg: discoverError, discoverAndConnect, discoverAndConnectForSubject, dismiss } = useDiscoverSensors();
-  const { disconnectAll, isDisconnecting, errorMsg: disconnectError, dismissError: dismissDisconnectError } = useDisconnectSensors();
+  const { disconnectAll, disconnectCount, isDisconnecting, errorMsg: disconnectError, dismissError: dismissDisconnectError } = useDisconnectSensors();
+  const { resetSessionState } = useResetSessionState();
+  const [disconnectRequested, setDisconnectRequested] = useState(false);
 
   // Pagination state (we show 4 items at a time in a 2x2 grid)
   const [currentPage, setCurrentPage] = useState(0);
@@ -43,6 +46,15 @@ export const SessionScreen: React.FC = () => {
   const handleBack = () => {
     navigate('/sensor-setup');
   };
+
+  useEffect(() => {
+    if (!disconnectRequested || disconnectCount === 0) {
+      return;
+    }
+
+    resetSessionState();
+    navigate('/');
+  }, [disconnectCount, disconnectRequested, navigate, resetSessionState]);
 
   // Generate subjects based on count
   const subjects = Array.from({ length: subjectCount }, (_, i) => {
@@ -146,7 +158,18 @@ export const SessionScreen: React.FC = () => {
 
       {/* Footer Buttons */}
       <div className="action-row">
-        <button className="nexus-btn disconnect-btn" onClick={() => disconnectAll()} disabled={isBusy || isDisconnecting}>
+        <button
+          className="nexus-btn disconnect-btn"
+          onClick={async () => {
+            setDisconnectRequested(true);
+            try {
+              await disconnectAll();
+            } catch {
+              setDisconnectRequested(false);
+            }
+          }}
+          disabled={isBusy || isDisconnecting}
+        >
           {isDisconnecting ? 'Disconnecting sensors...' : 'Disconnect sensors'}
         </button>
         <button className="nexus-btn secondary-btn" onClick={() => discoverAndConnect()} disabled={isBusy || isDisconnecting}>
@@ -159,9 +182,11 @@ export const SessionScreen: React.FC = () => {
 
       {/* Overlay Modal */}
       <StatusOverlay
-        busy={isBusy}
+        busy={isBusy || isDisconnecting}
         statusText={
-          phase === 'discovering'
+          isDisconnecting
+            ? 'Disconnecting sensors...'
+            : phase === 'discovering'
             ? 'Discovering sensors...'
             : phase === 'connecting'
               ? 'Connecting to sensors...'

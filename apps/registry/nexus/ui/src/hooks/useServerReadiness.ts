@@ -70,6 +70,7 @@ export const useServerReadiness = () => {
                 setup.id === 'default'
                   ? {
                       ...setup,
+                      name: 'Loading intensity',
                       sensors: setup.sensors.map((s) => ({ ...s, comp: firstCompName })),
                     }
                   : setup,

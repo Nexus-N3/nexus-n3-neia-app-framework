@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAtom, useSetAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { ErrorBanner } from '../components/ErrorBanner';
 import { InfoButton } from '../components/InfoButton';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { StatusOverlay } from '../components/StatusOverlay';
 import { SubjectsCarousel } from '../components/SubjectsCarousel';
 import {
   subjectCountAtom,
@@ -105,6 +106,7 @@ export const ActiveSessionScreen: React.FC = () => {
   const { stopStreamForAll, stopStreamForSubjects, isStopping, errorMsg, dismissError } = useStopStream();
   const {
     disconnectAll,
+    disconnectCount,
     isDisconnecting,
     errorMsg: disconnectError,
     dismissError: dismissDisconnectError,
@@ -114,6 +116,7 @@ export const ActiveSessionScreen: React.FC = () => {
   const { latestIntermediateResults } = useLatestIntermediateResults();
 
   const [currentPage, setCurrentPage] = useState(0);
+  const [disconnectRequested, setDisconnectRequested] = useState(false);
   const isCompactViewport =
     typeof window !== 'undefined' && window.innerWidth <= 800 && window.innerHeight <= 400;
   const itemsPerPage = isCompactViewport ? 1 : 4;
@@ -202,13 +205,22 @@ export const ActiveSessionScreen: React.FC = () => {
 
   const handleDisconnectSensors = async () => {
     try {
+      setDisconnectRequested(true);
       await disconnectAll();
-      resetSessionState();
-      navigate('/');
     } catch {
+      setDisconnectRequested(false);
       // Error state is handled by the hook for UI display.
     }
   };
+
+  useEffect(() => {
+    if (!disconnectRequested || disconnectCount === 0) {
+      return;
+    }
+
+    resetSessionState();
+    navigate('/');
+  }, [disconnectCount, disconnectRequested, navigate, resetSessionState]);
 
   return (
     <ScreenLayout className="screen-layout active-session-screen">
@@ -376,6 +388,13 @@ export const ActiveSessionScreen: React.FC = () => {
           </button>
         )}
       </div>
+
+      <StatusOverlay
+        busy={isDisconnecting}
+        statusText={isDisconnecting ? 'Disconnecting sensors...' : disconnectError ? 'Disconnect failed' : null}
+        errors={[disconnectError]}
+        onDismiss={disconnectError ? dismissDisconnectError : undefined}
+      />
     </ScreenLayout>
   );
 };
