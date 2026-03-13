@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSetAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
+import { ErrorBanner } from '../components/ErrorBanner';
 import { InfoButton } from '../components/InfoButton';
+import { ScreenHeader } from '../components/ScreenHeader';
 import { activeActivityAtom, latestComputeResultsAtom } from '../store/atoms';
 import { useStartStream } from '../hooks/useStartStream';
 
@@ -12,6 +14,8 @@ export const NewActivityScreen: React.FC = () => {
   const setActiveActivity = useSetAtom(activeActivityAtom);
   const setLatestComputeResults = useSetAtom(latestComputeResultsAtom);
   const { startStreamForAll, isStarting, errorMsg, dismissError } = useStartStream();
+  const isCompactViewport =
+    typeof window !== 'undefined' && window.innerWidth <= 800 && window.innerHeight <= 400;
 
   const quickSelections = ['Walking', 'Running', 'Jumping', 'Rowing'];
 
@@ -33,36 +37,36 @@ export const NewActivityScreen: React.FC = () => {
   };
 
   return (
-    <main className="nexus-content">
+    <main className="nexus-content screen-layout new-activity-screen">
       {/* Sub Header */}
-      <div className="sub-header-row">
-        <BackButton onClick={handleBack} />
-        <h2 className="screen-title">ACTIVITY NAME</h2>
-        <InfoButton />
-      </div>
+      <ScreenHeader
+        left={<BackButton onClick={handleBack} />}
+        center={<h2 className="screen-title">{isCompactViewport ? 'ACTIVITY' : 'ACTIVITY NAME'}</h2>}
+        right={<InfoButton />}
+      />
 
       <div className="form-container">
         {errorMsg && (
-          <div className="error-banner" onClick={dismissError}>
-            {errorMsg}
-          </div>
+          <ErrorBanner message={errorMsg} onDismiss={dismissError} />
         )}
 
-        {/* Activity Name Input */}
-        <div className="form-group">
-          <label htmlFor="activity-name">Activity name</label>
-          <input
-            id="activity-name"
-            type="text"
-            className="nexus-input"
-            placeholder="(Default) Activity_1"
-            value={activityName}
-            onChange={(e) => setActivityName(e.target.value)}
-          />
-         {/*} <div className="input-hint">Group names can be edited once created</div> */}
-        </div>
+        {!isCompactViewport && (
+          <>
+            <div className="form-group">
+              <label htmlFor="activity-name">Activity name</label>
+              <input
+                id="activity-name"
+                type="text"
+                className="nexus-input"
+                placeholder="(Default) Activity_1"
+                value={activityName}
+                onChange={(e) => setActivityName(e.target.value)}
+              />
+            </div>
 
-        <div className="separator-line"></div>
+            <div className="separator-line"></div>
+          </>
+        )}
 
         {/* Quick Selection */}
         <div>

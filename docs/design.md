@@ -90,6 +90,30 @@ The shell UI is React + Vite. It provides:
 Plugin UIs can be static bundles or dev server URLs. The shell loads the bundle
 and calls the `mount` entry point.
 
+### App display model
+The shell should act as a neutral host, not as a per-app layout engine.
+
+Framework responsibility:
+- provide a consistent mount surface
+- load the app bundle and styles
+- allow full-screen/takeover routing with minimal shell chrome
+
+App responsibility:
+- choose and implement its own layout mode
+- define its own centered shell if it is a bounded workflow app
+- define its own full-screen layout if it is an immersive/takeover app
+
+Supported app layout modes:
+- `takeover`
+  - app fills the full available mount area
+  - example pattern: `neia_voice_assistant`
+- `framed`
+  - app fills the mount area but renders a centered bounded inner shell
+  - example pattern: `nexus_load`
+
+Avoid hybrid layout behavior where the shell partly frames an app and the app partly
+frames itself. That produces inconsistent positioning across apps and screen sizes.
+
 ## UI Screen Size Guidelines
 NEIA apps and the dashboard are expected to run on:
 - Edge screens as small as ~5" (often low-res or narrow viewports)
@@ -113,6 +137,33 @@ Deterministic profile override:
 
 If specific edge hardware differs (e.g., 800x480 or 720p), update these targets
 and re-validate the dashboard + app templates.
+
+### Operational interpretation by screen size
+`800x400`
+- treat as a constrained operational display
+- simplify branching flows
+- reduce text entry
+- increase button size and spacing for direct touch interaction
+- prefer one primary action region per screen
+- framed apps may reduce or collapse decorative padding, but should still own their
+  layout rather than relying on shell framing
+
+`1920x1080`
+- treat as a rich operational display
+- allow more whitespace and larger bounded shells for framed apps
+- allow additional supporting context, but do not require fundamentally different
+  flow logic unless the app is explicitly designed to diverge by mode
+- takeover apps should still use the full stage
+
+### Standardization principle
+Larger screens can support more complex features and richer context. Smaller screens
+should favor standardized flows with fewer decisions and a clearer click-through path.
+
+That means:
+- some apps may intentionally keep the same simplified workflow at all sizes
+- those apps should scale spacing and layout, not reintroduce complex branching
+- other apps may use large screens for richer controls, but that should be a deliberate
+  product decision rather than an accidental CSS side effect
 
 ## Dev Workflow (Apps)
 - Build a plugin UI with any framework.

@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
 import './App.css';
+import './styles/App.compact.css';
 import logo from './assets/logo.svg';
 import { HomeScreen } from './screens/HomeScreen';
 import { NewSessionScreen } from './screens/NewSessionScreen';
@@ -75,36 +76,37 @@ const AppContent = () => {
   }, [disconnectAll, hasConnectedSensors, navigate, resetSessionState]);
 
   return (
-    <div className="nexus-app">
-      <header className="nexus-header">
-        <div className="header-left">
-          <img src={logo} alt="Nexus Logo" className="logo-img" />
-        </div>
-        <div className="header-center">
-          <span className="facility-name">{headerTitle}</span>
-        </div>
-        <div className="header-right">
-          <ServerStatus />
-          {!serverReady && <RetryServerButton />}
-          <ResetButton onClick={handleReset} disabled={isDisconnecting} />
-        </div>
-      </header>
+    <div className="nexus-shell">
+      <div className="nexus-app">
+        <header className="nexus-header">
+          <div className="header-left">
+            <img src={logo} alt="Nexus Logo" className="logo-img" />
+          </div>
+          <div className="header-center">
+            <span className="facility-name">{headerTitle}</span>
+          </div>
+          <div className="header-right">
+            <ServerStatus />
+            {!serverReady && <RetryServerButton />}
+            <ResetButton onClick={handleReset} disabled={isDisconnecting} />
+          </div>
+        </header>
 
-      <div className="header-line"></div>
+        <div className="header-line"></div>
 
-      <Routes>
-        <Route path="/" element={<HomeScreen />} />
-        <Route path="/new-session" element={<NewSessionScreen />} />
-        <Route path="/subjects" element={<SubjectsRequiredScreen />} />
-        <Route path="/sensor-setup" element={<SensorSetupScreen />} />
-        <Route path="/add-sensor" element={<AddSensorScreen />} />
-        <Route path="/session" element={<SessionScreen />} />
-        <Route path="/assign-sensors" element={<AssignSensorsScreen />} />
-        <Route path="/active-session" element={<ActiveSessionScreen />} />
-        <Route path="/new-activity" element={<NewActivityScreen />} />
-        {/* We need a route for individual subject view */}
-        <Route path="/activity/subject/:id" element={<SubjectActivityScreen />} />
-      </Routes>
+        <Routes>
+          <Route path="/" element={<HomeScreen />} />
+          <Route path="/new-session" element={<NewSessionScreen />} />
+          <Route path="/subjects" element={<SubjectsRequiredScreen />} />
+          <Route path="/sensor-setup" element={<SensorSetupScreen />} />
+          <Route path="/add-sensor" element={<AddSensorScreen />} />
+          <Route path="/session" element={<SessionScreen />} />
+          <Route path="/assign-sensors" element={<AssignSensorsScreen />} />
+          <Route path="/active-session" element={<ActiveSessionScreen />} />
+          <Route path="/new-activity" element={<NewActivityScreen />} />
+          <Route path="/activity/subject/:id" element={<SubjectActivityScreen />} />
+        </Routes>
+      </div>
     </div>
   );
 };

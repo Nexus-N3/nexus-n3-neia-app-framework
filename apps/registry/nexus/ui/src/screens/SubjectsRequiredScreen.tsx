@@ -3,18 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
+import { ScreenHeader } from '../components/ScreenHeader';
 import { subjectCountAtom, subjectPrefixAtom } from '../store/atoms';
 
 export const SubjectsRequiredScreen: React.FC = () => {
   const navigate = useNavigate();
   const [subjectCount, setSubjectCount] = useAtom(subjectCountAtom);
   const [subjectPrefix, setSubjectPrefix] = useAtom(subjectPrefixAtom);
+  const isCompactViewport =
+    typeof window !== 'undefined' && window.innerWidth <= 800 && window.innerHeight <= 400;
 
   const increment = () => setSubjectCount((prev) => (prev < 10 ? prev + 1 : 10));
   const decrement = () => setSubjectCount((prev) => (prev > 1 ? prev - 1 : 1));
 
   const handleBack = () => {
-    navigate('/new-session');
+    navigate(isCompactViewport ? '/' : '/new-session');
   };
 
   const handleContinue = () => {
@@ -24,13 +27,11 @@ export const SubjectsRequiredScreen: React.FC = () => {
 
   return (
     <main className="nexus-content">
-      <div className="sub-header-row">
-        <BackButton onClick={handleBack} />
-
-        <h2 className="screen-title">SUBJECTS REQUIRED</h2>
-
-        <InfoButton />
-      </div>
+      <ScreenHeader
+        left={<BackButton onClick={handleBack} />}
+        center={<h2 className="screen-title">SUBJECTS REQUIRED</h2>}
+        right={<InfoButton />}
+      />
 
       <div className="subject-counter-container">
         <button className="counter-btn" onClick={decrement}>

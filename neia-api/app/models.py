@@ -15,6 +15,7 @@ class AppManifest(BaseModel):
     entry_ui: Optional[str] = None
     style: Optional[str] = None
     mount: Optional[str] = None
+    layout_mode: Optional[str] = None
     dev_entry_ui: Optional[str] = None
     dev_mount: Optional[str] = None
 

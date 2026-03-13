@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
+import { ScreenHeader } from '../components/ScreenHeader';
+import { StatusOverlay } from '../components/StatusOverlay';
 import { SubjectsCarousel } from '../components/SubjectsCarousel';
 import { subjectCountAtom, setupsAtom, selectedSetupIdAtom, placedSensorsAtom, subjectPrefixAtom, discoveredSensorsAtom, connectedSensorsAtom } from '../store/atoms';
 import { useDiscoverSensors } from '../hooks/useDiscoverSensors';
 import { useDisconnectSensors } from '../hooks/useDisconnectSensors';
+import { useResetSessionState } from '../hooks/useResetSessionState';
 
 export const SessionScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -18,7 +21,9 @@ export const SessionScreen: React.FC = () => {
   const [discoveredSensors] = useAtom(discoveredSensorsAtom);
   const [connectedSensors] = useAtom(connectedSensorsAtom);
   const { phase, isBusy, activeSubjectId, errorMsg: discoverError, discoverAndConnect, discoverAndConnectForSubject, dismiss } = useDiscoverSensors();
-  const { disconnectAll, isDisconnecting, errorMsg: disconnectError, dismissError: dismissDisconnectError } = useDisconnectSensors();
+  const { disconnectAll, disconnectCount, isDisconnecting, errorMsg: disconnectError, dismissError: dismissDisconnectError } = useDisconnectSensors();
+  const { resetSessionState } = useResetSessionState();
+  const [disconnectRequested, setDisconnectRequested] = useState(false);
 
   // Pagination state (we show 4 items at a time in a 2x2 grid)
   const [currentPage, setCurrentPage] = useState(0);
@@ -41,6 +46,15 @@ export const SessionScreen: React.FC = () => {
   const handleBack = () => {
     navigate('/sensor-setup');
   };
+
+  useEffect(() => {
+    if (!disconnectRequested || disconnectCount === 0) {
+      return;
+    }
+
+    resetSessionState();
+    navigate('/');
+  }, [disconnectCount, disconnectRequested, navigate, resetSessionState]);
 
   // Generate subjects based on count
   const subjects = Array.from({ length: subjectCount }, (_, i) => {
@@ -69,11 +83,12 @@ export const SessionScreen: React.FC = () => {
   return (
     <main className="nexus-content screen-layout">
       {/* Header Row with Carousel */}
-      <div className="sub-header-row compact">
-        <BackButton onClick={handleBack} />
-        <SubjectsCarousel currentPage={currentPage} totalPages={totalPages} onPrev={handlePrevPage} onNext={handleNextPage} />
-        <InfoButton />
-      </div>
+      <ScreenHeader
+        className="compact"
+        left={<BackButton onClick={handleBack} />}
+        center={<SubjectsCarousel currentPage={currentPage} totalPages={totalPages} onPrev={handlePrevPage} onNext={handleNextPage} />}
+        right={<InfoButton />}
+      />
 
       {/* Grid Content */}
       <div className="subjects-grid">
@@ -143,7 +158,18 @@ export const SessionScreen: React.FC = () => {
 
       {/* Footer Buttons */}
       <div className="action-row">
-        <button className="nexus-btn disconnect-btn" onClick={() => disconnectAll()} disabled={isBusy || isDisconnecting}>
+        <button
+          className="nexus-btn disconnect-btn"
+          onClick={async () => {
+            setDisconnectRequested(true);
+            try {
+              await disconnectAll();
+            } catch {
+              setDisconnectRequested(false);
+            }
+          }}
+          disabled={isBusy || isDisconnecting}
+        >
           {isDisconnecting ? 'Disconnecting sensors...' : 'Disconnect sensors'}
         </button>
         <button className="nexus-btn secondary-btn" onClick={() => discoverAndConnect()} disabled={isBusy || isDisconnecting}>
@@ -155,29 +181,24 @@ export const SessionScreen: React.FC = () => {
       </div>
 
       {/* Overlay Modal */}
-      {(isBusy || phase === 'error' || disconnectError) && (
-        <div
-          className="overlay-backdrop"
-          onClick={phase === 'error' ? dismiss : disconnectError ? dismissDisconnectError : undefined}
-        >
-          <div className="overlay-modal" onClick={(e) => e.stopPropagation()}>
-            {isBusy && <div className="overlay-spinner" />}
-            <div className="overlay-status">
-              {phase === 'discovering' && 'Discovering sensors...'}
-              {phase === 'connecting' && 'Connecting to sensors...'}
-              {phase === 'error' && 'Sensor setup failed'}
-              {disconnectError && 'Disconnect failed'}
-            </div>
-            {discoverError && <div className="overlay-error">{discoverError}</div>}
-            {disconnectError && <div className="overlay-error">{disconnectError}</div>}
-            {(phase === 'error' || disconnectError) && (
-              <button className="nexus-btn" onClick={disconnectError ? dismissDisconnectError : dismiss}>
-                Dismiss
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+      <StatusOverlay
+        busy={isBusy || isDisconnecting}
+        statusText={
+          isDisconnecting
+            ? 'Disconnecting sensors...'
+            : phase === 'discovering'
+            ? 'Discovering sensors...'
+            : phase === 'connecting'
+              ? 'Connecting to sensors...'
+              : phase === 'error'
+                ? 'Sensor setup failed'
+                : disconnectError
+                  ? 'Disconnect failed'
+                  : null
+        }
+        errors={[discoverError, disconnectError]}
+        onDismiss={disconnectError ? dismissDisconnectError : phase === 'error' ? dismiss : undefined}
+      />
     </main>
   );
 };
