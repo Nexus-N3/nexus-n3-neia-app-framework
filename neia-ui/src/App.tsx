@@ -95,22 +95,25 @@ function getLayoutMode(manifest?: AppManifest | null) {
   return manifest?.layout_mode === "framed" ? "framed" : "takeover";
 }
 
-function loadScript(src: string): Promise<void> {
+function loadScript(src: string): Promise<HTMLScriptElement> {
   return new Promise((resolve, reject) => {
     const script = document.createElement("script");
     script.src = src;
     script.type = "module";
-    script.onload = () => resolve();
+    script.dataset.neiaAppAsset = "script";
+    script.onload = () => resolve(script);
     script.onerror = () => reject(new Error("Failed to load script"));
     document.head.appendChild(script);
   });
 }
 
-function loadStyle(href: string): void {
+function loadStyle(href: string): HTMLLinkElement {
   const link = document.createElement("link");
   link.rel = "stylesheet";
   link.href = href;
+  link.dataset.neiaAppAsset = "style";
   document.head.appendChild(link);
+  return link;
 }
 
 async function fetchApp(appId: string): Promise<AppInfo> {
@@ -389,9 +392,13 @@ export default function App() {
       return;
     }
 
+    let disposed = false;
+    let mountedScript: HTMLScriptElement | null = null;
+    let mountedStyle: HTMLLinkElement | null = null;
+
     if (style) {
       const styleUrl = entry.startsWith("http") ? style : `/api/v1/apps/${appView.manifest.id}/asset/${style}`;
-      loadStyle(styleUrl);
+      mountedStyle = loadStyle(styleUrl);
     }
 
     void (async () => {
@@ -399,7 +406,10 @@ export default function App() {
         const scriptUrl = entry.startsWith("http")
           ? entry
           : `/api/v1/apps/${appView.manifest.id}/asset/${entry}`;
-        await loadScript(scriptUrl);
+        mountedScript = await loadScript(scriptUrl);
+        if (disposed) {
+          return;
+        }
 
         const mountName = appView.resolved_mount || appView.manifest.mount;
         const mountFn = mountName ? (window as any)[mountName] : null;
@@ -413,6 +423,16 @@ export default function App() {
         setLaunchError("Failed to load app UI.");
       }
     })();
+
+    return () => {
+      disposed = true;
+      const mountEl = document.getElementById("app-mount");
+      if (mountEl) {
+        mountEl.replaceChildren();
+      }
+      mountedStyle?.remove();
+      mountedScript?.remove();
+    };
   }, [appView]);
 
   if (appView || appViewError) {

@@ -18,6 +18,9 @@ UI-owned voice flow design: see `docs/voice_flow_ui.md`.
 Offline deployment guide: see `DEPLOYMENT.md`.
 Ansible deployment guide: see `deployment/ansible/README.md`.
 
+Embedded compact rule:
+- when running inside the NEIA shell, treat `800x400` devices as an embedded app stage of `800x360`
+
 ## Run locally
 
 API (FastAPI):

@@ -47,22 +47,6 @@ export const SubjectsRequiredScreen: React.FC = () => {
         </button>
       </div>
 
-      <div className="form-container">
-        <div className="form-group">
-          <label>Subject naming convention</label>
-          <input
-            type="text"
-            placeholder="(Default) Subject_1"
-            className="nexus-input"
-            value={subjectPrefix}
-            onChange={(e) => setSubjectPrefix(e.target.value)}
-          />
-          <span className="input-hint">
-            Example: {subjectPrefix || "Subject_"}1
-          </span>
-        </div>
-      </div>
-
       <div className="screen-footer">
         <button className="nexus-btn continue-btn" onClick={handleContinue}>
           Continue to sensor requirements

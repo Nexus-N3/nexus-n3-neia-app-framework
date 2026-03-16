@@ -179,30 +179,6 @@ export const SensorSetupScreen: React.FC = () => {
             ))}
           </div>
         </div>
-
-        {/* Right: Sensor List */}
-        <div className="sensor-list-panel">
-          <div className="sensor-list-container">
-            {selectedSetup?.sensors && selectedSetup.sensors.length > 0 ? (
-              <>
-                {selectedSetup.sensors.map((sensor, i) => (
-                  <div key={i} className="sensor-card">
-                    <div className="sensor-info-type">{sensor.type}</div>
-                    <div className="sensor-info-loc">{sensor.loc}</div>
-                    <div className="sensor-info-comp">Computes: {sensor.comp}</div>
-                  </div>
-                ))}
-              </>
-            ) : (
-              <div className="no-sensors-msg">
-                <div className="no-sensors-text-box">
-                  <div className="no-sensors-title">NO SENSORS ADDED</div>
-                  <div>Add new sensors to create your custom setup</div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
       </div>
 
       {/* Footer Buttons */}

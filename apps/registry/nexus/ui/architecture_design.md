@@ -8,7 +8,7 @@ The application is designed around four architectural layers:
 
 1. `App.tsx` and routing: global shell, route selection, header behavior, and app-wide event subscriptions.
 2. Screen components: workflow-oriented pages that orchestrate user interaction.
-3. Hooks: command senders and event subscribers that translate gateway traffic into UI state.
+3. Hooks: gateway-facing command senders and event subscribers that expose values and actions to the UI.
 4. Jotai store atoms: lightweight shared state for session data, sensor state, battery status, and streamed results.
 
 The UI is event-driven. Commands are sent to the backend through a REST endpoint exposed by the gateway, while events are received continuously over a shared WebSocket connection.
@@ -40,9 +40,9 @@ At runtime the UI works like this:
    - `start_stream_for_all`
    - `stop_stream_for_all`
    - `disconnect_all`
-5. Gateway events update atoms, and screens re-render from atom state.
+5. Gateway events are parsed by hooks, synchronized into atoms where appropriate, and screens re-render from atom state.
 
-This architecture keeps most screen components simple: they read state from atoms and delegate backend communication to hooks.
+This architecture keeps most screen components simple: they read state from atoms, invoke hook actions, and perform app-specific state synchronization close to the composition root or workflow screen.
 
 ## Project Structure
 
@@ -90,11 +90,11 @@ Reusable visual building blocks and small interaction widgets.
 
 Hooks are the main application service layer.
 
-The current direction of the hook layer is to separate:
+The current direction of the hook layer is:
 
-- gateway transport and event parsing
-- reusable workflow logic
-- app-specific Jotai synchronization
+- gateway transport and event parsing live in reusable hooks
+- reusable hooks do not import `store/atoms`
+- Jotai synchronization happens in `App.tsx`, workflow screens, or explicit app-state hooks such as reset/result hooks
 
 This refactor is being done inside `nexus/ui` first so the existing application remains the reference implementation while hook boundaries are proven in a real workflow.
 
@@ -112,18 +112,18 @@ This refactor is being done inside `nexus/ui` first so the existing application 
   - Sends `init_system`.
   - Used when finalizing session setup.
 
-- `useDiscoverSensors.ts`
+- `useDiscoverSensorsCore.ts`
   - Handles discover/connect flows.
   - Tracks overlay state for discovery/connection progress.
-  - Updates discovered and connected sensor atoms from gateway events.
+  - Returns discovered sensor data and flow actions without writing to atoms.
 
-- `useConnectedSensorUpdates.ts`
+- `useConnectedSensorUpdatesCore.ts`
   - App-wide listener for `sensor_connected` and `sensor_disconnected`.
-  - Keeps connected sensor state synchronized independent of screen mount timing.
+  - Returns the current connected sensor map without writing to atoms.
 
-- `useBatteryUpdates.ts`
+- `useBatteryUpdatesCore.ts`
   - App-wide listener for `battery_update`.
-  - Stores latest battery level by sensor address.
+  - Returns latest battery status by sensor address without writing to atoms.
 
 - `useIdentifySensor.ts`
   - Sends `identify_sensor` for a subject/location pair.
@@ -134,42 +134,50 @@ This refactor is being done inside `nexus/ui` first so the existing application 
 - `useStopStream.ts`
   - Sends stream stop commands for all or specific subjects.
 
-- `useDisconnectSensors.ts`
+- `useDisconnectSensorsCore.ts`
   - Sends `disconnect_all`.
+  - Tracks request lifecycle and error state without writing to atoms.
 
 #### Hook refactor pattern
 
-For reusable sensor and gateway workflows, the codebase now prefers a two-layer pattern:
+For reusable sensor and gateway workflows, the codebase now prefers a store-agnostic core pattern:
 
 - core hooks
   - no `store/atoms` imports
   - own local async state
   - parse gateway events
-  - return state and actions
-- app adapter hooks
-  - connect core hook output to Jotai atoms
-  - preserve current app behavior
-  - keep Nexus-specific state choices out of the reusable boundary
+  - return values and actions
+- app layer
+  - decides what should be persisted in Jotai
+  - performs `useEffect`-based synchronization where shared state is needed
+  - keeps Nexus-specific state choices out of the reusable boundary
 
-Current examples:
+Current core examples:
 
 - `useDisconnectSensorsCore.ts`
 - `useBatteryUpdatesCore.ts`
 - `useConnectedSensorUpdatesCore.ts`
 - `useDiscoverSensorsCore.ts`
 
-with corresponding app adapters:
+Current synchronization points:
 
-- `useDisconnectSensors.ts`
-- `useBatteryUpdates.ts`
-- `useConnectedSensorUpdates.ts`
-- `useDiscoverSensors.ts`
+- `App.tsx`
+  - syncs battery updates from `useBatteryUpdatesCore.ts` into `batteryStatusesAtom`
+  - syncs connected sensor updates from `useConnectedSensorUpdatesCore.ts` into `connectedSensorsAtom`
+- `SessionScreen.tsx`
+  - syncs discovered sensor results from `useDiscoverSensorsCore.ts` into `discoveredSensorsAtom`
+- state-owning hooks that are still app-specific
+  - `useServerReadiness.ts`
+  - `useLatestComputeResults.ts`
+  - `useLatestIntermediateResults.ts`
+  - `useResetSessionState.ts`
 
 Reasoning:
 
 - Reusable hooks should return values and actions rather than directly mutating global store.
 - Sensor workflows such as discover/connect/disconnect are useful beyond the Nexus app, but Jotai atom choices are application-specific.
-- This split makes it possible to copy stable hooks into a shared library later without dragging in Nexus state architecture.
+- Keeping synchronization at the app layer makes ownership of shared state explicit.
+- This makes it easier to move stable gateway hooks into a future shared library without dragging in Nexus state architecture.
 - It also improves testability because the core workflow can be exercised without mounting the whole app store.
 
 - `useLatestComputeResults.ts`
@@ -217,6 +225,7 @@ Each screen maps closely to one step of the operational workflow.
   - Shows required, connected, and placed counts.
   - Allows connect/discover per subject or for all subjects.
   - Entry point into sensor placement for each subject.
+  - Synchronizes discovered sensor results from `useDiscoverSensorsCore.ts` into app state.
 
 - `AssignSensorsScreen.tsx`
   - Displays required sensors for a selected subject.
@@ -313,9 +322,12 @@ Responsibilities:
 - Redirects to `/` if the server is not ready.
 - Installs app-wide event subscriptions:
   - `useServerReadiness()`
-  - `useBatteryUpdates()`
-  - `useConnectedSensorUpdates()`
+  - `useBatteryUpdatesCore()`
+  - `useConnectedSensorUpdatesCore()`
 - Provides the global reset action.
+- Synchronizes long-lived infrastructure event state into atoms:
+  - `batteryStatusesAtom`
+  - `connectedSensorsAtom`
 
 ### Header behavior
 
@@ -390,6 +402,11 @@ That is why:
 - readiness is global
 
 while screen-specific command hooks remain local to the workflow screen using them.
+
+Current ownership rule:
+
+- core hooks may own local ephemeral state needed to model an edge interaction
+- shared application state is written in the app layer, not inside reusable core hooks
 
 ## Screen-by-Screen Behavioral Design
 
@@ -557,6 +574,7 @@ This means compact mode is intentionally a different interaction design, not a p
 - Event-driven updates fit the edge streaming model well.
 - Global listeners for long-lived events avoid screen-mount timing bugs.
 - The hook refactor creates a cleaner path to a future shared UI/hook library without breaking the reference app first.
+- State ownership is becoming more explicit because reusable gateway hooks no longer mutate Jotai directly.
 - Compact mode is now treated as a constrained-environment workflow, which produces clearer operator behavior than a pure responsive shrink.
 
 ## Architectural Risks and Tradeoffs
@@ -573,7 +591,7 @@ This means compact mode is intentionally a different interaction design, not a p
 - Split `App.css` into screen- or domain-scoped stylesheets.
 - Add typed gateway message definitions shared between backend contract docs and frontend parsing.
 - Add a formal error/banner system at the app shell level instead of screen-local duplication.
-- Continue moving hook logic into store-agnostic cores before copying stable APIs into `shared/nexus-ui-lib`.
+- Continue moving remaining gateway-facing hooks toward the same store-agnostic core pattern before copying stable APIs into `shared/nexus-ui-lib`.
 - Document compact-flow-specific route decisions separately from desktop flow so skipped-screen behavior remains explicit.
 - Add integration tests around:
   - connection/disconnection

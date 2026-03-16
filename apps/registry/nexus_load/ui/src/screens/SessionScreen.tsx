@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAtom } from 'jotai';
+import { useAtom, useSetAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { StatusOverlay } from '../components/StatusOverlay';
 import { SubjectsCarousel } from '../components/SubjectsCarousel';
 import { subjectCountAtom, setupsAtom, selectedSetupIdAtom, placedSensorsAtom, subjectPrefixAtom, discoveredSensorsAtom, connectedSensorsAtom } from '../store/atoms';
-import { useDiscoverSensors } from '../hooks/useDiscoverSensors';
-import { useDisconnectSensors } from '../hooks/useDisconnectSensors';
+import { useDiscoverSensorsCore } from '../hooks/useDiscoverSensorsCore';
+import { useDisconnectSensorsCore } from '../hooks/useDisconnectSensorsCore';
 import { useResetSessionState } from '../hooks/useResetSessionState';
+import { isCompactFlowViewport } from '../utils/displayProfiles';
 
 export const SessionScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -20,14 +21,25 @@ export const SessionScreen: React.FC = () => {
   const [placedSensors] = useAtom(placedSensorsAtom);
   const [discoveredSensors] = useAtom(discoveredSensorsAtom);
   const [connectedSensors] = useAtom(connectedSensorsAtom);
-  const { phase, isBusy, activeSubjectId, errorMsg: discoverError, discoverAndConnect, discoverAndConnectForSubject, dismiss } = useDiscoverSensors();
-  const { disconnectAll, disconnectCount, isDisconnecting, errorMsg: disconnectError, dismissError: dismissDisconnectError } = useDisconnectSensors();
+  const setDiscoveredSensors = useSetAtom(discoveredSensorsAtom);
+  const {
+    phase,
+    isBusy,
+    activeSubjectId,
+    errorMsg: discoverError,
+    discoverAndConnect,
+    discoverAndConnectForSubject,
+    dismiss,
+    discoveredSensors: liveDiscoveredSensors,
+  } = useDiscoverSensorsCore();
+  const { disconnectAll, disconnectCount, isDisconnecting, errorMsg: disconnectError, dismissError: dismissDisconnectError } = useDisconnectSensorsCore();
   const { resetSessionState } = useResetSessionState();
   const [disconnectRequested, setDisconnectRequested] = useState(false);
 
   // Pagination state (we show 4 items at a time in a 2x2 grid)
   const [currentPage, setCurrentPage] = useState(0);
-  const itemsPerPage = 1;
+  const isCompactViewport = isCompactFlowViewport();
+  const itemsPerPage = isCompactViewport ? 1 : 4;
   const totalPages = Math.ceil(subjectCount / itemsPerPage);
 
   const selectedSetup = setups.find((s) => s.id === selectedSetupId);
@@ -53,6 +65,10 @@ export const SessionScreen: React.FC = () => {
     resetSessionState();
     navigate('/');
   }, [disconnectCount, disconnectRequested, navigate, resetSessionState]);
+
+  useEffect(() => {
+    setDiscoveredSensors(liveDiscoveredSensors);
+  }, [liveDiscoveredSensors, setDiscoveredSensors]);
 
   // Generate subjects based on count
   const subjects = Array.from({ length: subjectCount }, (_, i) => {

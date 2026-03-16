@@ -16,11 +16,12 @@ import { ScreenLayout } from '../components/ScreenLayout';
 import { BarGraph } from '../components/BarGraph'; // Added BarGraph
 import { SegmentedControl } from '../components/SegmentedControl'; // Added SegmentedControl
 import { useStopStream } from '../hooks/useStopStream';
-import { useDisconnectSensors } from '../hooks/useDisconnectSensors';
+import { useDisconnectSensorsCore } from '../hooks/useDisconnectSensorsCore';
 import { useResetSessionState } from '../hooks/useResetSessionState';
 import { useLatestComputeResults } from '../hooks/useLatestComputeResults';
 import { useLatestIntermediateResults } from '../hooks/useLatestIntermediateResults';
 import type { SubjectResultHistoryEntry } from '../store/atoms';
+import { isCompactFlowViewport } from '../utils/displayProfiles';
 
 const locationPriority = (location: string) => {
   const normalized = location.toUpperCase();
@@ -99,14 +100,15 @@ export const ActiveSessionScreen: React.FC = () => {
     isDisconnecting,
     errorMsg: disconnectError,
     dismissError: dismissDisconnectError,
-  } = useDisconnectSensors();
+  } = useDisconnectSensorsCore();
   const { resetSessionState } = useResetSessionState();
   const { latestResults, resultHistory } = useLatestComputeResults();
   const { latestIntermediateResults } = useLatestIntermediateResults();
 
   const [currentPage, setCurrentPage] = useState(0);
   const [disconnectRequested, setDisconnectRequested] = useState(false);
-  const itemsPerPage = 1;
+  const isCompactViewport = isCompactFlowViewport();
+  const itemsPerPage = isCompactViewport ? 1 : 4;
   const totalPages = Math.ceil(subjectCount / itemsPerPage);
   
   // Local state for view mode (only relevant when active)

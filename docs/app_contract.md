@@ -81,6 +81,16 @@ Primary targets:
   - allow richer spacing and additional context
   - keep the same primary workflow if the app is intentionally standardized
 
+Framework-owned embedded app stage targets:
+- shell viewport `800x400`
+  - design embedded apps against an available app stage of `800x360`
+  - do not assume the full raw viewport height is available to the app
+  - compact footers, headers, cards, and action rows must fit inside this stage
+- shell viewport `1920x1080`
+  - treat the available app stage as effectively full-size for current layouts
+  - exact reserved framework chrome matters less, but apps should still size to the
+    mount surface rather than to the raw browser viewport
+
 Layout guidance by mode:
 - `takeover`
   - should scale edge-to-edge at all supported display profiles

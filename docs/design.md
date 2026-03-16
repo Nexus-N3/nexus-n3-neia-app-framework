@@ -141,6 +141,7 @@ and re-validate the dashboard + app templates.
 ### Operational interpretation by screen size
 `800x400`
 - treat as a constrained operational display
+- for embedded apps inside the NEIA shell, treat the usable app stage as `800x360`
 - simplify branching flows
 - reduce text entry
 - increase button size and spacing for direct touch interaction
@@ -164,6 +165,20 @@ That means:
 - those apps should scale spacing and layout, not reintroduce complex branching
 - other apps may use large screens for richer controls, but that should be a deliberate
   product decision rather than an accidental CSS side effect
+
+### Framework stage rule
+Apps must be designed against the framework-provided mount surface, not the raw device
+viewport.
+
+This matters most on compact screens:
+- the shell viewport may be `800x400`
+- the embedded app should assume only `800x360` is safely available
+- reusable components and screen templates must fit within that embedded budget
+
+For future apps and shared UI:
+- compact footer buttons should be sized against the embedded stage, not standalone full-screen assumptions
+- vertical rhythm must leave room for top controls, body content, and the final action region
+- if a layout only works at standalone `800x400`, it is not valid for framework-embedded compact mode
 
 ## Dev Workflow (Apps)
 - Build a plugin UI with any framework.

@@ -1,9 +1,11 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
-import { useAtom } from 'jotai';
+import { useAtom, useSetAtom } from 'jotai';
 import './App.css';
+import './styles/App.1920x1080.css';
 import './styles/App.compact.css';
 import logo from './assets/logo.svg';
+import appManifest from '../../app.json';
 import { HomeScreen } from './screens/HomeScreen';
 import { NewSessionScreen } from './screens/NewSessionScreen';
 import { SubjectsRequiredScreen } from './screens/SubjectsRequiredScreen';
@@ -17,18 +19,16 @@ import { SubjectActivityScreen } from './screens/SubjectActivityScreen';
 import { ResetButton } from './components/ResetButton';
 import { ServerStatus } from './components/ServerStatus';
 import { RetryServerButton } from './components/RetryServerButton';
-import { activeActivityAtom, connectedSensorsAtom, sessionNameAtom, siteNameAtom, serverReadyAtom } from './store/atoms';
+import { activeActivityAtom, batteryStatusesAtom, connectedSensorsAtom, sessionNameAtom, siteNameAtom, serverReadyAtom } from './store/atoms';
 import { GatewaySocketProvider } from './hooks/useGatewaySocket';
 import { useServerReadiness } from './hooks/useServerReadiness';
-import { useBatteryUpdates } from './hooks/useBatteryUpdates';
-import { useConnectedSensorUpdates } from './hooks/useConnectedSensorUpdates';
-import { useDisconnectSensors } from './hooks/useDisconnectSensors';
+import { useBatteryUpdatesCore } from './hooks/useBatteryUpdatesCore';
+import { useConnectedSensorUpdatesCore } from './hooks/useConnectedSensorUpdatesCore';
+import { useDisconnectSensorsCore } from './hooks/useDisconnectSensorsCore';
 import { useResetSessionState } from './hooks/useResetSessionState';
 
 const AppContent = () => {
   useServerReadiness(); // Request and listen for server readiness
-  useBatteryUpdates();
-  useConnectedSensorUpdates();
   const location = useLocation();
   const navigate = useNavigate();
   const [title] = useAtom(siteNameAtom);
@@ -36,7 +36,11 @@ const AppContent = () => {
   const [activeActivity] = useAtom(activeActivityAtom);
   const [connectedSensors] = useAtom(connectedSensorsAtom);
   const [serverReady] = useAtom(serverReadyAtom);
-  const { disconnectAll, isDisconnecting } = useDisconnectSensors();
+  const setConnectedSensors = useSetAtom(connectedSensorsAtom);
+  const setBatteryStatuses = useSetAtom(batteryStatusesAtom);
+  const { batteryStatuses } = useBatteryUpdatesCore();
+  const { connectedSensors: liveConnectedSensors } = useConnectedSensorUpdatesCore();
+  const { disconnectAll, isDisconnecting } = useDisconnectSensorsCore();
   const { resetSessionState } = useResetSessionState();
   const isHome = location.pathname === '/';
   const isSessionRelated =
@@ -46,9 +50,7 @@ const AppContent = () => {
     location.pathname === '/new-activity' ||
     location.pathname.startsWith('/activity/subject/');
 
-  const headerTitle = isHome
-    ? title
-    : activeActivity
+  const headerTitle = activeActivity
     ? (activeActivity as string).toUpperCase()
     : isSessionRelated
     ? sessionName
@@ -59,6 +61,14 @@ const AppContent = () => {
       navigate('/', { replace: true });
     }
   }, [location.pathname, navigate, serverReady]);
+
+  React.useEffect(() => {
+    setBatteryStatuses(batteryStatuses);
+  }, [batteryStatuses, setBatteryStatuses]);
+
+  React.useEffect(() => {
+    setConnectedSensors(liveConnectedSensors);
+  }, [liveConnectedSensors, setConnectedSensors]);
 
   const hasConnectedSensors = Object.values(connectedSensors).some((sensors) => sensors.length > 0);
 
@@ -83,10 +93,13 @@ const AppContent = () => {
             <img src={logo} alt="Nexus Logo" className="logo-img" />
           </div>
           <div className="header-center">
-            <span className="facility-name">{headerTitle}</span>
+            <div className="header-app-meta">
+              <span className="facility-name">{isHome ? appManifest.name : headerTitle}</span>
+            </div>
           </div>
           <div className="header-right">
             <ServerStatus />
+            <span className="header-site-name">{title}</span>
             {!serverReady && <RetryServerButton />}
             <ResetButton onClick={handleReset} disabled={isDisconnecting} />
           </div>
@@ -94,18 +107,20 @@ const AppContent = () => {
 
         <div className="header-line"></div>
 
-        <Routes>
-          <Route path="/" element={<HomeScreen />} />
-          <Route path="/new-session" element={<NewSessionScreen />} />
-          <Route path="/subjects" element={<SubjectsRequiredScreen />} />
-          <Route path="/sensor-setup" element={<SensorSetupScreen />} />
-          <Route path="/add-sensor" element={<AddSensorScreen />} />
-          <Route path="/session" element={<SessionScreen />} />
-          <Route path="/assign-sensors" element={<AssignSensorsScreen />} />
-          <Route path="/active-session" element={<ActiveSessionScreen />} />
-          <Route path="/new-activity" element={<NewActivityScreen />} />
-          <Route path="/activity/subject/:id" element={<SubjectActivityScreen />} />
-        </Routes>
+        <div className="route-stage">
+          <Routes>
+            <Route path="/" element={<HomeScreen />} />
+            <Route path="/new-session" element={<NewSessionScreen />} />
+            <Route path="/subjects" element={<SubjectsRequiredScreen />} />
+            <Route path="/sensor-setup" element={<SensorSetupScreen />} />
+            <Route path="/add-sensor" element={<AddSensorScreen />} />
+            <Route path="/session" element={<SessionScreen />} />
+            <Route path="/assign-sensors" element={<AssignSensorsScreen />} />
+            <Route path="/active-session" element={<ActiveSessionScreen />} />
+            <Route path="/new-activity" element={<NewActivityScreen />} />
+            <Route path="/activity/subject/:id" element={<SubjectActivityScreen />} />
+          </Routes>
+        </div>
       </div>
     </div>
   );

@@ -1,12 +1,47 @@
-@media (max-width: 800px) and (max-height: 400px), (width: 1080px) and (height: 1920px) {
+@media (max-width: 800px) and (max-height: 400px) {
+  .nexus-shell {
+    min-height: 100%;
+    height: 100%;
+    padding: 0;
+    background-color: #071d28;
+  }
+
   .nexus-app {
+    width: 100%;
+    max-width: none;
+    height: 100%;
     min-height: 0;
-    padding: 8px 16px;
+    border-radius: 0;
+    padding: 6px 12px;
+    overflow: hidden;
+    background-color: #071d28;
+  }
+
+  .route-stage,
+  .route-stage > *,
+  .nexus-content,
+  .screen-layout-shell,
+  .screen-layout-body,
+  .home-screen,
+  .home-screen-body {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    background-color: #071d28;
+  }
+
+  .home-screen {
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .screen-layout,
+  .screen-layout.stretch {
     overflow: auto;
   }
 
   .nexus-header {
-    margin-bottom: 8px;
+    margin-bottom: 4px;
   }
 
   .header-left .logo-img {
@@ -25,7 +60,7 @@
   }
 
   .header-line {
-    margin-bottom: 12px;
+    margin-bottom: 4px;
   }
 
   .welcome-text,
@@ -35,7 +70,7 @@
   .performance-header,
   .subject-stats-row,
   .status-text {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   h3,
@@ -43,7 +78,7 @@
   .battery-level-text,
   .subject-title,
   .subject-card-title {
-    font-size: 16px;
+    font-size: 14px;
   }
 
   .reset-header-btn,
@@ -55,7 +90,7 @@
   .sub-header-row,
   .sub-header-row.compact,
   .subject-activity-header {
-    margin-bottom: 10px;
+    margin-bottom: 6px;
   }
 
   .sub-header-row .info-btn {
@@ -64,7 +99,7 @@
   }
 
   .form-container {
-    gap: 14px;
+    gap: 10px;
     max-width: 100%;
   }
 
@@ -133,8 +168,8 @@
   .action-row,
   .subject-footer-grid {
     margin-top: auto;
-    margin-bottom: 10px;
-    padding-top: 10px;
+    margin-bottom: 6px;
+    padding-top: 6px;
     flex-shrink: 0;
   }
 
@@ -150,7 +185,7 @@
   .action-row,
   .subject-footer-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
+    gap: 6px;
   }
 
   .action-row {
@@ -159,17 +194,17 @@
   }
 
   .subject-counter-container {
-    margin-bottom: 12px;
+    margin-bottom: 8px;
   }
 
   .counter-btn {
-    width: 56px;
-    height: 56px;
+    width: 48px;
+    height: 48px;
   }
 
   .counter-btn svg {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
   }
 
   .counter-value {
@@ -185,7 +220,7 @@
   }
 
   .subject-counter-container .counter-value {
-    font-size: 88px;
+    font-size: 72px;
   }
 
   .subjects-grid,
@@ -276,6 +311,9 @@
   .setup-panel-header {
     padding: 10px;
   }
+}
+
+@media (max-width: 800px) and (max-height: 400px) {
   .subject-stats-list,
   .stats-summary,
   .stat-row,
@@ -1003,9 +1041,9 @@
   .screen-footer .nexus-btn,
   .action-row .nexus-btn,
   .subject-footer-grid .nexus-btn {
-    min-height: 88px;
+    min-height: 64px;
     width: 100%;
-    padding: 20px 12px;
+    padding: 12px 10px;
     line-height: 1.2;
     text-align: center;
     white-space: normal;

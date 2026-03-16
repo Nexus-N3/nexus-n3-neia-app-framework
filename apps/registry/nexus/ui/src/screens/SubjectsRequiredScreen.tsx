@@ -5,13 +5,13 @@ import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { subjectCountAtom, subjectPrefixAtom } from '../store/atoms';
+import { isCompactFlowViewport } from '../utils/displayProfiles';
 
 export const SubjectsRequiredScreen: React.FC = () => {
   const navigate = useNavigate();
   const [subjectCount, setSubjectCount] = useAtom(subjectCountAtom);
   const [subjectPrefix, setSubjectPrefix] = useAtom(subjectPrefixAtom);
-  const isCompactViewport =
-    typeof window !== 'undefined' && window.innerWidth <= 800 && window.innerHeight <= 400;
+  const isCompactViewport = isCompactFlowViewport();
 
   const increment = () => setSubjectCount((prev) => (prev < 10 ? prev + 1 : 10));
   const decrement = () => setSubjectCount((prev) => (prev > 1 ? prev - 1 : 1));

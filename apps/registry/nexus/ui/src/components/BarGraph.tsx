@@ -1,4 +1,5 @@
 import React from 'react';
+import { isCompactFlowViewport } from '../utils/displayProfiles';
 
 export interface BarGroup {
   l: string; // height percentage
@@ -28,8 +29,7 @@ export const BarGraph: React.FC<BarGraphProps> = ({
   midLabel = '5',
 }) => {
   const isSimple = variant === 'simple';
-  const isCompactViewport =
-    typeof window !== 'undefined' && window.innerWidth <= 800 && window.innerHeight <= 400;
+  const isCompactViewport = isCompactFlowViewport();
 
   // Default data for detailed view (5 bars)
   const defaultDetailedData: BarGroup[] = [
