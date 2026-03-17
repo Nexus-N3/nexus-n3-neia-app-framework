@@ -72,7 +72,7 @@ Apps must support the standard NEIA display profiles without relying only on bro
 media-query behavior.
 
 Primary targets:
-- `800x400`
+- `800x480`
   - constrained operational screen
   - prioritize simplified flows, large touch targets, single-path interactions
   - avoid free-text entry unless essential
@@ -82,9 +82,9 @@ Primary targets:
   - keep the same primary workflow if the app is intentionally standardized
 
 Framework-owned embedded app stage targets:
-- shell viewport `800x400`
-  - design embedded apps against an available app stage of `800x360`
-  - do not assume the full raw viewport height is available to the app
+- shell viewport `800x480`
+  - design embedded apps against the actual shell-provided mount surface
+  - do not assume the full raw viewport height is available to the app, especially in kiosk mode
   - compact footers, headers, cards, and action rows must fit inside this stage
 - shell viewport `1920x1080`
   - treat the available app stage as effectively full-size for current layouts

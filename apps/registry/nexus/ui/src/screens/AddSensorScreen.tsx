@@ -4,6 +4,7 @@ import { useAtom, useSetAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
 import { setupsAtom, selectedSetupIdAtom, Sensor, supportedSensorsAtom, supportedLocationsAtom, supportedComputationsAtom } from '../store/atoms';
+import { isCompactFlowViewport } from '../utils/displayProfiles';
 
 interface SensorType {
   id: string;
@@ -37,6 +38,7 @@ export const AddSensorScreen: React.FC = () => {
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedPlacements, setSelectedPlacements] = useState<string[]>([]);
   const [selectedComputation, setSelectedComputation] = useState<string | null>(null);
+  const isCompactViewport = isCompactFlowViewport();
 
   // Derived state for sensors
   const availableSensors: SensorType[] = supportedSensors.length > 0
@@ -110,7 +112,7 @@ export const AddSensorScreen: React.FC = () => {
     <main className="nexus-content screen-layout">
       <div className="sub-header-row">
         <BackButton onClick={handleBack} />
-        <h2 className="screen-title">ADD SENSOR CONFIGURATION</h2>
+        <h2 className="screen-title">{isCompactViewport ? 'ADD SENSOR' : 'ADD SENSOR CONFIGURATION'}</h2>
         <InfoButton />
       </div>
 

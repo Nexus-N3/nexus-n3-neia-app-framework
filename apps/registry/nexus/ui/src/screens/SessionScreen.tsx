@@ -101,7 +101,7 @@ export const SessionScreen: React.FC = () => {
   const currentSubjects = subjects.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
 
   return (
-    <main className="nexus-content screen-layout">
+    <main className="nexus-content screen-layout session-screen">
       {/* Header Row with Carousel */}
       <ScreenHeader
         className="compact"

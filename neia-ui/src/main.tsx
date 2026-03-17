@@ -12,7 +12,7 @@ function normalizeProfile(raw?: string | null): string {
     "5in-portrait": "1920x1080",
     "5.5in-amoled": "1920x1080",
     "waveshare-5.5-amoled": "1920x1080",
-    "waveshare-5in-800x400": "800x400"
+    "waveshare-5in-800x480": "800x480"
   };
   return aliasMap[cleaned] || cleaned;
 }

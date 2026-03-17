@@ -3,6 +3,7 @@ import { useAtom } from 'jotai';
 import { useNavigate } from 'react-router-dom';
 import { ScreenLayout } from '../components/ScreenLayout';
 import { serverReadyAtom, sessionNameAtom, siteNameAtom } from '../store/atoms';
+import { isCompactFlowViewport } from '../utils/displayProfiles';
 
 export const HomeScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -18,8 +19,7 @@ export const HomeScreen: React.FC = () => {
     const date = new Date();
     const defaultSessionName = `${siteName} / Session [${date.toLocaleDateString()}]`;
     setSessionName(defaultSessionName);
-    const skipSessionNameScreen =
-      typeof window !== 'undefined' && window.innerWidth <= 800 && window.innerHeight <= 400;
+    const skipSessionNameScreen = isCompactFlowViewport();
     navigate(skipSessionNameScreen ? '/subjects' : '/new-session');
   };
 

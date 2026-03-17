@@ -19,7 +19,7 @@ Offline deployment guide: see `DEPLOYMENT.md`.
 Ansible deployment guide: see `deployment/ansible/README.md`.
 
 Embedded compact rule:
-- when running inside the NEIA shell, treat `800x400` devices as an embedded app stage of `800x360`
+- when running inside the NEIA shell, treat `800x480` devices as a compact embedded app stage and size layouts to the actual mount surface rather than assuming the full raw viewport
 
 ## Run locally
 
@@ -35,7 +35,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8050
 
 Enable dev mode (loads `dev_entry_ui` when present):
 ```bash
-NEIA_DEV=0 uvicorn app.main:app --reload --host 0.0.0.0 --port 8050
+NEIA_DEV=1 uvicorn app.main:app --reload --host 0.0.0.0 --port 8050
 ```
 
 UI (Vite dev server):

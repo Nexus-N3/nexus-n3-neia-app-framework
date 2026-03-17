@@ -11,6 +11,7 @@ import chevronLeft from '../assets/chevron-left.svg';
 import chevronRight from '../assets/chevron-right.svg';
 import { useLatestComputeResults } from '../hooks/useLatestComputeResults';
 import { useLatestIntermediateResults } from '../hooks/useLatestIntermediateResults';
+import { isCompactFlowViewport } from '../utils/displayProfiles';
 
 interface BandValues {
   x: number | null;
@@ -52,6 +53,7 @@ export const SubjectActivityScreen: React.FC = () => {
   const [subjectCount] = useAtom(subjectCountAtom);
   const [subjectPrefix] = useAtom(subjectPrefixAtom);
   const [viewMode, setViewMode] = useState<'realtime' | 'periodic'>('realtime');
+  const isCompactViewport = isCompactFlowViewport();
   const [historyOffset, setHistoryOffset] = useState(0);
   const [prevSubjectId, setPrevSubjectId] = useState(subjectId);
   if (prevSubjectId !== subjectId) {
@@ -280,7 +282,7 @@ export const SubjectActivityScreen: React.FC = () => {
             value={viewMode}
             onChange={(value) => setViewMode(value as 'realtime' | 'periodic')}
             options={[
-              { label: 'Real time', value: 'realtime' },
+              { label: isCompactViewport ? 'Live' : 'Real time', value: 'realtime' },
               { label: 'Periodic', value: 'periodic' },
             ]}
           />

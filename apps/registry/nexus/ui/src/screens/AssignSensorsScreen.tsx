@@ -7,6 +7,7 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { SensorRow } from '../components/SensorRow';
 import { SubjectsCarousel } from '../components/SubjectsCarousel';
 import { subjectCountAtom, setupsAtom, selectedSetupIdAtom, placedSensorsAtom, activeActivityAtom, subjectPrefixAtom, connectedSensorsAtom } from '../store/atoms';
+import { isCompactFlowViewport } from '../utils/displayProfiles';
 
 export const AssignSensorsScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ export const AssignSensorsScreen: React.FC = () => {
   const [activeActivity] = useAtom(activeActivityAtom);
   const [subjectPrefix] = useAtom(subjectPrefixAtom);
   const [connectedSensors] = useAtom(connectedSensorsAtom);
+  const isCompactViewport = isCompactFlowViewport();
 
   // Determine required sensors
   const selectedSetup = setups.find((s) => s.id === selectedSetupId);
@@ -81,7 +83,7 @@ export const AssignSensorsScreen: React.FC = () => {
               title={`${subjectPrefix}${targetSubjectId}`}
             />
           ) : (
-            <h2 className="screen-title">PLACE SENSORS</h2>
+            <h2 className="screen-title">{isCompactViewport ? 'SENSORS' : 'PLACE SENSORS'}</h2>
           )
         }
         right={<InfoButton />}

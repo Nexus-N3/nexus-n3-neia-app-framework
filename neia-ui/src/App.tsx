@@ -566,22 +566,22 @@ export default function App() {
     const iconUrl = getAssetUrl(app.manifest.id, app.manifest.icon || undefined);
     return (
       <div className="app-card" key={app.manifest.id}>
-        <div className="app-card-header">
-          {iconUrl ? (
-            <img className="app-icon" src={iconUrl} alt={`${app.manifest.name} icon`} />
-          ) : (
-            <div className="app-icon fallback">{app.manifest.name.slice(0, 1).toUpperCase()}</div>
-          )}
-          <div className="app-card-title">
-            <strong>{app.manifest.name}</strong>
-            <span className="meta">v{app.manifest.version}</span>
+        <div className="app-card-copy">
+          <div className="app-card-header">
+            {iconUrl ? (
+              <img className="app-icon" src={iconUrl} alt={`${app.manifest.name} icon`} />
+            ) : (
+              <div className="app-icon fallback">{app.manifest.name.slice(0, 1).toUpperCase()}</div>
+            )}
+            <div className="app-card-title">
+              <strong>{app.manifest.name}</strong>
+              <span className="meta">v{app.manifest.version}</span>
+            </div>
           </div>
-        </div>
-        {app.manifest.description ? <p className="app-card-desc">{app.manifest.description}</p> : null}
-        <div className="app-card-footer">
+          {app.manifest.description ? <p className="app-card-desc">{app.manifest.description}</p> : null}
           <span className="app-developer">Developed by {getDeveloper(app.manifest)}</span>
-          <div className="actions">{actions}</div>
         </div>
+        <div className="actions app-card-actions">{actions}</div>
       </div>
     );
   };

@@ -133,15 +133,15 @@ Deterministic profile override:
 - Use `display_profile` (URL), `window.__NEXUS_DISPLAY_PROFILE`, or `VITE_DISPLAY_PROFILE`
   to apply an explicit body class (`display-profile-<value>`).
 - Keep media queries as fallback, but ship tuned profile classes for known hardware
-  (for example `1920x1080`, `800x400`) to avoid browser/device reporting variance.
+  (for example `1920x1080`, `800x480`) to avoid browser/device reporting variance.
 
 If specific edge hardware differs (e.g., 800x480 or 720p), update these targets
 and re-validate the dashboard + app templates.
 
 ### Operational interpretation by screen size
-`800x400`
+`800x480`
 - treat as a constrained operational display
-- for embedded apps inside the NEIA shell, treat the usable app stage as `800x360`
+- for embedded apps inside the NEIA shell, size against the actual mount surface presented by the shell rather than assuming the full raw browser viewport
 - simplify branching flows
 - reduce text entry
 - increase button size and spacing for direct touch interaction
@@ -171,14 +171,14 @@ Apps must be designed against the framework-provided mount surface, not the raw 
 viewport.
 
 This matters most on compact screens:
-- the shell viewport may be `800x400`
-- the embedded app should assume only `800x360` is safely available
-- reusable components and screen templates must fit within that embedded budget
+- the shell viewport may be `800x480`
+- kiosk mode or browser chrome can still change the effective mount size
+- reusable components and screen templates must fit within the embedded mount budget, not just the nominal panel resolution
 
 For future apps and shared UI:
 - compact footer buttons should be sized against the embedded stage, not standalone full-screen assumptions
 - vertical rhythm must leave room for top controls, body content, and the final action region
-- if a layout only works at standalone `800x400`, it is not valid for framework-embedded compact mode
+- if a layout only works at standalone `800x480`, it is not valid for framework-embedded compact mode
 
 ## Dev Workflow (Apps)
 - Build a plugin UI with any framework.

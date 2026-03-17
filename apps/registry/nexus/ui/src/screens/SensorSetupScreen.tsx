@@ -7,6 +7,7 @@ import { EditButton } from '../components/EditButton';
 import { DeleteButton } from '../components/DeleteButton';
 import { setupsAtom, selectedSetupIdAtom, sessionNameAtom, subjectCountAtom, supportedComputationsAtom, Setup, subjectPrefixAtom } from '../store/atoms';
 import { useSystemInitialization } from '../hooks/useSystemInitialization';
+import { isCompactFlowViewport } from '../utils/displayProfiles';
 
 export const SensorSetupScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ export const SensorSetupScreen: React.FC = () => {
   const [subjectCount] = useAtom(subjectCountAtom);
   const [supportedComputations] = useAtom(supportedComputationsAtom);
   const [subjectPrefix] = useAtom(subjectPrefixAtom);
+  const isCompactViewport = isCompactFlowViewport();
 
   const { isInitializing, errorMsg, initSystem } = useSystemInitialization(() => {
     navigate('/session');
@@ -187,7 +189,7 @@ export const SensorSetupScreen: React.FC = () => {
     <main className="nexus-content screen-layout sensor-setup-screen">
       <div className="sub-header-row">
         <BackButton onClick={handleBack} disabled={isInitializing} />
-        <h2 className="screen-title">SENSOR SETUP</h2>
+        <h2 className="screen-title">{isCompactViewport ? 'SETUP' : 'SENSOR SETUP'}</h2>
         <InfoButton />
       </div>
 
@@ -248,7 +250,7 @@ export const SensorSetupScreen: React.FC = () => {
             ))}
           </div>
           <button className="panel-action-btn" onClick={handleAddCustomSetup}>
-            + New custom setup
+            {isCompactViewport ? '+ Custom setup' : '+ New custom setup'}
           </button>
         </div>
 
@@ -269,7 +271,7 @@ export const SensorSetupScreen: React.FC = () => {
                 ))}
                 {selectedSetup.isCustom && (
                   <div className="add-sensor-btn" onClick={() => navigate('/add-sensor')}>
-                    + Add new sensor
+                    {isCompactViewport ? '+ Add sensor' : '+ Add new sensor'}
                   </div>
                 )}
               </>
@@ -281,7 +283,7 @@ export const SensorSetupScreen: React.FC = () => {
                 </div>
                 {selectedSetup.isCustom && (
                   <button className="add-sensor-btn" onClick={() => navigate('/add-sensor')}>
-                    + add new sensor configuration
+                    {isCompactViewport ? '+ Add sensor' : '+ add new sensor configuration'}
                   </button>
                 )}
               </div>
@@ -294,7 +296,7 @@ export const SensorSetupScreen: React.FC = () => {
       <div className="action-row">
         <div></div>
         <button className="nexus-btn secondary-btn" onClick={handleModifyDefault} disabled={isInitializing}>
-          Modify default
+          {isCompactViewport ? 'Modify default' : 'Modify default'}
         </button>
         <button className="nexus-btn" onClick={handleCreateSession} disabled={isInitializing}>
           {isInitializing ? 'INITIALIZING...' : 'Create session'}

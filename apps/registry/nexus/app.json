@@ -9,8 +9,8 @@
   "supports_online": true,
   "supports_offline": true,
   "layout_mode": "framed",
-  "entry_ui": "ui/assets/index.js?v=13",
-  "style": "ui/assets/index.css?v=13",
+  "entry_ui": "ui/assets/index.js?v=15",
+  "style": "ui/assets/index.css?v=15",
   "mount": "NexusMount",
   "dev_entry_ui": "http://localhost:3001/src/main.tsx",
   "dev_mount": "NexusMount"

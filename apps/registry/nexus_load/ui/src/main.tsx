@@ -1,9 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import { applyDisplayProfile } from './utils/displayProfiles';
 import './index.css';
 
 type MountFn = (el: HTMLElement) => void;
+
+applyDisplayProfile();
 
 const mount: MountFn = (el) => {
   const root = ReactDOM.createRoot(el);

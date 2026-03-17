@@ -29,7 +29,7 @@ export const SubjectsRequiredScreen: React.FC = () => {
     <main className="nexus-content">
       <ScreenHeader
         left={<BackButton onClick={handleBack} />}
-        center={<h2 className="screen-title">SUBJECTS REQUIRED</h2>}
+        center={<h2 className="screen-title">{isCompactViewport ? 'SUBJECTS' : 'SUBJECTS REQUIRED'}</h2>}
         right={<InfoButton />}
       />
 

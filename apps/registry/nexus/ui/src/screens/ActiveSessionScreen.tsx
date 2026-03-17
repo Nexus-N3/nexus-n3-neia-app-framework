@@ -26,6 +26,7 @@ import { useResetSessionState } from '../hooks/useResetSessionState';
 import { useLatestComputeResults } from '../hooks/useLatestComputeResults';
 import { useLatestIntermediateResults } from '../hooks/useLatestIntermediateResults';
 import type { SubjectResultHistoryEntry } from '../store/atoms';
+import { isCompactFlowViewport } from '../utils/displayProfiles';
 
 const locationPriority = (location: string) => {
   const normalized = location.toUpperCase();
@@ -117,8 +118,7 @@ export const ActiveSessionScreen: React.FC = () => {
 
   const [currentPage, setCurrentPage] = useState(0);
   const [disconnectRequested, setDisconnectRequested] = useState(false);
-  const isCompactViewport =
-    typeof window !== 'undefined' && window.innerWidth <= 800 && window.innerHeight <= 400;
+  const isCompactViewport = isCompactFlowViewport();
   const itemsPerPage = isCompactViewport ? 1 : 4;
   const totalPages = Math.ceil(subjectCount / itemsPerPage);
   
