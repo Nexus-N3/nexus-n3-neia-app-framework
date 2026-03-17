@@ -10,7 +10,6 @@ import { subjectCountAtom, setupsAtom, selectedSetupIdAtom, placedSensorsAtom, s
 import { useDiscoverSensorsCore } from '../hooks/useDiscoverSensorsCore';
 import { useDisconnectSensorsCore } from '../hooks/useDisconnectSensorsCore';
 import { useResetSessionState } from '../hooks/useResetSessionState';
-import { isCompactFlowViewport } from '../utils/displayProfiles';
 
 export const SessionScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -38,8 +37,7 @@ export const SessionScreen: React.FC = () => {
 
   // Pagination state (we show 4 items at a time in a 2x2 grid)
   const [currentPage, setCurrentPage] = useState(0);
-  const isCompactViewport = isCompactFlowViewport();
-  const itemsPerPage = isCompactViewport ? 1 : 4;
+  const itemsPerPage = 1;
   const totalPages = Math.ceil(subjectCount / itemsPerPage);
 
   const selectedSetup = setups.find((s) => s.id === selectedSetupId);

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
-import { setupsAtom, selectedSetupIdAtom, sessionNameAtom, subjectCountAtom, supportedComputationsAtom, subjectPrefixAtom } from '../store/atoms';
+import { setupsAtom, selectedSetupIdAtom, sessionNameAtom, subjectCountAtom, supportedComputationsAtom, subjectPrefixAtom, Setup } from '../store/atoms';
 import { useSystemInitialization } from '../hooks/useSystemInitialization';
 
 export const SensorSetupScreen: React.FC = () => {
@@ -111,12 +111,15 @@ export const SensorSetupScreen: React.FC = () => {
     });
 
     const uniqueLocations = Array.from(new Set(setup.sensors.map((sensor) => sensor.loc)));
+    const computations: string[] = Array.from(
+      new Set(setup.sensors.map((sensor) => sensor.comp).filter((comp): comp is string => Boolean(comp)))
+    );
 
     return {
       title: setup.name.length > 0 ? `${setup.name.charAt(0).toUpperCase()}${setup.name.slice(1).toLowerCase()}` : setup.name,
       groupedTypes: Array.from(sensorTypeCounts.entries()).map(([type, count]) => `${count}x ${type}`),
       locations: uniqueLocations.length > 0 ? [uniqueLocations.join(' ')] : [],
-      computations: Array.from(new Set(setup.sensors.map((sensor) => sensor.comp).filter(Boolean))),
+      computations,
     };
   };
 

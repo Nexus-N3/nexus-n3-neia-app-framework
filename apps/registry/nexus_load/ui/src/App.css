@@ -277,7 +277,7 @@
   border-radius: 0.46875rem; /* Rounded style */
   padding: 0.375rem 1.875rem;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 700;
   transition: background-color 0.2s;
 }
 
@@ -470,6 +470,89 @@
 
 .subject-intensity-empty {
   width: 100%;
+}
+
+/* nexus_load uses the compact active-session design on all screens */
+.compact-active-session-card {
+  display: grid;
+  grid-template-rows: auto auto;
+  align-content: start;
+  width: 100%;
+  min-height: 0;
+  padding: 14px 10px 18px;
+  box-sizing: border-box;
+  gap: 10px;
+}
+
+.compact-active-session-card .subject-card-title {
+  width: 100%;
+  margin: 0;
+  text-align: center;
+}
+
+.compact-intensity-values {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  min-width: 0;
+  justify-items: start;
+}
+
+.compact-active-session-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  padding-bottom: 10px;
+}
+
+.compact-intensity-title {
+  font-size: 11px;
+  text-align: left;
+  margin: 0 0 2px;
+  color: #e7eef3;
+}
+
+.compact-intensity-columns {
+  display: grid;
+  grid-template-columns: max-content 40px;
+  column-gap: 8px;
+  align-items: start;
+  width: fit-content;
+}
+
+.compact-intensity-labels,
+.compact-intensity-metrics {
+  display: grid;
+  grid-template-columns: 1fr;
+  row-gap: 6px;
+}
+
+.compact-intensity-location {
+  text-align: left;
+  white-space: nowrap;
+  font-size: 10px;
+}
+
+.compact-intensity-value {
+  text-align: right;
+  font-size: 11px;
+  font-family: monospace;
+  width: 40px;
+}
+
+.compact-intensity-chart {
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  width: 240px;
+  min-width: 240px;
+  min-height: 84px;
+  height: 84px;
+  justify-self: center;
+  margin-left: 0;
 }
 
 .setup-item {
@@ -1153,6 +1236,99 @@ h2 {
   margin-bottom: 0.25rem;
 }
 
+/* nexus_load keeps the simplified compact sensor-setup presentation on all screens */
+.sensor-setup-screen .setup-list-panel > .panel-action-btn,
+.sensor-setup-screen .action-row .secondary-btn {
+  display: none;
+}
+
+.sensor-setup-screen .split-panel-grid {
+  display: block;
+  overflow-y: auto;
+}
+
+.sensor-setup-screen .setup-list-panel {
+  background: transparent;
+  height: auto;
+  overflow: visible;
+}
+
+.sensor-setup-screen .setup-panel-header,
+.sensor-setup-screen .sensor-list-panel,
+.sensor-setup-screen .setup-item-controls {
+  display: none;
+}
+
+.sensor-setup-screen .setup-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+}
+
+.sensor-setup-screen .setup-item {
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 0;
+  max-height: 132px;
+  padding: 10px;
+  border-width: 2px;
+  line-height: 1.2;
+  overflow: hidden;
+}
+
+.sensor-setup-screen .setup-item.selected {
+  border-width: 2px;
+}
+
+.sensor-setup-screen .setup-item-main {
+  width: 100%;
+}
+
+.sensor-setup-screen .setup-item-title {
+  margin-bottom: 6px;
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: normal;
+}
+
+.sensor-setup-screen .setup-item-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  font-size: 10px;
+  text-transform: none;
+  color: rgba(231, 238, 243, 0.85);
+  overflow: hidden;
+}
+
+.sensor-setup-screen .setup-item-summary-line {
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.sensor-setup-screen .setup-item-summary-line-computes {
+  color: rgba(231, 238, 243, 0.68);
+}
+
+.sensor-setup-screen .action-row {
+  grid-template-columns: 1fr;
+}
+
+.sensor-setup-screen .action-row > div:first-child {
+  display: none;
+}
+
+.sensor-setup-screen .action-row .nexus-btn {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
 /* --- Add Sensor Screen --- */
 .three-col-grid {
   display: grid;
@@ -1791,7 +1967,7 @@ h2 {
 .screen-footer .nexus-btn,
 .action-row .nexus-btn,
 .subject-footer-grid .nexus-btn {
-  font-size: 18px;
+  font-size: 24px;
 }
 
 /* Secondary (outlined) button */

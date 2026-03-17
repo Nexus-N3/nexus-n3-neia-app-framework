@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { useAtom, useSetAtom } from 'jotai';
 import './App.css';
-import './styles/App.1920x1080.css';
 import './styles/App.compact.css';
 import logo from './assets/logo.svg';
 import appManifest from '../../app.json';

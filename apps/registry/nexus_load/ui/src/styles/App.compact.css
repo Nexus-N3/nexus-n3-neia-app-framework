@@ -28,10 +28,10 @@
     height: 100%;
     min-height: 0;
     background-color: #071d28;
+    align-items: stretch;
   }
 
   .home-screen {
-    justify-content: center;
     overflow: hidden;
   }
 
@@ -140,12 +140,12 @@
   .subject-stats-list,
   .stats-summary,
   .time-control-label {
-    font-size: 12px;
+    font-size: 14px;
   }
 
   .nexus-btn {
     padding: 10px 16px;
-    border-radius: 12px;
+    border-radius: 14px;
   }
 
   .home-screen-actions .nexus-btn,
@@ -157,6 +157,7 @@
     min-width: 0;
     width: auto;
     max-width: 100%;
+    font-size: 14px;
   }
 
   .home-screen-actions,
@@ -195,16 +196,18 @@
 
   .subject-counter-container {
     margin-bottom: 8px;
+    gap: 5rem;
+    justify-content: center;
   }
 
   .counter-btn {
-    width: 48px;
-    height: 48px;
+    width: 80px;
+    height: 80px;
   }
 
   .counter-btn svg {
-    width: 24px;
-    height: 24px;
+    width: 50px;
+    height: 50px;
   }
 
   .counter-value {
@@ -216,7 +219,7 @@
   }
 
   .subject-counter-container {
-    min-width: min(100%, 520px);
+    min-width: min(100%, 400px);
   }
 
   .subject-counter-container .counter-value {
@@ -1050,7 +1053,7 @@
   }
 
   .home-screen-actions .nexus-btn {
-    width: min(100%, 360px);
+    width: min(100%, 600px);
   }
 
   .error-banner {

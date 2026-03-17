@@ -7,7 +7,6 @@ import { InfoButton } from '../components/InfoButton';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { activeActivityAtom, latestComputeResultsAtom } from '../store/atoms';
 import { useStartStream } from '../hooks/useStartStream';
-import { isCompactFlowViewport } from '../utils/displayProfiles';
 
 export const NewActivityScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -15,7 +14,8 @@ export const NewActivityScreen: React.FC = () => {
   const setActiveActivity = useSetAtom(activeActivityAtom);
   const setLatestComputeResults = useSetAtom(latestComputeResultsAtom);
   const { startStreamForAll, isStarting, errorMsg, dismissError } = useStartStream();
-  const isCompactViewport = isCompactFlowViewport();
+  const isCompactViewport =
+    typeof window !== 'undefined' && window.innerWidth <= 800 && window.innerHeight <= 400;
 
   const quickSelections = ['Walking', 'Running', 'Jumping', 'Rowing'];
 

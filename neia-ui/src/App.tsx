@@ -34,6 +34,28 @@ type AppInfo = {
   resolved_mount?: string | null;
 };
 
+const launchButtonStyle: React.CSSProperties = {
+  appearance: "none",
+  border: "none",
+  background: "var(--accent)",
+  color: "#ffffff",
+  fontFamily: '"IBM Plex Sans", "Segoe UI", sans-serif',
+  fontWeight: 600,
+  letterSpacing: "0.01em",
+  textTransform: "none",
+};
+
+const uninstallButtonStyle: React.CSSProperties = {
+  appearance: "none",
+  border: "none",
+  background: "#e5e0fb",
+  color: "#3d2f7a",
+  fontFamily: '"IBM Plex Sans", "Segoe UI", sans-serif',
+  fontWeight: 600,
+  letterSpacing: "0.01em",
+  textTransform: "none",
+};
+
 function useApps() {
   const [installed, setInstalled] = useState<AppInfo[]>([]);
   const [available, setAvailable] = useState<AppInfo[]>([]);
@@ -78,6 +100,29 @@ function getAssetUrl(appId: string, assetPath?: string | null) {
   if (!assetPath) return null;
   if (assetPath.startsWith("http")) return assetPath;
   return `/api/v1/apps/${appId}/asset/${assetPath}`;
+}
+
+function appendCacheBust(url: string, token: string) {
+  const separator = url.includes("?") ? "&" : "?";
+  return `${url}${separator}_neia=${encodeURIComponent(token)}`;
+}
+
+function getViteDevStyleKeys() {
+  return new Set(
+    Array.from(document.querySelectorAll<HTMLElement>("style[data-vite-dev-id], link[data-vite-dev-id]"))
+      .map((node) => node.dataset.viteDevId)
+      .filter((value): value is string => Boolean(value))
+  );
+}
+
+function removeNewViteDevStyles(previousKeys: Set<string>) {
+  const nodes = Array.from(document.querySelectorAll<HTMLElement>("style[data-vite-dev-id], link[data-vite-dev-id]"));
+  for (const node of nodes) {
+    const key = node.dataset.viteDevId;
+    if (key && !previousKeys.has(key)) {
+      node.remove();
+    }
+  }
 }
 
 function getAppType(manifest: AppManifest) {
@@ -395,9 +440,13 @@ export default function App() {
     let disposed = false;
     let mountedScript: HTMLScriptElement | null = null;
     let mountedStyle: HTMLLinkElement | null = null;
+    const assetToken = `${appView.manifest.id}:${Date.now()}`;
+    const viteDevStyleKeys = entry.startsWith("http") ? getViteDevStyleKeys() : null;
 
     if (style) {
-      const styleUrl = entry.startsWith("http") ? style : `/api/v1/apps/${appView.manifest.id}/asset/${style}`;
+      const styleUrl = entry.startsWith("http")
+        ? style
+        : appendCacheBust(`/api/v1/apps/${appView.manifest.id}/asset/${style}`, assetToken);
       mountedStyle = loadStyle(styleUrl);
     }
 
@@ -405,7 +454,7 @@ export default function App() {
       try {
         const scriptUrl = entry.startsWith("http")
           ? entry
-          : `/api/v1/apps/${appView.manifest.id}/asset/${entry}`;
+          : appendCacheBust(`/api/v1/apps/${appView.manifest.id}/asset/${entry}`, assetToken);
         mountedScript = await loadScript(scriptUrl);
         if (disposed) {
           return;
@@ -430,6 +479,9 @@ export default function App() {
       if (mountEl) {
         mountEl.replaceChildren();
       }
+      if (viteDevStyleKeys) {
+        removeNewViteDevStyles(viteDevStyleKeys);
+      }
       mountedStyle?.remove();
       mountedScript?.remove();
     };
@@ -440,7 +492,7 @@ export default function App() {
     return (
       <div className={`app-shell takeover layout-${layoutMode}`}>
         <header className="app-topbar">
-          <button className="secondary" onClick={() => void backToDashboard()}>
+          <button className="app-back-button" onClick={() => void backToDashboard()}>
             Back to Dashboard
           </button>
         </header>
@@ -582,8 +634,14 @@ export default function App() {
                       renderAppCard(
                         app,
                         <>
-                          <button className="launch-btn" onClick={() => launch(app)}>Launch</button>
-                          <button className="secondary square-btn" onClick={() => uninstall(app.manifest.id)}>
+                          <button className="launch-btn" style={launchButtonStyle} onClick={() => launch(app)}>
+                            Launch
+                          </button>
+                          <button
+                            className="secondary square-btn"
+                            style={uninstallButtonStyle}
+                            onClick={() => uninstall(app.manifest.id)}
+                          >
                             Uninstall
                           </button>
                         </>

@@ -360,6 +360,135 @@ A scaffold is considered clean when:
 - generated hooks are store-agnostic by default
 - the scaffold does not require copying code out of `nexus` or `nexus_load` manually
 
+## Shared Library Creation Plan
+
+The shared library should be created as a stabilization project, not a refactor of the live apps.
+
+Primary constraint:
+
+- `nexus` and `nexus_load` must continue working throughout the extraction
+- no shared-library step should require a big-bang migration
+- app-local copies should remain in place until the shared version is proven
+
+### Safe extraction method
+
+1. Copy first, do not replace
+- add the shared version to `shared/nexus-ui-lib`
+- keep the app-local version unchanged
+- do not delete or rewrite app-local code during initial extraction
+
+2. Match the current API exactly
+- preserve prop names, default behavior, and class names
+- do not redesign components while extracting them
+- extraction is for ownership cleanup, not improvement
+
+3. Migrate one primitive at a time
+- switch one low-risk import in one app
+- build and verify
+- switch the same primitive in the second app
+- only then consider the primitive stabilized
+
+4. Keep styling local initially
+- shared components should rely on the existing app CSS contract first
+- do not centralize app shell styles in the same step as component extraction
+- this keeps the risk surface small
+
+5. Promote only stable boundaries
+- if a component still depends on app-specific atoms, routes, or workflow assumptions, keep it local
+- the shared library should contain only neutral primitives
+
+### Recommended extraction backlog
+
+Stage 1: Stateless shell primitives
+- `BackButton`
+- `InfoButton`
+- `ResetButton`
+- `ScreenLayout`
+- `ScreenHeader`
+
+Stage 2: Shared UI helpers
+- `ErrorBanner`
+- `StatusOverlay`
+- `SubjectsCarousel`
+- `displayProfiles.ts`
+
+Stage 3: Neutral visual components
+- `BarGraph`
+- `BatteryIcon`
+- `SegmentedControl`
+
+Stage 4: Neutral gateway hooks
+- `useGatewaySocket`
+- `useSystemInitialization`
+- `useIdentifySensor`
+- `useStartStream`
+- `useStopStream`
+
+Stage 5: Proven store-agnostic workflow hooks
+- `useBatteryUpdatesCore`
+- `useConnectedSensorUpdatesCore`
+- `useDisconnectSensorsCore`
+- `useDiscoverSensorsCore`
+
+### What should stay app-local
+
+These should not move into the shared library until there is a much clearer shared domain model:
+
+- Jotai atoms
+- reset/session/result synchronization logic
+- route definitions
+- app/workflow-specific screen components
+- product-specific CSS overrides
+- backend event-to-store ownership decisions
+
+### Migration sequence
+
+The recommended order is:
+
+1. Add shared primitive to `shared/nexus-ui-lib`
+2. Export it from the library entrypoints
+3. Import it in `nexus_load` only
+4. Run build and visual verification
+5. Import it in `nexus`
+6. Run build and visual verification
+7. Leave the app-local copy in place temporarily
+8. Remove the duplicate local version only after both apps are stable
+
+This sequence minimizes risk because `nexus_load` is the simpler workflow and is a better first migration target than `nexus`.
+
+### Library contract requirements
+
+Before a primitive is considered shared-ready, it should have:
+
+- stable prop types
+- no app-local atom imports
+- no app-local route assumptions
+- no hardcoded product copy
+- no dependency on one app's screen structure
+- class names that fit the shared styling contract
+
+### Shared styling strategy
+
+The library should not immediately own `App.css`, `App.compact.css`, or `App.1920x1080.css`.
+
+Instead:
+
+- apps continue to own their shell sizing and profile overrides
+- shared components rely on stable class names and CSS variables
+- once both apps converge, the library can introduce an optional shared base stylesheet
+
+### Documentation requirements
+
+Every extraction step should update the plan or a follow-up implementation note with:
+
+- what moved into `nexus-ui-lib`
+- whether the API was kept identical
+- which app migrated first
+- whether app-local duplicates still exist
+- what remains blocked from extraction and why
+
+This is important so the shared-library effort can be resumed later without rediscovering the rationale.
+
 ## CLI UX
 
 Suggested command shape:

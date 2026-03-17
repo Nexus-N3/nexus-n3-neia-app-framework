@@ -183,7 +183,14 @@ def get_app_asset(app_id: str, asset_path: str):
         raise HTTPException(status_code=400, detail="Invalid asset path")
     if not candidate.exists():
         raise HTTPException(status_code=404, detail="Asset not found")
-    return FileResponse(candidate)
+    return FileResponse(
+        candidate,
+        headers={
+            "Cache-Control": "no-store, max-age=0",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        },
+    )
 
 
 app.mount("/api/v1", api_v1)

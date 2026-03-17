@@ -18,7 +18,9 @@ export const HomeScreen: React.FC = () => {
     const date = new Date();
     const defaultSessionName = `${siteName} / Session [${date.toLocaleDateString()}]`;
     setSessionName(defaultSessionName);
-    navigate('/subjects');
+    const skipSessionNameScreen =
+      typeof window !== 'undefined' && window.innerWidth <= 800 && window.innerHeight <= 400;
+    navigate(skipSessionNameScreen ? '/subjects' : '/new-session');
   };
 
   return (
