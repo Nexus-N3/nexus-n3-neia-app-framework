@@ -69,7 +69,7 @@ export const NewActivityScreen: React.FC = () => {
         )}
 
         {/* Quick Selection */}
-        <div>
+        <div className="quick-selection-section">
           <h3 className="quick-selection-title">Quick selection</h3>
           <div className="quick-selection-container">
             {quickSelections.map((selection) => (

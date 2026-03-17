@@ -241,6 +241,11 @@
   flex: 1;
 }
 
+.new-activity-screen .quick-selection-section {
+  position: relative;
+  top: -1rem;
+}
+
 .form-group {
   display: flex;
   flex-direction: column;
