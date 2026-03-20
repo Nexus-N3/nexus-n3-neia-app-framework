@@ -7,6 +7,7 @@ import './index.css';
 type MountFn = (el: HTMLElement) => void;
 
 applyDisplayProfile();
+window.addEventListener('resize', applyDisplayProfile);
 
 const mount: MountFn = (el) => {
   const root = ReactDOM.createRoot(el);

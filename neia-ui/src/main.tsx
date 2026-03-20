@@ -2,22 +2,18 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 
-const PROFILE_STORAGE_KEY = "nexus_display_profile";
 const PROFILE_CLASS_PREFIX = "display-profile-";
 
 function normalizeProfile(raw?: string | null): string {
   if (!raw) return "";
   const cleaned = raw.trim().toLowerCase().replace(/\s+/g, "").replace(/_/g, "-");
   const aliasMap: Record<string, string> = {
-    "5in-portrait": "1920x1080",
-    "5.5in-amoled": "1920x1080",
-    "waveshare-5.5-amoled": "1920x1080",
-    "waveshare-5in-800x480": "800x480"
+    "5in-800x480": "800x480"
   };
   return aliasMap[cleaned] || cleaned;
 }
 
-function resolveDisplayProfile(): string {
+function resolveExplicitDisplayProfile(): string {
   const params = new URLSearchParams(window.location.search);
   const fromQuery = normalizeProfile(params.get("display_profile"));
   if (fromQuery) return fromQuery;
@@ -28,11 +24,20 @@ function resolveDisplayProfile(): string {
   const fromEnv = normalizeProfile(import.meta.env.VITE_DISPLAY_PROFILE);
   if (fromEnv) return fromEnv;
 
-  try {
-    return normalizeProfile(window.localStorage.getItem(PROFILE_STORAGE_KEY));
-  } catch {
-    return "";
+  return "";
+}
+
+function resolveViewportProfile(): string {
+  if (window.innerWidth <= 800 && window.innerHeight <= 480) {
+    return "800x480";
   }
+  return "";
+}
+
+function resolveDisplayProfile(): string {
+  const explicit = resolveExplicitDisplayProfile();
+  if (explicit) return explicit;
+  return resolveViewportProfile();
 }
 
 function applyDisplayProfile(): void {
@@ -46,14 +51,10 @@ function applyDisplayProfile(): void {
   if (!profile) return;
   body.classList.add(`${PROFILE_CLASS_PREFIX}${profile}`);
   body.setAttribute("data-display-profile", profile);
-  try {
-    window.localStorage.setItem(PROFILE_STORAGE_KEY, profile);
-  } catch {
-    // best effort persistence only
-  }
 }
 
 applyDisplayProfile();
+window.addEventListener("resize", applyDisplayProfile);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

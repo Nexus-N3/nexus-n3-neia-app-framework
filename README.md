@@ -35,7 +35,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8050
 
 Enable dev mode (loads `dev_entry_ui` when present):
 ```bash
-NEIA_DEV=1 uvicorn app.main:app --reload --host 0.0.0.0 --port 8050
+NEIA_DEV=0 uvicorn app.main:app --reload --host 0.0.0.0 --port 8050
 ```
 
 UI (Vite dev server):

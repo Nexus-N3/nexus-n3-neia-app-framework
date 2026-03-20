@@ -16,9 +16,7 @@ import { ActiveSessionScreen } from './screens/ActiveSessionScreen';
 import { NewActivityScreen } from './screens/NewActivityScreen';
 import { SubjectActivityScreen } from './screens/SubjectActivityScreen';
 import { ResetButton } from './components/ResetButton';
-import { ServerStatus } from './components/ServerStatus';
-import { RetryServerButton } from './components/RetryServerButton';
-import { activeActivityAtom, batteryStatusesAtom, connectedSensorsAtom, sessionNameAtom, siteNameAtom, serverReadyAtom } from './store/atoms';
+import { activeActivityAtom, batteryStatusesAtom, connectedSensorsAtom, sessionNameAtom, serverReadyAtom } from './store/atoms';
 import { GatewaySocketProvider } from './hooks/useGatewaySocket';
 import { useServerReadiness } from './hooks/useServerReadiness';
 import { useBatteryUpdatesCore } from './hooks/useBatteryUpdatesCore';
@@ -30,7 +28,6 @@ const AppContent = () => {
   useServerReadiness(); // Request and listen for server readiness
   const location = useLocation();
   const navigate = useNavigate();
-  const [title] = useAtom(siteNameAtom);
   const [sessionName] = useAtom(sessionNameAtom);
   const [activeActivity] = useAtom(activeActivityAtom);
   const [connectedSensors] = useAtom(connectedSensorsAtom);
@@ -97,9 +94,6 @@ const AppContent = () => {
             </div>
           </div>
           <div className="header-right">
-            <ServerStatus />
-            <span className="header-site-name">{title}</span>
-            {!serverReady && <RetryServerButton />}
             <ResetButton onClick={handleReset} disabled={isDisconnecting} />
           </div>
         </header>

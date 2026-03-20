@@ -96,6 +96,71 @@ function useHashRoute() {
   return route;
 }
 
+function useHostServerStatus() {
+  const [serverReady, setServerReady] = useState(false);
+  const [siteName, setSiteName] = useState("Site unavailable");
+  const [retrying, setRetrying] = useState(false);
+
+  const sendReadyCheck = async () => {
+    await fetch("/api/v1/gateway/command", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "is_server_ready", payload: {} })
+    });
+  };
+
+  useEffect(() => {
+    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+    const wsUrl = `${protocol}://${window.location.host}/api/v1/gateway/events`;
+    const ws = new WebSocket(wsUrl);
+
+    ws.onopen = () => {
+      setServerReady(false);
+      void sendReadyCheck().catch(() => {
+        setServerReady(false);
+      });
+    };
+
+    ws.onclose = () => {
+      setServerReady(false);
+    };
+
+    ws.onerror = () => {
+      setServerReady(false);
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const msg = JSON.parse(event.data);
+        if (msg?.type !== "server_ready") return;
+        setServerReady(true);
+        const site = msg?.payload?.site;
+        if (typeof site === "string" && site.trim()) {
+          setSiteName(site);
+        }
+      } catch {
+        // ignore malformed gateway events
+      }
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, []);
+
+  const retryServer = async () => {
+    setRetrying(true);
+    setServerReady(false);
+    try {
+      await sendReadyCheck();
+    } finally {
+      setRetrying(false);
+    }
+  };
+
+  return { serverReady, siteName, retrying, retryServer };
+}
+
 function getAssetUrl(appId: string, assetPath?: string | null) {
   if (!assetPath) return null;
   if (assetPath.startsWith("http")) return assetPath;
@@ -302,6 +367,7 @@ function StartupSequence({ stage, exiting }: { stage: StartupStage; exiting: boo
 
 export default function App() {
   const { installed, available, loading, refresh } = useApps();
+  const { serverReady, siteName, retrying, retryServer } = useHostServerStatus();
   const [launchError, setLaunchError] = useState<string | null>(null);
   const [appView, setAppView] = useState<AppInfo | null>(null);
   const [appViewError, setAppViewError] = useState<string | null>(null);
@@ -495,6 +561,20 @@ export default function App() {
           <button className="app-back-button" onClick={() => void backToDashboard()}>
             Back to Dashboard
           </button>
+          <div className="app-topbar-status">
+            <div
+              className="app-server-status-container"
+              title={serverReady ? "System Ready" : "Connecting..."}
+            >
+              <div className={`app-status-indicator ${serverReady ? "online" : "offline"}`} />
+            </div>
+            <span className="app-site-name">{siteName}</span>
+            {!serverReady ? (
+              <button className="app-retry-btn" onClick={() => void retryServer()} disabled={retrying}>
+                {retrying ? "Retrying..." : "Retry server"}
+              </button>
+            ) : null}
+          </div>
         </header>
         {appViewError ? <p className="error">{appViewError}</p> : null}
         {launchError ? <p className="error">{launchError}</p> : null}

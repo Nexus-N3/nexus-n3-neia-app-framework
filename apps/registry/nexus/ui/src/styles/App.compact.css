@@ -54,6 +54,11 @@
     white-space: nowrap;
   }
 
+  .header-site-name {
+    font-size: 0.6rem;
+    line-height: 1;
+  }
+
   .reset-header-btn {
     padding: 6px 12px;
     font-size: 11px;
@@ -85,6 +90,15 @@
   .retry-server-btn {
     padding: 5px 10px;
     font-size: 10px;
+  }
+
+  .header-right {
+    gap: 4px;
+  }
+
+  .retry-server-btn {
+    min-width: 96px;
+    white-space: nowrap;
   }
 
   .sub-header-row,

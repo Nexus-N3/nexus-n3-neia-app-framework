@@ -1,4 +1,3 @@
-const PROFILE_STORAGE_KEY = 'nexus_display_profile';
 const PROFILE_CLASS_PREFIX = 'display-profile-';
 
 const COMPACT_PROFILES = new Set(['800x480']);
@@ -8,10 +7,7 @@ export const normalizeProfile = (raw?: string | null): string => {
 
   const cleaned = raw.trim().toLowerCase().replace(/\s+/g, '').replace(/_/g, '-');
   const aliasMap: Record<string, string> = {
-    '5in-portrait': '1920x1080',
-    '5.5in-amoled': '1920x1080',
-    'waveshare-5.5-amoled': '1920x1080',
-    'waveshare-5in-800x480': '800x480',
+    '5in-800x480': '800x480',
   };
 
   return aliasMap[cleaned] || cleaned;
@@ -32,11 +28,12 @@ export const resolveDisplayProfile = (): string => {
   const fromBody = normalizeProfile(document.body?.dataset?.displayProfile);
   if (fromBody) return fromBody;
 
-  try {
-    return normalizeProfile(window.localStorage.getItem(PROFILE_STORAGE_KEY));
-  } catch {
-    return '';
+  const { innerWidth, innerHeight } = window;
+  if (innerWidth <= 800 && innerHeight <= 480) {
+    return '800x480';
   }
+
+  return '';
 };
 
 export const applyDisplayProfile = (): void => {
@@ -58,11 +55,6 @@ export const applyDisplayProfile = (): void => {
 
   body.classList.add(`${PROFILE_CLASS_PREFIX}${profile}`);
   body.setAttribute('data-display-profile', profile);
-  try {
-    window.localStorage.setItem(PROFILE_STORAGE_KEY, profile);
-  } catch {
-    // Best-effort persistence only.
-  }
 };
 
 export const isCompactFlowViewport = () => {
