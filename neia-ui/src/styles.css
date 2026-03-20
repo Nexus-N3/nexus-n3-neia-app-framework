@@ -355,6 +355,59 @@ button.secondary {
   background: rgba(19, 19, 19, 0.92);
 }
 
+.app-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.app-usb-button {
+  appearance: none;
+  border: 1px solid rgba(215, 207, 247, 0.35);
+  background: rgba(15, 31, 24, 0.92);
+  color: #effff3;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  text-transform: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.app-usb-button:hover {
+  background: rgba(20, 41, 31, 0.98);
+}
+
+.app-usb-button.danger {
+  background: rgba(52, 12, 12, 0.92);
+  color: #ffe7e7;
+  border-color: rgba(255, 138, 138, 0.45);
+}
+
+.app-usb-button.danger:hover {
+  background: rgba(72, 16, 16, 0.98);
+}
+
+.app-usb-button:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.app-usb-error {
+  color: #ff9b84;
+  font-size: 11px;
+  line-height: 1.2;
+  max-width: 220px;
+}
+
 .actions .launch-btn {
   appearance: none;
   border: none;
@@ -898,6 +951,22 @@ body.display-profile-800x480 .actions .square-btn {
     padding: 12px 18px;
   }
 
+  .app-topbar-left {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .app-usb-button,
+  .app-back-button {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+
+  .app-usb-error {
+    font-size: 10px;
+    max-width: 160px;
+  }
+
   .app-mount.takeover {
     min-height: 0;
     padding: 0 18px 18px;
@@ -1182,6 +1251,10 @@ body.display-profile-1920x1080 .app-topbar-status {
   gap: 12px;
 }
 
+body.display-profile-1920x1080 .app-topbar-left {
+  gap: 12px;
+}
+
 body.display-profile-1920x1080 .app-server-status-container {
   width: 22px;
   height: 22px;
@@ -1200,6 +1273,16 @@ body.display-profile-1920x1080 .app-retry-btn {
   min-width: 148px;
   padding: 10px 16px;
   font-size: 15px;
+}
+
+body.display-profile-1920x1080 .app-usb-button,
+body.display-profile-1920x1080 .app-back-button {
+  font-size: 15px;
+}
+
+body.display-profile-1920x1080 .app-usb-error {
+  font-size: 12px;
+  max-width: 280px;
 }
 
 body.display-profile-1920x1080 .app-mount.takeover {

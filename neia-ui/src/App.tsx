@@ -100,12 +100,23 @@ function useHostServerStatus() {
   const [serverReady, setServerReady] = useState(false);
   const [siteName, setSiteName] = useState("Site unavailable");
   const [retrying, setRetrying] = useState(false);
+  const [usbPresent, setUsbPresent] = useState(false);
+  const [usbBusy, setUsbBusy] = useState(false);
+  const [usbError, setUsbError] = useState<string | null>(null);
 
   const sendReadyCheck = async () => {
     await fetch("/api/v1/gateway/command", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ type: "is_server_ready", payload: {} })
+    });
+  };
+
+  const sendUsbStatusCheck = async () => {
+    await fetch("/api/v1/gateway/command", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "get_usb_status", payload: {} })
     });
   };
 
@@ -119,24 +130,49 @@ function useHostServerStatus() {
       void sendReadyCheck().catch(() => {
         setServerReady(false);
       });
+      void sendUsbStatusCheck().catch(() => {
+        setUsbBusy(false);
+      });
     };
 
     ws.onclose = () => {
       setServerReady(false);
+      setUsbBusy(false);
     };
 
     ws.onerror = () => {
       setServerReady(false);
+      setUsbBusy(false);
     };
 
     ws.onmessage = (event) => {
       try {
         const msg = JSON.parse(event.data);
-        if (msg?.type !== "server_ready") return;
-        setServerReady(true);
-        const site = msg?.payload?.site;
-        if (typeof site === "string" && site.trim()) {
-          setSiteName(site);
+        if (msg?.type === "server_ready") {
+          setServerReady(true);
+          const site = msg?.payload?.site;
+          if (typeof site === "string" && site.trim()) {
+            setSiteName(site);
+          }
+          return;
+        }
+        if (msg?.type === "usb_status") {
+          setUsbPresent(Boolean(msg?.payload?.present));
+          setUsbBusy(false);
+          const error = msg?.payload?.error;
+          setUsbError(typeof error === "string" && error.trim() ? error : null);
+          return;
+        }
+        if (msg?.type === "usb_disk_inserted") {
+          setUsbPresent(true);
+          setUsbBusy(false);
+          setUsbError(null);
+          return;
+        }
+        if (msg?.type === "usb_disk_removed") {
+          setUsbPresent(false);
+          setUsbBusy(false);
+          setUsbError(null);
         }
       } catch {
         // ignore malformed gateway events
@@ -152,13 +188,31 @@ function useHostServerStatus() {
     setRetrying(true);
     setServerReady(false);
     try {
-      await sendReadyCheck();
+      await Promise.all([sendReadyCheck(), sendUsbStatusCheck()]);
     } finally {
       setRetrying(false);
     }
   };
 
-  return { serverReady, siteName, retrying, retryServer };
+  const sendUsbCommand = async (action: "mount" | "unmount") => {
+    setUsbBusy(true);
+    setUsbError(null);
+    try {
+      await fetch("/api/v1/gateway/command", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: action === "mount" ? "usb_mount" : "usb_safe_unmount",
+          payload: {},
+        }),
+      });
+    } catch {
+      setUsbBusy(false);
+      setUsbError("Failed to send USB command");
+    }
+  };
+
+  return { serverReady, siteName, retrying, retryServer, usbPresent, usbBusy, usbError, sendUsbCommand };
 }
 
 function getAssetUrl(appId: string, assetPath?: string | null) {
@@ -367,7 +421,7 @@ function StartupSequence({ stage, exiting }: { stage: StartupStage; exiting: boo
 
 export default function App() {
   const { installed, available, loading, refresh } = useApps();
-  const { serverReady, siteName, retrying, retryServer } = useHostServerStatus();
+  const { serverReady, siteName, retrying, retryServer, usbPresent, usbBusy, usbError, sendUsbCommand } = useHostServerStatus();
   const [launchError, setLaunchError] = useState<string | null>(null);
   const [appView, setAppView] = useState<AppInfo | null>(null);
   const [appViewError, setAppViewError] = useState<string | null>(null);
@@ -558,9 +612,20 @@ export default function App() {
     return (
       <div className={`app-shell takeover layout-${layoutMode}`}>
         <header className="app-topbar">
-          <button className="app-back-button" onClick={() => void backToDashboard()}>
-            Back to Dashboard
-          </button>
+          <div className="app-topbar-left">
+            <button className="app-back-button" onClick={() => void backToDashboard()}>
+              Back to Dashboard
+            </button>
+            <button
+              className={`app-usb-button${usbPresent ? " danger" : ""}`}
+              onClick={() => void sendUsbCommand(usbPresent ? "unmount" : "mount")}
+              disabled={usbBusy}
+              title={usbPresent ? "Safely unmount the disk" : "Mount the disk"}
+            >
+              {usbBusy ? "Working..." : usbPresent ? "Safe Unmount" : "Mount Disk"}
+            </button>
+            {usbError ? <span className="app-usb-error">{usbError}</span> : null}
+          </div>
           <div className="app-topbar-status">
             <div
               className="app-server-status-container"
