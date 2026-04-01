@@ -22,6 +22,8 @@ export interface InitSystemPayload {
   type: 'init_system';
   payload: {
     init_label: string;
+    app_id: string;
+    app_name?: string;
     subjects: InitSubject[];
   };
 }

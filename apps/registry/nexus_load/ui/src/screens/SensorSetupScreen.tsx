@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
-import { setupsAtom, selectedSetupIdAtom, sessionNameAtom, subjectCountAtom, supportedComputationsAtom, subjectPrefixAtom, Setup } from '../store/atoms';
+import { setupsAtom, selectedSetupIdAtom, selectedSubjectAtom, sessionNameAtom, subjectCountAtom, supportedComputationsAtom, subjectPrefixAtom, Setup } from '../store/atoms';
 import { useSystemInitialization } from '../hooks/useSystemInitialization';
+import appManifest from '../../../app.json';
+import { buildWorkflowSubjects } from '../utils/subjects';
 
 export const SensorSetupScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -14,6 +16,7 @@ export const SensorSetupScreen: React.FC = () => {
   const [subjectCount] = useAtom(subjectCountAtom);
   const [supportedComputations] = useAtom(supportedComputationsAtom);
   const [subjectPrefix] = useAtom(subjectPrefixAtom);
+  const [selectedSubject] = useAtom(selectedSubjectAtom);
 
   const { isInitializing, errorMsg, initSystem } = useSystemInitialization(() => {
     navigate('/session');
@@ -88,8 +91,9 @@ export const SensorSetupScreen: React.FC = () => {
     // Use user-defined prefix or default to 'Subject_'
     const prefix = subjectPrefix;
 
-    const subjectsPayload = Array.from({ length: subjectCount }, (_, i) => ({
-      subject_id: `${prefix}${i + 1}`,
+    const workflowSubjects = buildWorkflowSubjects(subjectCount, prefix, selectedSubject);
+    const subjectsPayload = workflowSubjects.map((subject) => ({
+      subject_id: subject.name,
       sensors: sensorsPayload
     }));
 
@@ -97,6 +101,8 @@ export const SensorSetupScreen: React.FC = () => {
       type: 'init_system' as const,
       payload: {
         init_label: sessionName || `Session_${new Date().toISOString()}`,
+        app_id: appManifest.id,
+        app_name: appManifest.name,
         subjects: subjectsPayload
       }
     };

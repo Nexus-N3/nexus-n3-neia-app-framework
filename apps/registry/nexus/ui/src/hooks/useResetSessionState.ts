@@ -3,6 +3,7 @@ import { useSetAtom } from 'jotai';
 import {
   activeActivityAtom,
   batteryStatusesAtom,
+  configuredSubjectsAtom,
   computeResultsHistoryAtom,
   connectedSensorsAtom,
   discoveredSensorsAtom,
@@ -10,7 +11,9 @@ import {
   latestIntermediateResultsAtom,
   latestComputeResultsAtom,
   placedSensorsAtom,
+  selectedSessionConfigAtom,
   selectedSetupIdAtom,
+  selectedSubjectAtom,
   sessionNameAtom,
   subjectCountAtom,
   subjectPrefixAtom,
@@ -21,8 +24,11 @@ export const useResetSessionState = () => {
   const setSubjectPrefix = useSetAtom(subjectPrefixAtom);
   const setActiveActivity = useSetAtom(activeActivityAtom);
   const setBatteryStatuses = useSetAtom(batteryStatusesAtom);
+  const setConfiguredSubjects = useSetAtom(configuredSubjectsAtom);
   const setSubjectCount = useSetAtom(subjectCountAtom);
   const setSelectedSetupId = useSetAtom(selectedSetupIdAtom);
+  const setSelectedSubject = useSetAtom(selectedSubjectAtom);
+  const setSelectedSessionConfig = useSetAtom(selectedSessionConfigAtom);
   const setPlacedSensors = useSetAtom(placedSensorsAtom);
   const setDiscoveredSensors = useSetAtom(discoveredSensorsAtom);
   const setConnectedSensors = useSetAtom(connectedSensorsAtom);
@@ -36,7 +42,10 @@ export const useResetSessionState = () => {
     setSubjectPrefix('');
     setActiveActivity(false);
     setBatteryStatuses({});
+    setConfiguredSubjects(null);
     setSubjectCount(1);
+    setSelectedSubject(null);
+    setSelectedSessionConfig(null);
     setSelectedSetupId('default');
     setPlacedSensors(new Set<string>());
     setDiscoveredSensors({});
@@ -48,6 +57,7 @@ export const useResetSessionState = () => {
   }, [
     setActiveActivity,
     setBatteryStatuses,
+    setConfiguredSubjects,
     setComputeResultsHistory,
     setConnectedSensors,
     setDiscoveredSensors,
@@ -56,6 +66,8 @@ export const useResetSessionState = () => {
     setLatestComputeResults,
     setPlacedSensors,
     setSelectedSetupId,
+    setSelectedSessionConfig,
+    setSelectedSubject,
     setSessionName,
     setSubjectCount,
     setSubjectPrefix,

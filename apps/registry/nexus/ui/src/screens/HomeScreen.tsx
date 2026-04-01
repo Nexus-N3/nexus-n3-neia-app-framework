@@ -2,13 +2,14 @@ import React from 'react';
 import { useAtom } from 'jotai';
 import { useNavigate } from 'react-router-dom';
 import { ScreenLayout } from '../components/ScreenLayout';
-import { serverReadyAtom, sessionNameAtom, siteNameAtom } from '../store/atoms';
+import { selectedSubjectAtom, serverReadyAtom, sessionNameAtom, siteNameAtom } from '../store/atoms';
 import { isCompactFlowViewport } from '../utils/displayProfiles';
 
 export const HomeScreen: React.FC = () => {
   const navigate = useNavigate();
   const [serverReady] = useAtom(serverReadyAtom);
   const [siteName] = useAtom(siteNameAtom);
+  const [selectedSubject] = useAtom(selectedSubjectAtom);
   const [, setSessionName] = useAtom(sessionNameAtom);
 
   const handleStartSession = () => {
@@ -20,6 +21,10 @@ export const HomeScreen: React.FC = () => {
     const defaultSessionName = `${siteName} / Session [${date.toLocaleDateString()}]`;
     setSessionName(defaultSessionName);
     const skipSessionNameScreen = isCompactFlowViewport();
+    if (selectedSubject) {
+      navigate('/sensor-setup');
+      return;
+    }
     navigate(skipSessionNameScreen ? '/subjects' : '/new-session');
   };
 

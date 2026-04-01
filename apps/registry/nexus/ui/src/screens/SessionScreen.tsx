@@ -6,16 +6,19 @@ import { InfoButton } from '../components/InfoButton';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { StatusOverlay } from '../components/StatusOverlay';
 import { SubjectsCarousel } from '../components/SubjectsCarousel';
-import { subjectCountAtom, setupsAtom, selectedSetupIdAtom, placedSensorsAtom, subjectPrefixAtom, discoveredSensorsAtom, connectedSensorsAtom } from '../store/atoms';
+import { configuredSubjectsAtom, subjectCountAtom, setupsAtom, selectedSetupIdAtom, selectedSubjectAtom, placedSensorsAtom, subjectPrefixAtom, discoveredSensorsAtom, connectedSensorsAtom } from '../store/atoms';
 import { useDiscoverSensorsCore } from '../hooks/useDiscoverSensorsCore';
 import { useDisconnectSensorsCore } from '../hooks/useDisconnectSensorsCore';
 import { useResetSessionState } from '../hooks/useResetSessionState';
 import { isCompactFlowViewport } from '../utils/displayProfiles';
+import { buildWorkflowSubjects } from '../utils/subjects';
 
 export const SessionScreen: React.FC = () => {
   const navigate = useNavigate();
   const [subjectCount] = useAtom(subjectCountAtom);
   const [subjectPrefix] = useAtom(subjectPrefixAtom);
+  const [configuredSubjects] = useAtom(configuredSubjectsAtom);
+  const [selectedSubject] = useAtom(selectedSubjectAtom);
   const [setups] = useAtom(setupsAtom);
   const [selectedSetupId] = useAtom(selectedSetupIdAtom);
   const [placedSensors] = useAtom(placedSensorsAtom);
@@ -77,9 +80,9 @@ export const SessionScreen: React.FC = () => {
   }, [liveDiscoveredSensors, setDiscoveredSensors]);
 
   // Generate subjects based on count
-  const subjects = Array.from({ length: subjectCount }, (_, i) => {
-    const id = i + 1;
-    const subjectId = `${subjectPrefix}${id}`;
+  const subjects = buildWorkflowSubjects(subjectCount, subjectPrefix, configuredSubjects, selectedSubject).map((subject) => {
+    const subjectId = subject.name;
+    const id = subject.id;
     const placedCount = selectedSetup ? selectedSetup.sensors.filter((s) => placedSensors.has(`${id}:${s.id}`)).length : 0;
     const discovered = discoveredSensors[subjectId.toLowerCase()] ?? discoveredSensors[subjectId] ?? [];
     const connected = connectedSensors[subjectId.toLowerCase()] ?? connectedSensors[subjectId] ?? [];
@@ -87,6 +90,7 @@ export const SessionScreen: React.FC = () => {
     return {
       id,
       name: subjectId,
+      displayName: subject.displayName,
       sensorsRequired: sensorsRequired,
       sensorsDiscovered: discovered.length,
       sensorsConnected: connected.length,
@@ -129,7 +133,7 @@ export const SessionScreen: React.FC = () => {
           return (
             <div key={subject.id} className="subject-card">
               <div className="subject-info">
-                <h3 className="subject-title">{subject.name}</h3>
+                <h3 className="subject-title">{subject.displayName}</h3>
 
                 <div className={`status-row ${isComplete ? 'complete' : 'incomplete'}`}>
                   <div className={`status-dot ${isComplete ? 'complete' : 'incomplete'}`}></div>

@@ -10,6 +10,7 @@ import { SubjectsCarousel } from '../components/SubjectsCarousel';
 import {
   subjectCountAtom,
   activeActivityAtom,
+  selectedSubjectAtom,
   subjectPrefixAtom,
 } from '../store/atoms';
 import { ScreenLayout } from '../components/ScreenLayout';
@@ -21,6 +22,7 @@ import { useResetSessionState } from '../hooks/useResetSessionState';
 import { useLatestComputeResults } from '../hooks/useLatestComputeResults';
 import { useLatestIntermediateResults } from '../hooks/useLatestIntermediateResults';
 import type { SubjectResultHistoryEntry } from '../store/atoms';
+import { buildWorkflowSubjects } from '../utils/subjects';
 
 const locationPriority = (location: string) => {
   const normalized = location.toUpperCase();
@@ -91,6 +93,7 @@ export const ActiveSessionScreen: React.FC = () => {
   const navigate = useNavigate();
   const [subjectCount] = useAtom(subjectCountAtom);
   const [subjectPrefix] = useAtom(subjectPrefixAtom);
+  const [selectedSubject] = useAtom(selectedSubjectAtom);
   const [activeActivity, setActiveActivity] = useAtom(activeActivityAtom);
   const { stopStreamForAll, isStopping, errorMsg, dismissError } = useStopStream();
   const {
@@ -112,10 +115,7 @@ export const ActiveSessionScreen: React.FC = () => {
   // Local state for view mode (only relevant when active)
   const [viewMode, setViewMode] = useState<'realtime' | 'periodic'>('realtime');
 
-  const subjects = Array.from({ length: subjectCount }, (_, i) => ({
-    id: i + 1,
-    name: `${subjectPrefix}${i + 1}`,
-  }));
+  const subjects = buildWorkflowSubjects(subjectCount, subjectPrefix, selectedSubject);
 
   const currentSubjects = subjects.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
 

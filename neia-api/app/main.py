@@ -7,18 +7,21 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from .config import BASE_DIR
+from .control_center_store import ControlCenterStore
 from .gateway.manager import create_gateway_manager
 from .registry import AppRegistry
 from .voice import create_voice_manager
 
 registry = AppRegistry()
 gateway_manager = create_gateway_manager()
+control_center_store = ControlCenterStore()
 voice_manager = create_voice_manager(
     BASE_DIR,
     send_command=gateway_manager.send_command,
     broadcast_event=gateway_manager.broadcast_event,
 )
 gateway_manager.add_event_listener(voice_manager.handle_gateway_event)
+gateway_manager.add_event_listener(control_center_store.handle_gateway_event)
 
 
 @asynccontextmanager
@@ -43,6 +46,11 @@ def list_installed_apps():
 @api_v1.get("/apps/available")
 def list_available_apps():
     return registry.list_available()
+
+
+@api_v1.get("/apps/catalog")
+def get_apps_catalog():
+    return control_center_store.build_app_catalog(registry)
 
 
 @api_v1.get("/apps/{app_id}")
@@ -84,6 +92,27 @@ def send_gateway_command(command: dict):
 @api_v1.get("/gateway/status")
 def gateway_status():
     return {"gateway": gateway_manager.gateway_type}
+
+
+@api_v1.post("/control-center/messages")
+def ingest_control_center_message(message: dict):
+    result = control_center_store.ingest_message(message)
+    status = result.get("status")
+    if status == "rejected":
+        raise HTTPException(status_code=400, detail=result.get("reason", "invalid_message"))
+    if status == "accepted":
+        gateway_manager.broadcast_event(
+            {
+                "type": "control_center_message",
+                "payload": message,
+            }
+        )
+    return result
+
+
+@api_v1.get("/control-center/catalog")
+def get_control_center_catalog():
+    return control_center_store.build_subject_catalog()
 
 
 @api_v1.post("/gateway/purge")

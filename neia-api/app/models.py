@@ -12,6 +12,8 @@ class AppManifest(BaseModel):
     app_type: Optional[str] = None
     developer: Optional[str] = None
     icon: Optional[str] = None
+    supports_online: Optional[bool] = None
+    supports_offline: Optional[bool] = None
     entry_ui: Optional[str] = None
     style: Optional[str] = None
     mount: Optional[str] = None

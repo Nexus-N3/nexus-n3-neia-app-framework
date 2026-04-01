@@ -15,14 +15,17 @@ import { AssignSensorsScreen } from './screens/AssignSensorsScreen';
 import { ActiveSessionScreen } from './screens/ActiveSessionScreen';
 import { NewActivityScreen } from './screens/NewActivityScreen';
 import { SubjectActivityScreen } from './screens/SubjectActivityScreen';
+import { ConfigBootstrapScreen } from './screens/ConfigBootstrapScreen';
 import { ResetButton } from './components/ResetButton';
-import { activeActivityAtom, batteryStatusesAtom, connectedSensorsAtom, sessionNameAtom, serverReadyAtom } from './store/atoms';
+import { activeActivityAtom, batteryStatusesAtom, configuredSubjectsAtom, connectedSensorsAtom, selectedSessionConfigAtom, selectedSubjectAtom, sessionNameAtom, serverReadyAtom, subjectCountAtom, subjectPrefixAtom } from './store/atoms';
 import { GatewaySocketProvider } from './hooks/useGatewaySocket';
 import { useServerReadiness } from './hooks/useServerReadiness';
 import { useBatteryUpdatesCore } from './hooks/useBatteryUpdatesCore';
 import { useConnectedSensorUpdatesCore } from './hooks/useConnectedSensorUpdatesCore';
 import { useDisconnectSensorsCore } from './hooks/useDisconnectSensorsCore';
 import { useResetSessionState } from './hooks/useResetSessionState';
+import { readSelectedSubjectContext } from './utils/subjectContext';
+import { readSelectedSessionConfig } from './utils/sessionConfigContext';
 
 const AppContent = () => {
   useServerReadiness(); // Request and listen for server readiness
@@ -32,6 +35,12 @@ const AppContent = () => {
   const [activeActivity] = useAtom(activeActivityAtom);
   const [connectedSensors] = useAtom(connectedSensorsAtom);
   const [serverReady] = useAtom(serverReadyAtom);
+  const setConfiguredSubjects = useSetAtom(configuredSubjectsAtom);
+  const setSelectedSessionConfig = useSetAtom(selectedSessionConfigAtom);
+  const setSelectedSubject = useSetAtom(selectedSubjectAtom);
+  const setSessionName = useSetAtom(sessionNameAtom);
+  const setSubjectCount = useSetAtom(subjectCountAtom);
+  const setSubjectPrefix = useSetAtom(subjectPrefixAtom);
   const setConnectedSensors = useSetAtom(connectedSensorsAtom);
   const setBatteryStatuses = useSetAtom(batteryStatusesAtom);
   const { batteryStatuses } = useBatteryUpdatesCore();
@@ -57,6 +66,54 @@ const AppContent = () => {
       navigate('/', { replace: true });
     }
   }, [location.pathname, navigate, serverReady]);
+
+  React.useEffect(() => {
+    const selectedSubject = readSelectedSubjectContext();
+    if (!selectedSubject) {
+      return;
+    }
+    setSelectedSubject(selectedSubject);
+    setSubjectCount(1);
+    setSubjectPrefix(selectedSubject.display_name);
+  }, [setSelectedSubject, setSubjectCount, setSubjectPrefix]);
+
+  React.useEffect(() => {
+    const sessionConfig = readSelectedSessionConfig();
+    if (!sessionConfig || sessionConfig.app_id !== appManifest.id) {
+      return;
+    }
+    const configuredSubjects = Array.isArray(sessionConfig.subjects)
+      ? sessionConfig.subjects
+          .filter((subject) => typeof subject.subject_id === 'string')
+          .map((subject) => ({
+            subject_id: subject.subject_id,
+            display_name: subject.display_name || subject.subject_id,
+            subject_type: subject.subject_type ?? null,
+          }))
+      : [];
+    if (configuredSubjects.length > 0) {
+      setConfiguredSubjects(configuredSubjects);
+      setSubjectCount(configuredSubjects.length);
+      setSubjectPrefix('');
+    }
+    setSelectedSessionConfig({
+      session_config_id: sessionConfig.session_config_id,
+      name: sessionConfig.name,
+      activity: sessionConfig.activity ?? null,
+    });
+    setSessionName(sessionConfig.name);
+    if (location.pathname === '/') {
+      navigate('/config-bootstrap', { replace: true });
+    }
+  }, [
+    location.pathname,
+    navigate,
+    setConfiguredSubjects,
+    setSelectedSessionConfig,
+    setSessionName,
+    setSubjectCount,
+    setSubjectPrefix,
+  ]);
 
   React.useEffect(() => {
     setBatteryStatuses(batteryStatuses);
@@ -105,6 +162,7 @@ const AppContent = () => {
             <Route path="/" element={<HomeScreen />} />
             <Route path="/new-session" element={<NewSessionScreen />} />
             <Route path="/subjects" element={<SubjectsRequiredScreen />} />
+            <Route path="/config-bootstrap" element={<ConfigBootstrapScreen />} />
             <Route path="/sensor-setup" element={<SensorSetupScreen />} />
             <Route path="/add-sensor" element={<AddSensorScreen />} />
             <Route path="/session" element={<SessionScreen />} />

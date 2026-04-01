@@ -6,8 +6,9 @@ import { InfoButton } from '../components/InfoButton';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { SensorRow } from '../components/SensorRow';
 import { SubjectsCarousel } from '../components/SubjectsCarousel';
-import { subjectCountAtom, setupsAtom, selectedSetupIdAtom, placedSensorsAtom, activeActivityAtom, subjectPrefixAtom, connectedSensorsAtom } from '../store/atoms';
+import { configuredSubjectsAtom, subjectCountAtom, setupsAtom, selectedSetupIdAtom, selectedSubjectAtom, placedSensorsAtom, activeActivityAtom, subjectPrefixAtom, connectedSensorsAtom } from '../store/atoms';
 import { isCompactFlowViewport } from '../utils/displayProfiles';
+import { buildWorkflowSubjects } from '../utils/subjects';
 
 export const AssignSensorsScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -21,6 +22,8 @@ export const AssignSensorsScreen: React.FC = () => {
   const [placedSensors] = useAtom(placedSensorsAtom);
   const [activeActivity] = useAtom(activeActivityAtom);
   const [subjectPrefix] = useAtom(subjectPrefixAtom);
+  const [configuredSubjects] = useAtom(configuredSubjectsAtom);
+  const [selectedSubject] = useAtom(selectedSubjectAtom);
   const [connectedSensors] = useAtom(connectedSensorsAtom);
   const isCompactViewport = isCompactFlowViewport();
 
@@ -29,14 +32,15 @@ export const AssignSensorsScreen: React.FC = () => {
   const requiredSensors = selectedSetup ? selectedSetup.sensors : [];
 
   // Generate subjects (this should ideally be shared state, but keeping consistent with SessionScreen logic)
-  let subjects = Array.from({ length: subjectCount }, (_, i) => {
-    const id = i + 1;
-    const subjectName = `${subjectPrefix}${id}`;
+  let subjects = buildWorkflowSubjects(subjectCount, subjectPrefix, configuredSubjects, selectedSubject).map((subject) => {
+    const id = subject.id;
+    const subjectName = subject.name;
     const subjectPlacedCount = requiredSensors.filter((s) => placedSensors.has(`${id}:${s.id}`)).length;
     const connected = connectedSensors[subjectName.toLowerCase()] ?? connectedSensors[subjectName] ?? [];
     return {
       id,
       name: subjectName,
+      displayName: subject.displayName,
       requiredCount: requiredSensors ? requiredSensors.length : 0,
       connectedCount: connected.length,
       placedCount: subjectPlacedCount,
@@ -80,7 +84,7 @@ export const AssignSensorsScreen: React.FC = () => {
               totalPages={subjectCount}
               onPrev={handlePrevSubject}
               onNext={handleNextSubject}
-              title={`${subjectPrefix}${targetSubjectId}`}
+              title={subjects[0]?.displayName ?? subjects[0]?.name ?? ''}
             />
           ) : (
             <h2 className="screen-title">{isCompactViewport ? 'SENSORS' : 'PLACE SENSORS'}</h2>
@@ -95,7 +99,7 @@ export const AssignSensorsScreen: React.FC = () => {
             {/* Subject Header */}
             <div className="subject-header">
               <h3 className="subject-header-title">
-                {subject.name}: assigned sensors
+                {subject.displayName}: assigned sensors
               </h3>
               <div className="subject-stats-row">
                 <div className={`status-dot-small ${subject.placedCount >= subject.requiredCount ? 'complete' : 'incomplete'}`} />

@@ -5,13 +5,14 @@ import { ScreenLayout } from '../components/ScreenLayout';
 import { SubjectsCarousel } from '../components/SubjectsCarousel';
 import { BackButton } from '../components/BackButton';
 import { BarGraph } from '../components/BarGraph';
-import { subjectCountAtom, subjectPrefixAtom } from '../store/atoms';
+import { configuredSubjectsAtom, selectedSubjectAtom, subjectCountAtom, subjectPrefixAtom } from '../store/atoms';
 import { SegmentedControl } from '../components/SegmentedControl';
 import chevronLeft from '../assets/chevron-left.svg';
 import chevronRight from '../assets/chevron-right.svg';
 import { useLatestComputeResults } from '../hooks/useLatestComputeResults';
 import { useLatestIntermediateResults } from '../hooks/useLatestIntermediateResults';
 import { isCompactFlowViewport } from '../utils/displayProfiles';
+import { buildWorkflowSubjects } from '../utils/subjects';
 
 interface BandValues {
   x: number | null;
@@ -52,6 +53,8 @@ export const SubjectActivityScreen: React.FC = () => {
   const subjectId = parseInt(id || '1', 10);
   const [subjectCount] = useAtom(subjectCountAtom);
   const [subjectPrefix] = useAtom(subjectPrefixAtom);
+  const [configuredSubjects] = useAtom(configuredSubjectsAtom);
+  const [selectedSubject] = useAtom(selectedSubjectAtom);
   const [viewMode, setViewMode] = useState<'realtime' | 'periodic'>('realtime');
   const isCompactViewport = isCompactFlowViewport();
   const [historyOffset, setHistoryOffset] = useState(0);
@@ -62,7 +65,8 @@ export const SubjectActivityScreen: React.FC = () => {
   }
   const { resultHistory } = useLatestComputeResults();
   const { latestIntermediateResults, latestIntermediateComparisons } = useLatestIntermediateResults();
-  const subjectKey = `${subjectPrefix}${subjectId}`;
+  const workflowSubjects = buildWorkflowSubjects(subjectCount, subjectPrefix, configuredSubjects, selectedSubject);
+  const subjectKey = workflowSubjects.find((subject) => subject.id === subjectId)?.name ?? `${subjectPrefix}${subjectId}`;
   const subjectHistory = resultHistory[subjectKey] ?? [];
   const periodicSensorResults = Object.values(latestIntermediateResults[subjectKey] ?? {}).sort(
     (a, b) => locationPriority(a.location) - locationPriority(b.location),

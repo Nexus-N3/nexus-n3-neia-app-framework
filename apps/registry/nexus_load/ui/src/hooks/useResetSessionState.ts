@@ -11,6 +11,7 @@ import {
   latestComputeResultsAtom,
   placedSensorsAtom,
   selectedSetupIdAtom,
+  selectedSubjectAtom,
   sessionNameAtom,
   subjectCountAtom,
   subjectPrefixAtom,
@@ -23,6 +24,7 @@ export const useResetSessionState = () => {
   const setBatteryStatuses = useSetAtom(batteryStatusesAtom);
   const setSubjectCount = useSetAtom(subjectCountAtom);
   const setSelectedSetupId = useSetAtom(selectedSetupIdAtom);
+  const setSelectedSubject = useSetAtom(selectedSubjectAtom);
   const setPlacedSensors = useSetAtom(placedSensorsAtom);
   const setDiscoveredSensors = useSetAtom(discoveredSensorsAtom);
   const setConnectedSensors = useSetAtom(connectedSensorsAtom);
@@ -37,6 +39,7 @@ export const useResetSessionState = () => {
     setActiveActivity(false);
     setBatteryStatuses({});
     setSubjectCount(1);
+    setSelectedSubject(null);
     setSelectedSetupId('default');
     setPlacedSensors(new Set<string>());
     setDiscoveredSensors({});
@@ -56,6 +59,7 @@ export const useResetSessionState = () => {
     setLatestComputeResults,
     setPlacedSensors,
     setSelectedSetupId,
+    setSelectedSubject,
     setSessionName,
     setSubjectCount,
     setSubjectPrefix,

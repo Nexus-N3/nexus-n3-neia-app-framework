@@ -2,12 +2,13 @@ import React from 'react';
 import { useAtom } from 'jotai';
 import { useNavigate } from 'react-router-dom';
 import { ScreenLayout } from '../components/ScreenLayout';
-import { serverReadyAtom, sessionNameAtom, siteNameAtom } from '../store/atoms';
+import { selectedSubjectAtom, serverReadyAtom, sessionNameAtom, siteNameAtom } from '../store/atoms';
 
 export const HomeScreen: React.FC = () => {
   const navigate = useNavigate();
   const [serverReady] = useAtom(serverReadyAtom);
   const [siteName] = useAtom(siteNameAtom);
+  const [selectedSubject] = useAtom(selectedSubjectAtom);
   const [, setSessionName] = useAtom(sessionNameAtom);
 
   const handleStartSession = () => {
@@ -18,7 +19,7 @@ export const HomeScreen: React.FC = () => {
     const date = new Date();
     const defaultSessionName = `${siteName} / Session [${date.toLocaleDateString()}]`;
     setSessionName(defaultSessionName);
-    navigate('/subjects');
+    navigate(selectedSubject ? '/sensor-setup' : '/subjects');
   };
 
   return (

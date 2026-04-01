@@ -4,13 +4,14 @@ import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { sessionNameAtom, siteNameAtom } from '../store/atoms';
+import { selectedSubjectAtom, sessionNameAtom, siteNameAtom } from '../store/atoms';
 import { isCompactFlowViewport } from '../utils/displayProfiles';
 
 export const NewSessionScreen: React.FC = () => {
   const navigate = useNavigate();
   const [sessionName, setSessionName] = useAtom(sessionNameAtom);
   const [siteName] = useAtom(siteNameAtom);
+  const [selectedSubject] = useAtom(selectedSubjectAtom);
   const isCompactViewport = isCompactFlowViewport();
   const [projectIdentifier, setProjectIdentifier] = useState(() => {
     if (sessionName.includes(' / ')) {
@@ -39,7 +40,7 @@ export const NewSessionScreen: React.FC = () => {
     }
 
     setSessionName(`${finalProject} / ${finalSession}`);
-    navigate('/subjects');
+    navigate(selectedSubject ? '/sensor-setup' : '/subjects');
   };
 
   return (

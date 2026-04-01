@@ -13,13 +13,14 @@ import { AssignSensorsScreen } from './screens/AssignSensorsScreen';
 import { ActiveSessionScreen } from './screens/ActiveSessionScreen';
 import { NewActivityScreen } from './screens/NewActivityScreen';
 import { ResetButton } from './components/ResetButton';
-import { activeActivityAtom, batteryStatusesAtom, connectedSensorsAtom, sessionNameAtom, serverReadyAtom } from './store/atoms';
+import { activeActivityAtom, batteryStatusesAtom, connectedSensorsAtom, selectedSubjectAtom, sessionNameAtom, serverReadyAtom, subjectCountAtom, subjectPrefixAtom } from './store/atoms';
 import { GatewaySocketProvider } from './hooks/useGatewaySocket';
 import { useServerReadiness } from './hooks/useServerReadiness';
 import { useBatteryUpdatesCore } from './hooks/useBatteryUpdatesCore';
 import { useConnectedSensorUpdatesCore } from './hooks/useConnectedSensorUpdatesCore';
 import { useDisconnectSensorsCore } from './hooks/useDisconnectSensorsCore';
 import { useResetSessionState } from './hooks/useResetSessionState';
+import { readSelectedSubjectContext } from './utils/subjectContext';
 
 const AppContent = () => {
   useServerReadiness(); // Request and listen for server readiness
@@ -29,6 +30,9 @@ const AppContent = () => {
   const [activeActivity] = useAtom(activeActivityAtom);
   const [connectedSensors] = useAtom(connectedSensorsAtom);
   const [serverReady] = useAtom(serverReadyAtom);
+  const setSelectedSubject = useSetAtom(selectedSubjectAtom);
+  const setSubjectCount = useSetAtom(subjectCountAtom);
+  const setSubjectPrefix = useSetAtom(subjectPrefixAtom);
   const setConnectedSensors = useSetAtom(connectedSensorsAtom);
   const setBatteryStatuses = useSetAtom(batteryStatusesAtom);
   const { batteryStatuses } = useBatteryUpdatesCore();
@@ -53,6 +57,16 @@ const AppContent = () => {
       navigate('/', { replace: true });
     }
   }, [location.pathname, navigate, serverReady]);
+
+  React.useEffect(() => {
+    const selectedSubject = readSelectedSubjectContext();
+    if (!selectedSubject) {
+      return;
+    }
+    setSelectedSubject(selectedSubject);
+    setSubjectCount(1);
+    setSubjectPrefix(selectedSubject.display_name);
+  }, [setSelectedSubject, setSubjectCount, setSubjectPrefix]);
 
   React.useEffect(() => {
     setBatteryStatuses(batteryStatuses);

@@ -4,12 +4,19 @@ import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { subjectCountAtom, subjectPrefixAtom } from '../store/atoms';
+import { selectedSubjectAtom, subjectCountAtom, subjectPrefixAtom } from '../store/atoms';
 
 export const SubjectsRequiredScreen: React.FC = () => {
   const navigate = useNavigate();
   const [subjectCount, setSubjectCount] = useAtom(subjectCountAtom);
   const [subjectPrefix, setSubjectPrefix] = useAtom(subjectPrefixAtom);
+  const [selectedSubject] = useAtom(selectedSubjectAtom);
+
+  React.useEffect(() => {
+    if (selectedSubject) {
+      navigate('/sensor-setup', { replace: true });
+    }
+  }, [navigate, selectedSubject]);
 
   const increment = () => setSubjectCount((prev) => (prev < 10 ? prev + 1 : 10));
   const decrement = () => setSubjectCount((prev) => (prev > 1 ? prev - 1 : 1));
@@ -19,6 +26,10 @@ export const SubjectsRequiredScreen: React.FC = () => {
   };
 
   const handleContinue = () => {
+    if (selectedSubject) {
+      navigate('/sensor-setup');
+      return;
+    }
     if (subjectPrefix.trim() === '') setSubjectPrefix('Subject_');
     navigate('/sensor-setup');
   };

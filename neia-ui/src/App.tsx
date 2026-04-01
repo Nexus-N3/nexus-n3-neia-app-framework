@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import "./styles.css";
 
 type StartupStage = "booting" | "waking" | "preSpeak" | "speaking" | "postSpeak" | "done";
@@ -8,6 +8,8 @@ const HOLD_ON_STARTUP_SCREEN_FOR_TESTING = false;
 const STARTUP_API_MOUTH_DELAY_MS = 0;
 const STARTUP_BOOTING_MS = 450;
 const STARTUP_WAKING_MS = 600;
+const SELECTED_SUBJECT_STORAGE_KEY = 'neia_selected_subject_context';
+const SELECTED_SESSION_CONFIG_STORAGE_KEY = 'neia_selected_session_config';
 let startupSequenceDone = false;
 let startupGreetingSpoken = false;
 
@@ -32,6 +34,37 @@ type AppInfo = {
   installed: boolean;
   resolved_entry_ui?: string | null;
   resolved_mount?: string | null;
+};
+
+type SubjectRecord = {
+  subject_id: string;
+  display_name: string;
+  subject_type?: string | null;
+};
+
+type SubjectGroup = {
+  group_id?: string | null;
+  label?: string | null;
+  subjects: SubjectRecord[];
+};
+
+type SessionConfigRecord = {
+  session_config_id: string;
+  name: string;
+  app_id?: string | null;
+  app_name?: string | null;
+  subject_ids?: string[];
+  activity?: string | null;
+  workflow?: Record<string, unknown>;
+  subjects?: SubjectRecord[];
+  init_payload?: Record<string, unknown>;
+};
+
+type ControlCenterCatalog = {
+  customer_id?: string | null;
+  site_id?: string | null;
+  groups?: SubjectGroup[];
+  session_configs?: SessionConfigRecord[];
 };
 
 const launchButtonStyle: React.CSSProperties = {
@@ -61,7 +94,7 @@ function useApps() {
   const [available, setAvailable] = useState<AppInfo[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     setLoading(true);
     const [installedResp, availableResp] = await Promise.all([
       fetch("/api/v1/apps/installed"),
@@ -74,13 +107,84 @@ function useApps() {
     setInstalled(installedData);
     setAvailable(availableData);
     setLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
     void refresh();
-  }, []);
+  }, [refresh]);
 
   return { installed, available, loading, refresh };
+}
+
+function useControlCenterCatalog() {
+  const [catalog, setCatalog] = useState<ControlCenterCatalog | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const updateCatalog = useCallback((nextCatalog: ControlCenterCatalog | null) => {
+    setCatalog((prev) => (JSON.stringify(prev) === JSON.stringify(nextCatalog) ? prev : nextCatalog));
+  }, []);
+
+  const mergeCatalog = useCallback((updater: (prev: ControlCenterCatalog | null) => ControlCenterCatalog | null) => {
+    setCatalog((prev) => {
+      const nextCatalog = updater(prev);
+      return JSON.stringify(prev) === JSON.stringify(nextCatalog) ? prev : nextCatalog;
+    });
+  }, []);
+
+  const refresh = useCallback(async (options?: { silent?: boolean }) => {
+    if (!options?.silent) {
+      setLoading(true);
+    }
+    try {
+      const resp = await fetch("/api/v1/control-center/catalog");
+      if (!resp.ok) {
+        throw new Error("Failed to load catalog");
+      }
+      const data = await resp.json();
+      updateCatalog(data);
+    } catch {
+      updateCatalog(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [updateCatalog]);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  const applyMessage = useCallback((message: { type?: string; payload?: Record<string, unknown> }) => {
+    const messageType = typeof message?.type === "string" ? message.type : "";
+    const payload = message?.payload;
+    if (!payload || typeof payload !== "object") {
+      return;
+    }
+
+    if (messageType === "subject_catalog_update") {
+      mergeCatalog((prev) => ({
+        customer_id: typeof payload.customer_id === "string" ? payload.customer_id : prev?.customer_id,
+        site_id: typeof payload.site_id === "string" ? payload.site_id : prev?.site_id,
+        groups: Array.isArray(payload.groups) ? (payload.groups as SubjectGroup[]) : [],
+        session_configs: prev?.session_configs ?? [],
+      }));
+      setLoading(false);
+      return;
+    }
+
+    if (messageType === "session_config_update") {
+      mergeCatalog((prev) => ({
+        customer_id: typeof payload.customer_id === "string" ? payload.customer_id : prev?.customer_id,
+        site_id: typeof payload.site_id === "string" ? payload.site_id : prev?.site_id,
+        groups: prev?.groups ?? [],
+        session_configs: Array.isArray(payload.session_configs)
+          ? (payload.session_configs as SessionConfigRecord[])
+          : [],
+      }));
+      setLoading(false);
+    }
+  }, [mergeCatalog]);
+
+  return { catalog, loading, refresh, applyMessage };
 }
 
 function useHashRoute() {
@@ -419,8 +523,45 @@ function StartupSequence({ stage, exiting }: { stage: StartupStage; exiting: boo
   );
 }
 
+function SubjectCarousel({
+  currentIndex,
+  total,
+  title,
+  onPrev,
+  onNext,
+}: {
+  currentIndex: number;
+  total: number;
+  title: string;
+  onPrev: () => void;
+  onNext: () => void;
+}) {
+  return (
+    <div className="subject-carousel">
+      <button className="subject-carousel-btn" onClick={onPrev} disabled={currentIndex === 0} aria-label="Previous subject">
+        <span aria-hidden="true">‹</span>
+      </button>
+      <div className="subject-carousel-copy">
+        <span className="subject-carousel-title">{title}</span>
+        <span className="subject-carousel-count">
+          {currentIndex + 1} / {total}
+        </span>
+      </div>
+      <button
+        className="subject-carousel-btn"
+        onClick={onNext}
+        disabled={currentIndex >= total - 1}
+        aria-label="Next subject"
+      >
+        <span aria-hidden="true">›</span>
+      </button>
+    </div>
+  );
+}
+
 export default function App() {
   const { installed, available, loading, refresh } = useApps();
+  const { catalog: controlCenterCatalog, loading: catalogLoading, applyMessage } = useControlCenterCatalog();
   const { serverReady, siteName, retrying, retryServer, usbPresent, usbBusy, usbError, sendUsbCommand } = useHostServerStatus();
   const [launchError, setLaunchError] = useState<string | null>(null);
   const [appView, setAppView] = useState<AppInfo | null>(null);
@@ -434,6 +575,9 @@ export default function App() {
   );
   const [showStartup, setShowStartup] = useState(!startupSequenceDone && !isAppRoute);
   const [startupExiting, setStartupExiting] = useState(false);
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
+  const [subjectIndex, setSubjectIndex] = useState(0);
+  const [showSessionConfigScreen, setShowSessionConfigScreen] = useState(false);
 
   const install = async (appId: string) => {
     await fetch(`/api/v1/apps/install/${appId}`, { method: "POST" });
@@ -453,6 +597,11 @@ export default function App() {
     if (appView?.manifest.id === "neia_voice_assistant") {
       await disableVoicePipeline();
     }
+    setSelectedSubjectId(null);
+    setShowSessionConfigScreen(false);
+    setSubjectIndex(0);
+    window.localStorage.removeItem(SELECTED_SUBJECT_STORAGE_KEY);
+    window.localStorage.removeItem(SELECTED_SESSION_CONFIG_STORAGE_KEY);
     window.location.hash = "/";
   };
 
@@ -607,6 +756,121 @@ export default function App() {
     };
   }, [appView]);
 
+  const availableSubjects = (controlCenterCatalog?.groups ?? []).flatMap((group) =>
+    (group.subjects ?? []).map((subject) => ({
+      ...subject,
+      groupLabel: group.label || "Subjects",
+    }))
+  );
+  const currentSubject = availableSubjects[subjectIndex] ?? null;
+  const selectedSubject = availableSubjects.find((subject) => subject.subject_id === selectedSubjectId) ?? null;
+  const availableSessionConfigs = selectedSubject
+    ? (controlCenterCatalog?.session_configs ?? []).filter((config) =>
+        Array.isArray(config.subject_ids) && config.subject_ids.includes(selectedSubject.subject_id)
+      )
+    : [];
+  const installedAppIds = new Set(installed.map((app) => app.manifest.id));
+  const shouldShowSubjectSelection =
+    !showStartup &&
+    !isAppRoute &&
+    !catalogLoading &&
+    availableSubjects.length > 0 &&
+    !selectedSubjectId;
+  const shouldShowSessionConfigSelection =
+    !showStartup &&
+    !isAppRoute &&
+    !!selectedSubject &&
+    showSessionConfigScreen &&
+    availableSessionConfigs.length > 0;
+
+  useEffect(() => {
+    if (catalogLoading) {
+      return;
+    }
+    if (availableSubjects.length === 0) {
+      setSelectedSubjectId(null);
+      setShowSessionConfigScreen(false);
+      window.localStorage.removeItem(SELECTED_SUBJECT_STORAGE_KEY);
+    }
+  }, [availableSubjects.length, catalogLoading]);
+
+  useEffect(() => {
+    if (!selectedSubject) {
+      setShowSessionConfigScreen(false);
+      return;
+    }
+    setShowSessionConfigScreen(availableSessionConfigs.length > 0);
+  }, [availableSessionConfigs.length, selectedSubject]);
+
+  useEffect(() => {
+    const isDashboardRoute = route === "" || route === "/";
+    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+    const wsUrl = `${protocol}://${window.location.host}/api/v1/gateway/events`;
+    const ws = new WebSocket(wsUrl);
+
+    ws.onmessage = (event) => {
+      try {
+        const msg = JSON.parse(event.data);
+        if (msg?.type !== "control_center_message" || typeof msg?.payload !== "object" || !msg.payload) {
+          return;
+        }
+
+        const forwardedMessage = msg.payload as {
+          type?: string;
+          payload?: { groups?: unknown[]; session_configs?: unknown[] };
+        };
+        applyMessage(forwardedMessage);
+
+        if (forwardedMessage.type === "session_config_update") {
+          return;
+        }
+
+        if (forwardedMessage.type !== "subject_catalog_update") {
+          return;
+        }
+
+        if (!isAppRoute && Array.isArray(forwardedMessage.payload?.groups) && forwardedMessage.payload.groups.length === 0) {
+          setSelectedSubjectId(null);
+          setShowSessionConfigScreen(false);
+          setSubjectIndex(0);
+          window.localStorage.removeItem(SELECTED_SUBJECT_STORAGE_KEY);
+          window.localStorage.removeItem(SELECTED_SESSION_CONFIG_STORAGE_KEY);
+          window.location.hash = "/";
+          return;
+        }
+
+        if (!isAppRoute && isDashboardRoute && Array.isArray(forwardedMessage.payload?.groups) && forwardedMessage.payload.groups.length > 0) {
+          setSelectedSubjectId(null);
+          setShowSessionConfigScreen(false);
+          setSubjectIndex(0);
+          window.localStorage.removeItem(SELECTED_SUBJECT_STORAGE_KEY);
+          window.localStorage.removeItem(SELECTED_SESSION_CONFIG_STORAGE_KEY);
+          window.location.hash = "/";
+        }
+      } catch {
+        // ignore malformed gateway events
+      }
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, [applyMessage, isAppRoute, route]);
+
+  useEffect(() => {
+    if (isAppRoute) {
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      void refresh({ silent: true });
+    }, 1500);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, [isAppRoute, refresh]);
+
   if (appView || appViewError) {
     const layoutMode = getLayoutMode(appView?.manifest);
     return (
@@ -733,13 +997,158 @@ export default function App() {
 
   const dashboardClass = showStartup && !startupExiting ? "shell dashboard-pre" : "shell dashboard-enter";
 
+  if (shouldShowSubjectSelection) {
+    return (
+      <>
+        <div className={dashboardClass}>
+          <header className="shell-header">
+            <div className="shell-brand">
+            </div>
+            <img className="shell-logo" src="/neia_logo.png" alt="NEIA logo" />
+          </header>
+
+          <section className="shell-body full">
+            <div className="panel wide subject-select-panel">
+              <SubjectCarousel
+                currentIndex={subjectIndex}
+                total={availableSubjects.length}
+                title={currentSubject?.groupLabel || "Subjects"}
+                onPrev={() => setSubjectIndex((value) => Math.max(0, value - 1))}
+                onNext={() => setSubjectIndex((value) => Math.min(availableSubjects.length - 1, value + 1))}
+              />
+              {currentSubject ? (
+                <div className="subject-focus-card">
+                  <p className="subject-focus-kicker">Current Subject</p>
+                  <h2>{currentSubject.display_name}</h2>
+                  <p className="subject-focus-id">
+                    {currentSubject.subject_type ? `${currentSubject.subject_type} · ` : ''}
+                    {currentSubject.subject_id}
+                  </p>
+                  <button
+                    className="launch-btn subject-select-action"
+                    style={launchButtonStyle}
+                    onClick={() => {
+                      setSelectedSubjectId(currentSubject.subject_id);
+                      window.localStorage.setItem(
+                        SELECTED_SUBJECT_STORAGE_KEY,
+                        JSON.stringify({
+                          subject_id: currentSubject.subject_id,
+                          display_name: currentSubject.display_name,
+                          subject_type: currentSubject.subject_type ?? null,
+                        }),
+                      );
+                    }}
+                  >
+                    Continue
+                  </button>
+                  <button
+                    className="subject-skip-action"
+                    onClick={() => {
+                      setSelectedSubjectId("none");
+                      setShowSessionConfigScreen(false);
+                      window.localStorage.removeItem(SELECTED_SUBJECT_STORAGE_KEY);
+                    }}
+                  >
+                    Continue without subject
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          </section>
+        </div>
+        {showStartup ? <StartupSequence stage={startupStage} exiting={startupExiting} /> : null}
+      </>
+    );
+  }
+
+  if (shouldShowSessionConfigSelection && selectedSubject) {
+    return (
+      <>
+        <div className={dashboardClass}>
+          <header className="shell-header">
+            <div className="shell-brand">
+              <h1>Session Configs</h1>
+              <p>{selectedSubject.display_name} has predefined workflow configs available.</p>
+            </div>
+            <img className="shell-logo" src="/neia_logo.png" alt="NEIA logo" />
+          </header>
+
+          <section className="shell-body full">
+            <div className="panel wide session-config-panel">
+              <div className="session-config-list">
+                {availableSessionConfigs.map((config) => (
+                  <div className="session-config-card" key={config.session_config_id}>
+                    <div className="session-config-copy">
+                      <p className="session-config-kicker">Session Config</p>
+                      <h2>{config.name}</h2>
+                      <p className="session-config-meta">
+                        {config.app_name || config.app_id ? `App: ${config.app_name || config.app_id}` : 'App to be defined'}
+                      </p>
+                    </div>
+                    <button
+                      className="session-config-launch-btn"
+                      disabled={!config.app_id || !installedAppIds.has(config.app_id)}
+                      onClick={() => {
+                        if (!config.app_id) {
+                          return;
+                        }
+                        window.localStorage.setItem(SELECTED_SESSION_CONFIG_STORAGE_KEY, JSON.stringify(config));
+                        window.location.hash = `/app/${config.app_id}`;
+                      }}
+                    >
+                      {!config.app_id || !installedAppIds.has(config.app_id) ? 'App not installed' : 'Launch config'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <div className="session-config-actions">
+                <button
+                  className="subject-skip-action"
+                  onClick={() => {
+                    setSelectedSubjectId(null);
+                    setShowSessionConfigScreen(false);
+                    setSubjectIndex(0);
+                    window.localStorage.removeItem(SELECTED_SUBJECT_STORAGE_KEY);
+                    window.localStorage.removeItem(SELECTED_SESSION_CONFIG_STORAGE_KEY);
+                  }}
+                >
+                  Back to subjects
+                </button>
+                <button className="subject-skip-action" onClick={() => setShowSessionConfigScreen(false)}>
+                  Continue to dashboard
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+        {showStartup ? <StartupSequence stage={startupStage} exiting={startupExiting} /> : null}
+      </>
+    );
+  }
+
   return (
     <>
       <div className={dashboardClass}>
       <header className="shell-header">
         <div className="shell-brand">
           <h1>NEIA Dashboard</h1>
-          <p>Manage and launch installed apps.</p>
+          {selectedSubject ? (
+            <div className="shell-subject-inline">
+              <p>{selectedSubject.display_name}</p>
+              <button
+                className="shell-subject-change"
+                onClick={() => {
+                  setSelectedSubjectId(null);
+                  setShowSessionConfigScreen(false);
+                  window.localStorage.removeItem(SELECTED_SUBJECT_STORAGE_KEY);
+                }}
+              >
+                Change
+              </button>
+            </div>
+          ) : (
+            <p>Manage and launch installed apps.</p>
+          )}
         </div>
         <img className="shell-logo" src="/neia_logo.png" alt="NEIA logo" />
       </header>

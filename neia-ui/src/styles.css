@@ -82,6 +82,27 @@ body::-webkit-scrollbar,
   gap: 6px;
 }
 
+.shell-subject-inline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.shell-subject-inline p {
+  margin: 0;
+}
+
+.shell-subject-change {
+  border: 1px solid #343434;
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: transparent;
+  color: #f0f0f0;
+  font-size: 12px;
+  cursor: pointer;
+}
+
 .shell-logo {
   height: 120px;
   width: auto;
@@ -160,6 +181,190 @@ body::-webkit-scrollbar,
   color: #fff;
   border-color: transparent;
   box-shadow: 0 12px 22px rgba(58, 49, 97, 0.2);
+}
+
+.subject-select-panel {
+  display: grid;
+  gap: 24px;
+  justify-items: center;
+  min-height: 420px;
+}
+
+.subject-carousel {
+  width: min(100%, 540px);
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr) 68px;
+  align-items: center;
+  gap: 14px;
+}
+
+.subject-carousel-copy {
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+}
+
+.subject-carousel-title {
+  color: #d9d9d9;
+  font-size: 14px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.subject-carousel-count {
+  color: #8f8f8f;
+  font-size: 13px;
+}
+
+.subject-carousel-btn {
+  width: 68px;
+  height: 68px;
+  border-radius: 999px;
+  border: 1px solid #2b2b2b;
+  background: #101010;
+  color: #f1f1f1;
+  font-size: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.subject-carousel-btn:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+
+.subject-focus-card {
+  width: min(100%, 560px);
+  min-height: 280px;
+  border: 1px solid #2a2a2a;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(18, 18, 18, 0.96) 0%, rgba(8, 8, 8, 0.98) 100%);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.38);
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 10px;
+  padding: 28px;
+  text-align: center;
+}
+
+.subject-focus-kicker {
+  margin: 0;
+  color: #8d8d8d;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.subject-focus-card h2 {
+  margin: 0;
+  font-size: clamp(32px, 5vw, 48px);
+  color: #f3f3f3;
+}
+
+.subject-focus-id {
+  margin: 0;
+  color: #949494;
+  font-size: 14px;
+}
+
+.subject-select-action {
+  margin-top: 12px;
+  min-width: 180px;
+}
+
+.subject-skip-action {
+  border: 1px solid #343434;
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: transparent;
+  color: #f0f0f0;
+  cursor: pointer;
+}
+
+.subject-skip-action:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.session-config-panel {
+  display: grid;
+  gap: 20px;
+}
+
+.session-config-list {
+  display: grid;
+  gap: 16px;
+}
+
+.session-config-card {
+  border: 1px solid #272727;
+  border-radius: 16px;
+  background: #111;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.session-config-copy {
+  display: grid;
+  gap: 8px;
+}
+
+.session-config-kicker {
+  margin: 0;
+  color: #8d8d8d;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.session-config-card h2 {
+  margin: 0;
+}
+
+.session-config-meta {
+  margin: 0;
+  color: #a0a0a0;
+}
+
+.session-config-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.session-config-launch-btn {
+  appearance: none;
+  border: 1px solid rgba(215, 207, 247, 0.24);
+  background: var(--accent);
+  color: #ffffff;
+  width: 112px;
+  min-width: 112px;
+  height: 112px;
+  min-height: 112px;
+  padding: 10px;
+  border-radius: 16px;
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+}
+
+.session-config-launch-btn:disabled {
+  background: #1a1a1a;
+  color: #7e7e7e;
+  border-color: #303030;
+  cursor: default;
 }
 
 .category-tabs {
@@ -599,6 +804,57 @@ body.display-profile-800x480 .panel {
   padding: 10px 12px 12px;
 }
 
+body.display-profile-800x480 .subject-select-panel {
+  gap: 12px;
+  min-height: 0;
+}
+
+body.display-profile-800x480 .subject-carousel {
+  width: min(100%, 460px);
+  grid-template-columns: 48px minmax(0, 1fr) 48px;
+  gap: 8px;
+}
+
+body.display-profile-800x480 .subject-carousel-btn {
+  width: 48px;
+  height: 48px;
+  font-size: 24px;
+}
+
+body.display-profile-800x480 .subject-focus-card {
+  width: min(100%, 480px);
+  min-height: 190px;
+  gap: 8px;
+  padding: 18px 16px;
+}
+
+body.display-profile-800x480 .subject-focus-card h2 {
+  font-size: clamp(24px, 4.6vw, 34px);
+}
+
+body.display-profile-800x480 .subject-focus-id {
+  font-size: 12px;
+}
+
+body.display-profile-800x480 .subject-select-action {
+  margin-top: 6px;
+  min-width: 144px;
+}
+
+body.display-profile-800x480 .subject-skip-action {
+  padding: 8px 14px;
+  font-size: 12px;
+}
+
+body.display-profile-800x480 .session-config-launch-btn {
+  width: 88px;
+  min-width: 88px;
+  height: 88px;
+  min-height: 88px;
+  border-radius: 14px;
+  font-size: 14px;
+}
+
 body.display-profile-800x480 .app-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
@@ -666,6 +922,35 @@ body.display-profile-800x480 .actions .square-btn {
 }
 
 @media (max-width: 800px) and (max-height: 480px) {
+  .subject-select-panel {
+    gap: 12px;
+    min-height: 0;
+  }
+
+  .subject-focus-card {
+    min-height: 190px;
+    gap: 8px;
+    padding: 18px 16px;
+  }
+
+  .subject-focus-card h2 {
+    font-size: clamp(24px, 4.6vw, 34px);
+  }
+
+  .subject-select-action {
+    margin-top: 6px;
+    min-width: 144px;
+  }
+
+  .session-config-launch-btn {
+    width: 88px;
+    min-width: 88px;
+    height: 88px;
+    min-height: 88px;
+    border-radius: 14px;
+    font-size: 14px;
+  }
+
   .app-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
@@ -1116,6 +1401,31 @@ body.display-profile-800x480 .actions .square-btn {
   font-size: clamp(14px, 2vmin, 24px);
   letter-spacing: 0.03em;
   color: #c9c9c9;
+}
+
+@media (max-width: 900px) {
+  .subject-carousel {
+    grid-template-columns: 54px minmax(0, 1fr) 54px;
+    gap: 10px;
+  }
+
+  .subject-carousel-btn {
+    width: 54px;
+    height: 54px;
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 640px) {
+  .subject-focus-card {
+    min-height: 240px;
+    padding: 22px 18px;
+  }
+
+  .session-config-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 
 @keyframes eye-blink {

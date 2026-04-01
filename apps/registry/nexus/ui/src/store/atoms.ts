@@ -46,6 +46,9 @@ export const sessionNameAtom = atom<string>('');
 export const subjectPrefixAtom = atom<string>('');
 export const activeActivityAtom = atom<string | false>(false);
 export const subjectCountAtom = atom<number>(1);
+export const selectedSubjectAtom = atom<{ subject_id: string; display_name: string; subject_type?: string | null } | null>(null);
+export const configuredSubjectsAtom = atom<Array<{ subject_id: string; display_name: string; subject_type?: string | null }> | null>(null);
+export const selectedSessionConfigAtom = atom<{ session_config_id: string; name: string; activity?: string | null } | null>(null);
 
 // Format: `${subjectId}:${sensorId}`
 export const placedSensorsAtom = atom<Set<string>>(new Set<string>());
