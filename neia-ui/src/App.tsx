@@ -53,6 +53,8 @@ type SessionConfigRecord = {
   name: string;
   app_id?: string | null;
   app_name?: string | null;
+  subject_group_id?: string | null;
+  subject_group_name?: string | null;
   subject_ids?: string[];
   activity?: string | null;
   workflow?: Record<string, unknown>;
@@ -66,6 +68,76 @@ type ControlCenterCatalog = {
   groups?: SubjectGroup[];
   session_configs?: SessionConfigRecord[];
 };
+
+type AppsSnapshot = {
+  installed: AppInfo[];
+  available: AppInfo[];
+};
+
+let cachedAppsSnapshot: AppsSnapshot | null = null;
+let appsSnapshotInFlight: Promise<AppsSnapshot> | null = null;
+
+function normalizeSubjectRecord(subject: unknown): SubjectRecord | null {
+  if (!subject || typeof subject !== "object") {
+    return null;
+  }
+  const candidate = subject as Record<string, unknown>;
+  const subjectId = typeof candidate.subject_id === "string" ? candidate.subject_id.trim() : "";
+  if (!subjectId) {
+    return null;
+  }
+  return {
+    subject_id: subjectId,
+    display_name:
+      typeof candidate.display_name === "string" && candidate.display_name.trim()
+        ? candidate.display_name
+        : subjectId,
+    subject_type: typeof candidate.subject_type === "string" ? candidate.subject_type : null,
+  };
+}
+
+function mergeSubjectGroups(
+  groups: SubjectGroup[] | undefined,
+  sessionConfigs: SessionConfigRecord[] | undefined,
+): SubjectGroup[] {
+  const baseGroups = Array.isArray(groups)
+    ? groups.map((group) => ({
+        group_id: group.group_id ?? null,
+        label: group.label ?? null,
+        subjects: Array.isArray(group.subjects)
+          ? group.subjects
+              .map((subject) => normalizeSubjectRecord(subject))
+              .filter((subject): subject is SubjectRecord => Boolean(subject))
+          : [],
+      }))
+    : [];
+
+  const seenSubjectIds = new Set(
+    baseGroups.flatMap((group) => group.subjects.map((subject) => subject.subject_id)),
+  );
+  const derivedGroups = new Map<string, SubjectGroup>();
+
+  for (const config of Array.isArray(sessionConfigs) ? sessionConfigs : []) {
+    const groupId = config.subject_group_id || `session-config:${config.session_config_id}`;
+    const label = config.subject_group_name || config.name || "Session Config Subjects";
+    for (const subject of Array.isArray(config.subjects) ? config.subjects : []) {
+      const normalizedSubject = normalizeSubjectRecord(subject);
+      if (!normalizedSubject || seenSubjectIds.has(normalizedSubject.subject_id)) {
+        continue;
+      }
+      const existing = derivedGroups.get(groupId) ?? {
+        group_id: groupId,
+        label,
+        subjects: [],
+      };
+      existing.subjects.push(normalizedSubject);
+      derivedGroups.set(groupId, existing);
+      seenSubjectIds.add(normalizedSubject.subject_id);
+    }
+  }
+
+  return [...baseGroups, ...Array.from(derivedGroups.values()).filter((group) => group.subjects.length > 0)];
+}
 
 const launchButtonStyle: React.CSSProperties = {
   appearance: "none",
@@ -92,20 +164,42 @@ const uninstallButtonStyle: React.CSSProperties = {
 function useApps() {
   const [installed, setInstalled] = useState<AppInfo[]>([]);
   const [available, setAvailable] = useState<AppInfo[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(cachedAppsSnapshot === null);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (options?: { force?: boolean }) => {
+    if (cachedAppsSnapshot && !options?.force) {
+      setInstalled(cachedAppsSnapshot.installed);
+      setAvailable(cachedAppsSnapshot.available);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
-    const [installedResp, availableResp] = await Promise.all([
-      fetch("/api/v1/apps/installed"),
-      fetch("/api/v1/apps/available")
-    ]);
-    const [installedData, availableData] = await Promise.all([
-      installedResp.json(),
-      availableResp.json()
-    ]);
-    setInstalled(installedData);
-    setAvailable(availableData);
+
+    if (!appsSnapshotInFlight || options?.force) {
+      appsSnapshotInFlight = (async () => {
+        const [installedResp, availableResp] = await Promise.all([
+          fetch("/api/v1/apps/installed"),
+          fetch("/api/v1/apps/available")
+        ]);
+        const [installedData, availableData] = await Promise.all([
+          installedResp.json(),
+          availableResp.json()
+        ]);
+        const snapshot = {
+          installed: installedData as AppInfo[],
+          available: availableData as AppInfo[],
+        };
+        cachedAppsSnapshot = snapshot;
+        return snapshot;
+      })().finally(() => {
+        appsSnapshotInFlight = null;
+      });
+    }
+
+    const snapshot = await appsSnapshotInFlight;
+    setInstalled(snapshot.installed);
+    setAvailable(snapshot.available);
     setLoading(false);
   }, []);
 
@@ -172,13 +266,14 @@ function useControlCenterCatalog() {
     }
 
     if (messageType === "session_config_update") {
+      const nextSessionConfigs = Array.isArray(payload.session_configs)
+        ? (payload.session_configs as SessionConfigRecord[])
+        : [];
       mergeCatalog((prev) => ({
         customer_id: typeof payload.customer_id === "string" ? payload.customer_id : prev?.customer_id,
         site_id: typeof payload.site_id === "string" ? payload.site_id : prev?.site_id,
-        groups: prev?.groups ?? [],
-        session_configs: Array.isArray(payload.session_configs)
-          ? (payload.session_configs as SessionConfigRecord[])
-          : [],
+        groups: mergeSubjectGroups(prev?.groups, nextSessionConfigs),
+        session_configs: nextSessionConfigs,
       }));
       setLoading(false);
     }
@@ -560,8 +655,13 @@ function SubjectCarousel({
 }
 
 export default function App() {
-  const { installed, available, loading, refresh } = useApps();
-  const { catalog: controlCenterCatalog, loading: catalogLoading, applyMessage } = useControlCenterCatalog();
+  const { installed, available, loading, refresh: refreshApps } = useApps();
+  const {
+    catalog: controlCenterCatalog,
+    loading: catalogLoading,
+    refresh: refreshCatalog,
+    applyMessage,
+  } = useControlCenterCatalog();
   const { serverReady, siteName, retrying, retryServer, usbPresent, usbBusy, usbError, sendUsbCommand } = useHostServerStatus();
   const [launchError, setLaunchError] = useState<string | null>(null);
   const [appView, setAppView] = useState<AppInfo | null>(null);
@@ -581,12 +681,14 @@ export default function App() {
 
   const install = async (appId: string) => {
     await fetch(`/api/v1/apps/install/${appId}`, { method: "POST" });
-    await refresh();
+    cachedAppsSnapshot = null;
+    await refreshApps({ force: true });
   };
 
   const uninstall = async (appId: string) => {
     await fetch(`/api/v1/apps/uninstall/${appId}`, { method: "POST" });
-    await refresh();
+    cachedAppsSnapshot = null;
+    await refreshApps({ force: true });
   };
 
   const launch = (appInfo: AppInfo) => {
@@ -821,15 +923,21 @@ export default function App() {
         };
         applyMessage(forwardedMessage);
 
-        if (forwardedMessage.type === "session_config_update") {
+        if (forwardedMessage.type !== "subject_catalog_update" && forwardedMessage.type !== "session_config_update") {
           return;
         }
 
-        if (forwardedMessage.type !== "subject_catalog_update") {
-          return;
-        }
+        const nextGroups =
+          forwardedMessage.type === "subject_catalog_update"
+            ? (Array.isArray(forwardedMessage.payload?.groups) ? forwardedMessage.payload.groups : [])
+            : mergeSubjectGroups(
+                controlCenterCatalog?.groups,
+                Array.isArray(forwardedMessage.payload?.session_configs)
+                  ? (forwardedMessage.payload.session_configs as SessionConfigRecord[])
+                  : [],
+              );
 
-        if (!isAppRoute && Array.isArray(forwardedMessage.payload?.groups) && forwardedMessage.payload.groups.length === 0) {
+        if (!isAppRoute && forwardedMessage.type === "subject_catalog_update" && Array.isArray(nextGroups) && nextGroups.length === 0) {
           setSelectedSubjectId(null);
           setShowSessionConfigScreen(false);
           setSubjectIndex(0);
@@ -839,7 +947,7 @@ export default function App() {
           return;
         }
 
-        if (!isAppRoute && isDashboardRoute && Array.isArray(forwardedMessage.payload?.groups) && forwardedMessage.payload.groups.length > 0) {
+        if (!isAppRoute && isDashboardRoute && Array.isArray(nextGroups) && nextGroups.length > 0) {
           setSelectedSubjectId(null);
           setShowSessionConfigScreen(false);
           setSubjectIndex(0);
@@ -855,21 +963,7 @@ export default function App() {
     return () => {
       ws.close();
     };
-  }, [applyMessage, isAppRoute, route]);
-
-  useEffect(() => {
-    if (isAppRoute) {
-      return;
-    }
-
-    const timer = window.setInterval(() => {
-      void refresh({ silent: true });
-    }, 1500);
-
-    return () => {
-      window.clearInterval(timer);
-    };
-  }, [isAppRoute, refresh]);
+  }, [applyMessage, controlCenterCatalog?.groups, isAppRoute, route]);
 
   if (appView || appViewError) {
     const layoutMode = getLayoutMode(appView?.manifest);

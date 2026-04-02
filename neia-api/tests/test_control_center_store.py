@@ -136,3 +136,42 @@ def test_store_accepts_session_config_updates_independently() -> None:
     assert result["status"] == "accepted"
     assert result["reason"] == "session_config_updated"
     assert catalog["session_configs"][0]["session_config_id"] == "cfg-1"
+
+
+def test_store_derives_subjects_from_session_config_when_subject_catalog_is_empty() -> None:
+    store = ControlCenterStore()
+
+    result = store.ingest_message(
+        {
+            "type": "session_config_update",
+            "target": "neia.control_center",
+            "payload": {
+                "customer_id": "customer-dlr",
+                "site_id": "local_home",
+                "session_configs": [
+                    {
+                        "session_config_id": "cfg-1",
+                        "name": "ISS Gait Capture",
+                        "subject_group_id": "iss_astronauts",
+                        "subject_group_name": "ISS Astronauts",
+                        "app_id": "nexus",
+                        "subject_ids": ["subject-a"],
+                        "subjects": [
+                            {
+                                "subject_id": "subject-a",
+                                "display_name": "Astronaut A",
+                                "subject_type": "astronaut",
+                            }
+                        ],
+                    }
+                ],
+            },
+        }
+    )
+
+    catalog = store.build_subject_catalog()
+
+    assert result["status"] == "accepted"
+    assert catalog["groups"][0]["group_id"] == "iss_astronauts"
+    assert catalog["groups"][0]["subjects"][0]["subject_id"] == "subject-a"
+    assert catalog["groups"][0]["subjects"][0]["display_name"] == "Astronaut A"

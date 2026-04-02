@@ -150,6 +150,11 @@ class ControlCenterStore:
             "site_id": None,
             "groups": [],
         }
+        self._config_subject_catalog: dict[str, Any] = {
+            "customer_id": None,
+            "site_id": None,
+            "groups": [],
+        }
         self._session_config_catalog: dict[str, Any] = {
             "customer_id": None,
             "site_id": None,
@@ -229,9 +234,9 @@ class ControlCenterStore:
 
     def build_subject_catalog(self) -> dict[str, Any]:
         return {
-            "customer_id": self._subject_catalog.get("customer_id"),
-            "site_id": self._subject_catalog.get("site_id"),
-            "groups": list(self._subject_catalog.get("groups", [])),
+            "customer_id": self._subject_catalog.get("customer_id") or self._config_subject_catalog.get("customer_id"),
+            "site_id": self._subject_catalog.get("site_id") or self._config_subject_catalog.get("site_id"),
+            "groups": self._build_merged_groups(),
             "session_configs": list(self._session_config_catalog.get("session_configs", [])),
             "control_center_state": {
                 "last_message_type": self._last_message_type,
@@ -319,16 +324,32 @@ class ControlCenterStore:
             session_config_id = str(config.get("session_config_id") or "").strip()
             if not session_config_id:
                 continue
+            normalized_subjects: list[dict[str, Any]] = []
+            for subject in config.get("subjects", []):
+                if not isinstance(subject, dict):
+                    continue
+                subject_id = str(subject.get("subject_id") or "").strip()
+                if not subject_id:
+                    continue
+                normalized_subjects.append(
+                    {
+                        "subject_id": subject_id,
+                        "display_name": subject.get("display_name") or subject_id,
+                        "subject_type": subject.get("subject_type"),
+                    }
+                )
             normalized_configs.append(
                 {
                     "session_config_id": session_config_id,
                     "name": config.get("name") or session_config_id,
                     "app_id": config.get("app_id"),
                     "app_name": config.get("app_name"),
+                    "subject_group_id": config.get("subject_group_id"),
+                    "subject_group_name": config.get("subject_group_name"),
                     "subject_ids": list(config.get("subject_ids", [])) if isinstance(config.get("subject_ids"), list) else [],
                     "activity": config.get("activity"),
                     "workflow": config.get("workflow") if isinstance(config.get("workflow"), dict) else {},
-                    "subjects": list(config.get("subjects", [])) if isinstance(config.get("subjects"), list) else [],
+                    "subjects": normalized_subjects,
                     "init_payload": config.get("init_payload") if isinstance(config.get("init_payload"), dict) else {},
                 }
             )
@@ -338,11 +359,107 @@ class ControlCenterStore:
             "site_id": payload.get("site_id"),
             "session_configs": normalized_configs,
         }
+        self._config_subject_catalog = {
+            "customer_id": payload.get("customer_id"),
+            "site_id": payload.get("site_id"),
+            "groups": self._derive_config_subject_groups(normalized_configs),
+        }
         return {
             "status": "accepted",
             "reason": "session_config_updated",
             "session_config_count": len(normalized_configs),
         }
+
+    def _build_merged_groups(self) -> list[dict[str, Any]]:
+        merged_groups = [dict(group) for group in self._subject_catalog.get("groups", [])]
+        seen_subject_ids = {
+            str(subject.get("subject_id"))
+            for group in merged_groups
+            for subject in group.get("subjects", [])
+            if isinstance(subject, dict) and subject.get("subject_id")
+        }
+        for group in self._config_subject_catalog.get("groups", []):
+            if not isinstance(group, dict):
+                continue
+            pending_subjects: list[dict[str, Any]] = []
+            for subject in group.get("subjects", []):
+                if not isinstance(subject, dict):
+                    continue
+                subject_id = str(subject.get("subject_id") or "").strip()
+                if not subject_id or subject_id in seen_subject_ids:
+                    continue
+                pending_subjects.append(
+                    {
+                        "subject_id": subject_id,
+                        "display_name": subject.get("display_name") or subject_id,
+                        "subject_type": subject.get("subject_type"),
+                    }
+                )
+                seen_subject_ids.add(subject_id)
+            if pending_subjects:
+                merged_groups.append(
+                    {
+                        "group_id": group.get("group_id"),
+                        "label": group.get("label") or "Session Config Subjects",
+                        "subjects": pending_subjects,
+                    }
+                )
+        return merged_groups
+
+    def _derive_config_subject_groups(self, session_configs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        grouped_subjects: dict[str, dict[str, Any]] = {}
+        authoritative_subject_ids = {
+            str(subject.get("subject_id"))
+            for group in self._subject_catalog.get("groups", [])
+            for subject in group.get("subjects", [])
+            if isinstance(subject, dict) and subject.get("subject_id")
+        }
+
+        for config in session_configs:
+            if not isinstance(config, dict):
+                continue
+            subjects = config.get("subjects")
+            if not isinstance(subjects, list):
+                continue
+
+            group_id = str(
+                config.get("subject_group_id")
+                or f"session-config:{config.get('session_config_id') or 'derived'}"
+            )
+            group_label = (
+                config.get("subject_group_name")
+                or config.get("name")
+                or "Session Config Subjects"
+            )
+            entry = grouped_subjects.setdefault(
+                group_id,
+                {
+                    "group_id": group_id,
+                    "label": group_label,
+                    "subjects": [],
+                },
+            )
+            seen_in_group = {
+                str(subject.get("subject_id"))
+                for subject in entry["subjects"]
+                if isinstance(subject, dict) and subject.get("subject_id")
+            }
+            for subject in subjects:
+                if not isinstance(subject, dict):
+                    continue
+                subject_id = str(subject.get("subject_id") or "").strip()
+                if not subject_id or subject_id in authoritative_subject_ids or subject_id in seen_in_group:
+                    continue
+                entry["subjects"].append(
+                    {
+                        "subject_id": subject_id,
+                        "display_name": subject.get("display_name") or subject_id,
+                        "subject_type": subject.get("subject_type"),
+                    }
+                )
+                seen_in_group.add(subject_id)
+
+        return [group for group in grouped_subjects.values() if group.get("subjects")]
 
     @staticmethod
     def _is_targeted(message: dict[str, Any]) -> bool:

@@ -215,9 +215,7 @@ def get_app_asset(app_id: str, asset_path: str):
     return FileResponse(
         candidate,
         headers={
-            "Cache-Control": "no-store, max-age=0",
-            "Pragma": "no-cache",
-            "Expires": "0",
+            "Cache-Control": "public, max-age=300",
         },
     )
 
