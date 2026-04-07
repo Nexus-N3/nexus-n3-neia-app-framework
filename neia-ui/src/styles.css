@@ -236,6 +236,7 @@ body::-webkit-scrollbar,
 }
 
 .subject-focus-card {
+  appearance: none;
   width: min(100%, 560px);
   min-height: 280px;
   border: 1px solid #2a2a2a;
@@ -248,6 +249,20 @@ body::-webkit-scrollbar,
   gap: 10px;
   padding: 28px;
   text-align: center;
+  cursor: pointer;
+  transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+.subject-focus-card:hover,
+.subject-focus-card:focus-visible {
+  border-color: rgba(120, 111, 255, 0.7);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.44);
+  transform: translateY(-2px);
+}
+
+.subject-focus-card:focus-visible {
+  outline: 2px solid rgba(120, 111, 255, 0.9);
+  outline-offset: 3px;
 }
 
 .subject-focus-kicker {
@@ -282,6 +297,11 @@ body::-webkit-scrollbar,
   background: transparent;
   color: #f0f0f0;
   cursor: pointer;
+}
+
+.subject-skip-outside {
+  margin-top: 12px;
+  align-self: center;
 }
 
 .subject-skip-action:disabled {
@@ -1297,6 +1317,57 @@ body.display-profile-800x480 .actions .square-btn {
   overflow: hidden;
   overscroll-behavior: none;
   contain: paint;
+}
+
+.remote-operation-overlay {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  background:
+    radial-gradient(circle at top, rgba(113, 88, 255, 0.22), transparent 38%),
+    linear-gradient(180deg, #090a10 0%, #030407 100%);
+}
+
+.remote-operation-card {
+  width: min(100%, 760px);
+  padding: 36px;
+  border: 1px solid rgba(171, 182, 255, 0.28);
+  border-radius: 28px;
+  background: rgba(9, 11, 20, 0.92);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+  text-align: center;
+}
+
+.remote-operation-kicker {
+  margin: 0 0 12px;
+  color: #9aa5ff;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.remote-operation-card h1 {
+  margin: 0;
+  color: #f4f7ff;
+  font-size: clamp(26px, 3.8vw, 42px);
+  line-height: 1.05;
+}
+
+.remote-operation-copy {
+  margin: 16px auto 0;
+  max-width: 40rem;
+  color: #cfd7ef;
+  font-size: 18px;
+}
+
+.remote-operation-meta {
+  margin-top: 28px;
+  display: grid;
+  gap: 10px;
+  color: #9ea8c8;
+  font-size: 15px;
 }
 
 .startup-overlay.exiting {

@@ -51,6 +51,7 @@ type SubjectGroup = {
 type SessionConfigRecord = {
   session_config_id: string;
   name: string;
+  deployed?: boolean;
   app_id?: string | null;
   app_name?: string | null;
   subject_group_id?: string | null;
@@ -67,6 +68,13 @@ type ControlCenterCatalog = {
   site_id?: string | null;
   groups?: SubjectGroup[];
   session_configs?: SessionConfigRecord[];
+};
+
+type RemoteOperationState = {
+  active: boolean;
+  device_name?: string | null;
+  site_name?: string | null;
+  operator_username?: string | null;
 };
 
 type AppsSnapshot = {
@@ -160,6 +168,21 @@ const uninstallButtonStyle: React.CSSProperties = {
   letterSpacing: "0.01em",
   textTransform: "none",
 };
+
+function readSelectedSessionConfigId(): string | null {
+  try {
+    const raw = window.localStorage.getItem(SELECTED_SESSION_CONFIG_STORAGE_KEY);
+    if (!raw) {
+      return null;
+    }
+    const parsed = JSON.parse(raw) as { session_config_id?: unknown };
+    return typeof parsed.session_config_id === "string" && parsed.session_config_id.trim()
+      ? parsed.session_config_id
+      : null;
+  } catch {
+    return null;
+  }
+}
 
 function useApps() {
   const [installed, setInstalled] = useState<AppInfo[]>([]);
@@ -654,6 +677,31 @@ function SubjectCarousel({
   );
 }
 
+function RemoteOperationOverlay({ state }: { state: RemoteOperationState }) {
+  return (
+    <div className="remote-operation-overlay">
+      <div className="remote-operation-card">
+        <p className="remote-operation-kicker">Remote Session</p>
+        <h1>NEIA is being remotely operated</h1>
+        <p className="remote-operation-copy">
+          Control has been transferred to the Nexus Control Center.
+        </p>
+        <div className="remote-operation-meta">
+          <span>
+            Device: {state.device_name || "Unknown device"}
+          </span>
+          <span>
+            Site: {state.site_name || "Unknown site"}
+          </span>
+          <span>
+            Operator: {state.operator_username || "Unknown operator"}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const { installed, available, loading, refresh: refreshApps } = useApps();
   const {
@@ -678,6 +726,7 @@ export default function App() {
   const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
   const [subjectIndex, setSubjectIndex] = useState(0);
   const [showSessionConfigScreen, setShowSessionConfigScreen] = useState(false);
+  const [remoteOperation, setRemoteOperation] = useState<RemoteOperationState>({ active: false });
 
   const install = async (appId: string) => {
     await fetch(`/api/v1/apps/install/${appId}`, { method: "POST" });
@@ -871,6 +920,7 @@ export default function App() {
         Array.isArray(config.subject_ids) && config.subject_ids.includes(selectedSubject.subject_id)
       )
     : [];
+  const selectedSessionConfigId = readSelectedSessionConfigId();
   const installedAppIds = new Set(installed.map((app) => app.manifest.id));
   const shouldShowSubjectSelection =
     !showStartup &&
@@ -905,6 +955,26 @@ export default function App() {
   }, [availableSessionConfigs.length, selectedSubject]);
 
   useEffect(() => {
+    if (!selectedSessionConfigId || catalogLoading) {
+      return;
+    }
+
+    const selectedConfigStillAvailable = (controlCenterCatalog?.session_configs ?? []).some(
+      (config) => config.session_config_id === selectedSessionConfigId,
+    );
+    if (selectedConfigStillAvailable) {
+      return;
+    }
+
+    setSelectedSubjectId(null);
+    setShowSessionConfigScreen(false);
+    setSubjectIndex(0);
+    window.localStorage.removeItem(SELECTED_SUBJECT_STORAGE_KEY);
+    window.localStorage.removeItem(SELECTED_SESSION_CONFIG_STORAGE_KEY);
+    window.location.hash = "/";
+  }, [catalogLoading, controlCenterCatalog?.session_configs, selectedSessionConfigId]);
+
+  useEffect(() => {
     const isDashboardRoute = route === "" || route === "/";
     const protocol = window.location.protocol === "https:" ? "wss" : "ws";
     const wsUrl = `${protocol}://${window.location.host}/api/v1/gateway/events`;
@@ -919,8 +989,24 @@ export default function App() {
 
         const forwardedMessage = msg.payload as {
           type?: string;
-          payload?: { groups?: unknown[]; session_configs?: unknown[] };
+          payload?: { groups?: unknown[]; session_configs?: unknown[]; active?: unknown; device_name?: unknown; site_name?: unknown; operator_username?: unknown };
         };
+        if (forwardedMessage.type === "remote_operation_update") {
+          const active = Boolean(forwardedMessage.payload?.active);
+          setSelectedSubjectId(null);
+          setShowSessionConfigScreen(false);
+          setSubjectIndex(0);
+          window.localStorage.removeItem(SELECTED_SUBJECT_STORAGE_KEY);
+          window.localStorage.removeItem(SELECTED_SESSION_CONFIG_STORAGE_KEY);
+          window.location.hash = "/";
+          setRemoteOperation({
+            active,
+            device_name: typeof forwardedMessage.payload?.device_name === "string" ? forwardedMessage.payload.device_name : null,
+            site_name: typeof forwardedMessage.payload?.site_name === "string" ? forwardedMessage.payload.site_name : null,
+            operator_username: typeof forwardedMessage.payload?.operator_username === "string" ? forwardedMessage.payload.operator_username : null,
+          });
+          return;
+        }
         applyMessage(forwardedMessage);
 
         if (forwardedMessage.type !== "subject_catalog_update" && forwardedMessage.type !== "session_config_update") {
@@ -964,6 +1050,10 @@ export default function App() {
       ws.close();
     };
   }, [applyMessage, controlCenterCatalog?.groups, isAppRoute, route]);
+
+  if (remoteOperation.active) {
+    return <RemoteOperationOverlay state={remoteOperation} />;
+  }
 
   if (appView || appViewError) {
     const layoutMode = getLayoutMode(appView?.manifest);
@@ -1111,41 +1201,40 @@ export default function App() {
                 onNext={() => setSubjectIndex((value) => Math.min(availableSubjects.length - 1, value + 1))}
               />
               {currentSubject ? (
-                <div className="subject-focus-card">
+                <>
+                <button
+                  className="subject-focus-card"
+                  onClick={() => {
+                    setSelectedSubjectId(currentSubject.subject_id);
+                    window.localStorage.setItem(
+                      SELECTED_SUBJECT_STORAGE_KEY,
+                      JSON.stringify({
+                        subject_id: currentSubject.subject_id,
+                        display_name: currentSubject.display_name,
+                        subject_type: currentSubject.subject_type ?? null,
+                      }),
+                    );
+                  }}
+                  type="button"
+                >
                   <p className="subject-focus-kicker">Current Subject</p>
                   <h2>{currentSubject.display_name}</h2>
                   <p className="subject-focus-id">
                     {currentSubject.subject_type ? `${currentSubject.subject_type} · ` : ''}
                     {currentSubject.subject_id}
                   </p>
-                  <button
-                    className="launch-btn subject-select-action"
-                    style={launchButtonStyle}
-                    onClick={() => {
-                      setSelectedSubjectId(currentSubject.subject_id);
-                      window.localStorage.setItem(
-                        SELECTED_SUBJECT_STORAGE_KEY,
-                        JSON.stringify({
-                          subject_id: currentSubject.subject_id,
-                          display_name: currentSubject.display_name,
-                          subject_type: currentSubject.subject_type ?? null,
-                        }),
-                      );
-                    }}
-                  >
-                    Continue
-                  </button>
-                  <button
-                    className="subject-skip-action"
-                    onClick={() => {
-                      setSelectedSubjectId("none");
-                      setShowSessionConfigScreen(false);
-                      window.localStorage.removeItem(SELECTED_SUBJECT_STORAGE_KEY);
-                    }}
-                  >
-                    Continue without subject
-                  </button>
-                </div>
+                </button>
+                <button
+                  className="subject-skip-action subject-skip-outside"
+                  onClick={() => {
+                    setSelectedSubjectId("none");
+                    setShowSessionConfigScreen(false);
+                    window.localStorage.removeItem(SELECTED_SUBJECT_STORAGE_KEY);
+                  }}
+                >
+                  Continue without subject
+                </button>
+                </>
               ) : null}
             </div>
           </section>
@@ -1177,6 +1266,9 @@ export default function App() {
                       <h2>{config.name}</h2>
                       <p className="session-config-meta">
                         {config.app_name || config.app_id ? `App: ${config.app_name || config.app_id}` : 'App to be defined'}
+                      </p>
+                      <p className="session-config-meta">
+                        Deployed: {config.deployed ? "Yes" : "No"}
                       </p>
                     </div>
                     <button
