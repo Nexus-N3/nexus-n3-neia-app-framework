@@ -7,7 +7,9 @@ Type=simple
 User={{ neia_service_user }}
 Group={{ neia_service_group }}
 WorkingDirectory={{ neia_api_dir }}
-Environment=NEIA_DEV={{ neia_dev }}
+{% for key, value in neia_service_env.items() %}
+Environment={{ key }}={{ value }}
+{% endfor %}
 ExecStart={{ neia_venv_path }}/bin/uvicorn app.main:app --host {{ neia_host }} --port {{ neia_port }}
 Restart=on-failure
 RestartSec=3

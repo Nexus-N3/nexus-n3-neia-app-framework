@@ -17,3 +17,17 @@ neia_sync_excludes:
   - "apps/registry/app_react_template/ui/node_modules"
   - "**/.DS_Store"
 neia_local_ui_dist: "{{ neia_repo_local_path }}/neia-ui/dist"
+neia_site: lab
+neia_voice_tts_piper_model: /opt/rs-nexus-neia/models/piper/en_GB-southern_english_female-low.onnx
+neia_help_docs_roots: /opt/rs-nexus-os/docs:/opt/rs-nexus-neia/docs
+
+neia_service_uid: 1000
+neia_xdg_runtime_dir: "/run/user/{{ neia_service_uid }}"
+neia_pulse_server: "unix:/run/user/{{ neia_service_uid }}/pulse/native"
+neia_service_env:
+  NEIA_DEV: "{{ neia_dev }}"
+  NEIA_SITE: "{{ neia_site }}"
+  NEIA_VOICE_TTS_PIPER_MODEL: "{{ neia_voice_tts_piper_model }}"
+  NEIA_HELP_DOCS_ROOTS: "{{ neia_help_docs_roots }}"
+  XDG_RUNTIME_DIR: "{{ neia_xdg_runtime_dir }}"
+  PULSE_SERVER: "{{ neia_pulse_server }}"
