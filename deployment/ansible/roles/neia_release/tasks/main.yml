@@ -40,6 +40,7 @@
     rsync_opts: "{{ neia_sync_excludes | map('regex_replace', '^', '--exclude=') | list }}"
   delegate_to: localhost
   become: false
+  notify: Restart neia service
 
 - name: Ensure NEIA API virtualenv exists
   ansible.builtin.command: >
@@ -53,6 +54,7 @@
     virtualenv: "{{ neia_venv_path }}"
     virtualenv_command: "python3 -m venv"
     state: present
+  notify: Restart neia service
 
 - name: Install NEIA systemd service
   ansible.builtin.template:

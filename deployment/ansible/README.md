@@ -1,6 +1,6 @@
 # NEIA Ansible Deployment
 
-This deploys the NEIA API + static UI assets to `rs-nexus-master.local` and runs the API as a systemd service.
+This deploys the NEIA API + static UI assets to the standalone/master device and runs the API as a systemd service on port `8050`.
 
 ## Prereqs (local)
 
@@ -31,6 +31,13 @@ ansible-playbook site.yml
 ```
 sudo systemctl status rs-nexus-neia
 sudo systemctl restart rs-nexus-neia
+```
+
+For standalone deployments that also use the `rs-nexus-os` kiosk role, point the
+kiosk at NEIA:
+
+```yaml
+nexus_kiosk_url: http://localhost:8050
 ```
 
 ## Common Overrides

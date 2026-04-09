@@ -45,6 +45,31 @@ type PendingInputConfirm = {
   ctx: FlowContext;
 };
 
+type GatewaySubjectPayload = {
+  subject_id: string;
+};
+
+function getGatewaySubjects(payload: unknown): GatewaySubjectPayload[] {
+  if (Array.isArray(payload)) {
+    return payload.filter(
+      (item): item is GatewaySubjectPayload =>
+        Boolean(item) && typeof item === "object" && typeof (item as GatewaySubjectPayload).subject_id === "string",
+    );
+  }
+
+  if (payload && typeof payload === "object") {
+    const subjects = (payload as { subjects?: unknown }).subjects;
+    if (Array.isArray(subjects)) {
+      return subjects.filter(
+        (item): item is GatewaySubjectPayload =>
+          Boolean(item) && typeof item === "object" && typeof (item as GatewaySubjectPayload).subject_id === "string",
+      );
+    }
+  }
+
+  return [];
+}
+
 function resolveGatewayEventsWsUrl(): string {
   const fromWindow = String((window as any).__NEIA_GATEWAY_WS_URL || "").trim();
   if (fromWindow) return fromWindow;
@@ -816,6 +841,10 @@ export default function App() {
       }
 
       if (type === "sensors_discovered" && state === "discovering") {
+        const subjects = getGatewaySubjects(event?.payload);
+        if (!subjects.length) {
+          return;
+        }
         gatewayStepLockRef.current = eventSig;
         updateFlow("connecting");
         await sendGatewayCommand({ type: "connect_all", payload: {} }, "Found sensors. Connecting now.");
@@ -823,6 +852,10 @@ export default function App() {
       }
 
       if (type === "sensor_connected" && state === "connecting") {
+        const subjects = getGatewaySubjects(event?.payload);
+        if (!subjects.length) {
+          return;
+        }
         gatewayStepLockRef.current = eventSig;
         if (!ctx.locations.length) {
           await speak("Sensors connected. Where are the sensors being placed?", true);

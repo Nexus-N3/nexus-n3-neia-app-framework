@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useGatewaySocket } from './useGatewaySocket';
 import type { ConnectedSensorsMap, DiscoveredSensorsMap, SensorFlowPhase } from './gatewaySensorTypes';
+import {
+  getConnectedSubjectsFromPayload,
+  getDiscoveredSubjectsFromPayload,
+} from './gatewaySensorPayloads';
 
 export const useDiscoverSensorsCore = () => {
   const { subscribe, sendCommand } = useGatewaySocket();
@@ -16,10 +20,10 @@ export const useDiscoverSensorsCore = () => {
   useEffect(() => {
     const unsubscribe = subscribe((msg) => {
       if (msg.type === 'sensors_discovered' || msg.type === 'sensors_discovered_for_subject') {
-        const subjects = Array.isArray(msg.payload) ? msg.payload : [];
+        const subjects = getDiscoveredSubjectsFromPayload(msg.payload);
         setDiscoveredSensors((prev) => {
           const next: DiscoveredSensorsMap = { ...prev };
-          subjects.forEach((subject: { subject_id: string; discovered_sensors: string[] }) => {
+          subjects.forEach((subject) => {
             next[subject.subject_id] = subject.discovered_sensors ?? [];
           });
           return next;
@@ -52,13 +56,10 @@ export const useDiscoverSensorsCore = () => {
       }
 
       if (msg.type === 'sensor_connected') {
-        const subjects = Array.isArray(msg.payload) ? msg.payload : [];
+        const subjects = getConnectedSubjectsFromPayload(msg.payload);
         setConnectedSensors((prev) => {
           const next: ConnectedSensorsMap = { ...prev };
-          subjects.forEach((subject: {
-            subject_id: string;
-            connected_sensors: Array<{ address: string; status: string; location: string | null }>;
-          }) => {
+          subjects.forEach((subject) => {
             next[subject.subject_id] = subject.connected_sensors ?? [];
           });
           return next;
