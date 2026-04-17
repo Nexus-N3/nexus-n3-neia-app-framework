@@ -19,15 +19,22 @@ neia_sync_excludes:
 neia_local_ui_dist: "{{ neia_repo_local_path }}/neia-ui/dist"
 neia_site: lab
 neia_voice_tts_piper_model: /opt/rs-nexus-neia/models/piper/en_GB-southern_english_female-low.onnx
+neia_voice_tts_pad_lead_ms: 0
+neia_voice_tts_output_latency_ms: 0
 neia_help_docs_roots: /opt/rs-nexus-os/docs:/opt/rs-nexus-neia/docs
 
 neia_service_uid: 1000
 neia_xdg_runtime_dir: "/run/user/{{ neia_service_uid }}"
 neia_pulse_server: "unix:/run/user/{{ neia_service_uid }}/pulse/native"
+neia_service_path: "{{ neia_venv_path }}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 neia_service_env:
   NEIA_DEV: "{{ neia_dev }}"
   NEIA_SITE: "{{ neia_site }}"
+  NEIA_VOICE_TTS_PIPER_BIN: "{{ neia_venv_path }}/bin/piper"
   NEIA_VOICE_TTS_PIPER_MODEL: "{{ neia_voice_tts_piper_model }}"
+  NEIA_VOICE_TTS_PAD_LEAD_MS: "{{ neia_voice_tts_pad_lead_ms }}"
+  NEIA_VOICE_TTS_OUTPUT_LATENCY_MS: "{{ neia_voice_tts_output_latency_ms }}"
   NEIA_HELP_DOCS_ROOTS: "{{ neia_help_docs_roots }}"
   XDG_RUNTIME_DIR: "{{ neia_xdg_runtime_dir }}"
   PULSE_SERVER: "{{ neia_pulse_server }}"
+  PATH: "{{ neia_service_path }}"

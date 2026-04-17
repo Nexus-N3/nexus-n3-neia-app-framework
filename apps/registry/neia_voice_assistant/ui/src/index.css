@@ -99,6 +99,58 @@ body {
   overflow: hidden;
 }
 
+.remote-operation-overlay {
+  min-height: 100%;
+  width: 100%;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at top, rgba(127, 109, 255, 0.2), transparent 48%),
+    linear-gradient(180deg, #030307 0%, #070711 100%);
+}
+
+.remote-operation-card {
+  width: min(92vw, 720px);
+  padding: 28px 24px;
+  border: 1px solid rgba(127, 109, 255, 0.35);
+  border-radius: 24px;
+  background: rgba(10, 10, 20, 0.92);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  text-align: center;
+}
+
+.remote-operation-kicker {
+  margin: 0 0 12px;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #d4ccff;
+}
+
+.remote-operation-card h1 {
+  margin: 0;
+  font-size: clamp(28px, 5vw, 46px);
+  line-height: 1.05;
+  color: #ffffff;
+}
+
+.remote-operation-copy {
+  margin: 14px auto 0;
+  max-width: 34rem;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #c7c0f5;
+}
+
+.remote-operation-meta {
+  margin-top: 20px;
+  display: grid;
+  gap: 8px;
+  color: #e4e0ff;
+  font-size: 15px;
+}
+
 .voice-center {
   max-height: 100%;
   margin-top: -6px;

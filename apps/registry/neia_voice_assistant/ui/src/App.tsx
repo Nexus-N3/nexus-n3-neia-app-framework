@@ -21,6 +21,23 @@ type VoiceStatus = {
   last_error?: string | null;
 };
 
+type RemoteOperationState = {
+  active: boolean;
+  device_name?: string | null;
+  site_name?: string | null;
+  operator_username?: string | null;
+};
+
+type ForwardedControlCenterMessage = {
+  type?: string;
+  payload?: {
+    active?: unknown;
+    device_name?: unknown;
+    site_name?: unknown;
+    operator_username?: unknown;
+  };
+};
+
 type RobotState = "idle" | "listening" | "active" | "speaking";
 const IDLE_PROMPT_DEDUPE_MS = 3000;
 const WAKE_IDLE_COMMAND_TIMEOUT_MS = 60000;
@@ -127,6 +144,37 @@ function RobotFace({ state }: { state: RobotState }) {
   );
 }
 
+function RemoteOperationOverlay({ state }: { state: RemoteOperationState }) {
+  return (
+    <div className="remote-operation-overlay">
+      <div className="remote-operation-card">
+        <p className="remote-operation-kicker">Remote Session</p>
+        <h1>NEIA is being remotely operated</h1>
+        <p className="remote-operation-copy">
+          Control has been transferred to the Nexus Control Center.
+        </p>
+        <div className="remote-operation-meta">
+          <span>Device: {state.device_name || "Unknown device"}</span>
+          <span>Site: {state.site_name || "Unknown site"}</span>
+          <span>Operator: {state.operator_username || "Unknown operator"}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+async function disableVoicePipeline(): Promise<void> {
+  try {
+    await fetch("/api/v1/voice/deactivate", { method: "POST" });
+  } catch {
+    // best effort
+  }
+  try {
+    await fetch("/api/v1/voice/disable", { method: "POST" });
+  } catch {
+    // best effort
+  }
+}
 
 export default function App() {
   const { status, refresh, applyStatusEvent } = useVoiceStatus();
@@ -143,6 +191,7 @@ export default function App() {
   const [flowContext, setFlowContext] = useState<FlowContext>(defaultFlowContext());
   const [identifyActionText, setIdentifyActionText] = useState("");
   const [identifyPromptText, setIdentifyPromptText] = useState("");
+  const [remoteOperation, setRemoteOperation] = useState<RemoteOperationState>({ active: false });
 
   const flowStateRef = useRef<FlowState>("idle");
   const flowContextRef = useRef<FlowContext>(defaultFlowContext());
@@ -1021,6 +1070,11 @@ export default function App() {
       setBooting(false);
       return;
     }
+    if (remoteOperation.active) {
+      setBooting(false);
+      void disableVoicePipeline();
+      return;
+    }
     setBooting(true);
     let active = true;
     void (async () => {
@@ -1035,7 +1089,7 @@ export default function App() {
     return () => {
       active = false;
     };
-  }, [ensureVoiceEnabled, isActiveInstance, isController, refresh]);
+  }, [ensureVoiceEnabled, isActiveInstance, isController, refresh, remoteOperation.active]);
 
   useEffect(() => {
     if (!isActiveInstance()) return;
@@ -1142,6 +1196,31 @@ export default function App() {
           applyStatusEvent(event.payload as VoiceStatus);
           return;
         }
+        if (event.type === "control_center_message" && event.payload && typeof event.payload === "object") {
+          const forwardedMessage = event.payload as ForwardedControlCenterMessage;
+          if (forwardedMessage.type === "remote_operation_update") {
+            const nextState: RemoteOperationState = {
+              active: Boolean(forwardedMessage.payload?.active),
+              device_name:
+                typeof forwardedMessage.payload?.device_name === "string"
+                  ? forwardedMessage.payload.device_name
+                  : null,
+              site_name:
+                typeof forwardedMessage.payload?.site_name === "string"
+                  ? forwardedMessage.payload.site_name
+                  : null,
+              operator_username:
+                typeof forwardedMessage.payload?.operator_username === "string"
+                  ? forwardedMessage.payload.operator_username
+                  : null,
+            };
+            setRemoteOperation(nextState);
+            if (nextState.active) {
+              void disableVoicePipeline();
+            }
+            return;
+          }
+        }
         if (event.type === "compute_result") {
           const location = extractComputeLocation(event);
           if (location !== "UNKNOWN") {
@@ -1175,6 +1254,10 @@ export default function App() {
     ? identifyPromptText
     : flowPromptText(flowState);
   const showFlowText = flowState !== "idle" && (!!actionText || !!promptText || !!flowText);
+
+  if (remoteOperation.active) {
+    return <RemoteOperationOverlay state={remoteOperation} />;
+  }
 
   return (
     <div className="voice-app">

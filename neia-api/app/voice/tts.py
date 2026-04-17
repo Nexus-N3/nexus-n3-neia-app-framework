@@ -5,6 +5,7 @@ import shlex
 import subprocess
 import tempfile
 import threading
+import time
 import wave
 from typing import Callable, Optional
 from pathlib import Path
@@ -107,16 +108,18 @@ def _run_piper(
             return False, "Piper failed"
         _pad_wav_edges(generated_output_path, lead_ms=pad_lead_ms, tail_ms=pad_tail_ms)
         play_cmd.append(generated_output_path)
-        if on_playback_start:
-            on_playback_start()
-            playback_started = True
-        play_proc = subprocess.run(
+        play_proc = subprocess.Popen(
             play_cmd,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
-            check=False,
         )
-        if play_proc.returncode != 0:
+        if on_playback_start:
+            if pad_lead_ms > 0:
+                time.sleep(max(0.0, float(pad_lead_ms) / 1000.0))
+            on_playback_start()
+            playback_started = True
+        play_rc = play_proc.wait()
+        if play_rc != 0:
             return False, "Audio playback failed"
         return True, None
     except FileNotFoundError:

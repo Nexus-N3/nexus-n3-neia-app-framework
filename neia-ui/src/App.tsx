@@ -557,8 +557,6 @@ async function speakStartupGreeting(): Promise<StartupSpeechMode> {
   }
   startupGreetingSpoken = true;
   try {
-    // Startup should be able to speak even when voice is normally disabled by default.
-    await fetch("/api/v1/voice/enable", { method: "POST" });
     const resp = await fetch("/api/v1/voice/speak", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -800,7 +798,6 @@ export default function App() {
       const speechMode = await speakStartupGreeting();
       if (cancelled) return;
       if (speechMode === "api") {
-        // Start mouth movement when backend reports actual speech start.
         if (STARTUP_API_MOUTH_DELAY_MS > 0) {
           await sleep(STARTUP_API_MOUTH_DELAY_MS);
           if (cancelled) return;
@@ -811,11 +808,9 @@ export default function App() {
         if (started) {
           await waitForApiSpeaking(false, 18000);
         } else {
-          // Fallback if backend speaking transition was missed.
           await sleep(900);
         }
       } else if (speechMode === "browser") {
-        // Browser speech completed in speakStartupGreeting.
         setStartupStage("speaking");
         await sleep(300);
       } else {
