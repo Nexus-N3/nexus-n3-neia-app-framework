@@ -5,6 +5,7 @@ import { BackButton } from '../components/BackButton';
 import { ErrorBanner } from '../components/ErrorBanner';
 import { InfoButton } from '../components/InfoButton';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { ScreenLayout } from '../components/ScreenLayout';
 import { activeActivityAtom, latestComputeResultsAtom } from '../store/atoms';
 import { useStartStream } from '../hooks/useStartStream';
 import { isCompactFlowViewport } from '../utils/displayProfiles';
@@ -37,14 +38,23 @@ export const NewActivityScreen: React.FC = () => {
   };
 
   return (
-    <main className="nexus-content screen-layout new-activity-screen">
-      {/* Sub Header */}
-      <ScreenHeader
-        left={<BackButton onClick={handleBack} />}
-        center={<h2 className="screen-title">{isCompactViewport ? 'ACTIVITY' : 'ACTIVITY NAME'}</h2>}
-        right={<InfoButton />}
-      />
-
+    <ScreenLayout
+      className="screen-layout new-activity-screen"
+      header={
+        <ScreenHeader
+          left={<BackButton onClick={handleBack} />}
+          center={<h2 className="screen-title">{isCompactViewport ? 'ACTIVITY' : 'ACTIVITY NAME'}</h2>}
+          right={<InfoButton />}
+        />
+      }
+      footer={
+        <div className="screen-footer">
+          <button className="nexus-btn continue-btn" onClick={handleStartActivity} disabled={isStarting}>
+            {isStarting ? 'Starting activity...' : 'Start activity'}
+          </button>
+        </div>
+      }
+    >
       <div className="form-container">
         {errorMsg && (
           <ErrorBanner message={errorMsg} onDismiss={dismissError} />
@@ -84,13 +94,6 @@ export const NewActivityScreen: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Footer Button */}
-      <div className="screen-footer">
-        <button className="nexus-btn continue-btn" onClick={handleStartActivity} disabled={isStarting}>
-          {isStarting ? 'Starting activity...' : 'Start activity'}
-        </button>
-      </div>
-    </main>
+    </ScreenLayout>
   );
 };

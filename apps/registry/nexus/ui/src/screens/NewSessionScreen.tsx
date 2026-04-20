@@ -4,6 +4,7 @@ import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { ScreenLayout } from '../components/ScreenLayout';
 import { selectedSubjectAtom, sessionNameAtom, siteNameAtom } from '../store/atoms';
 import { isCompactFlowViewport } from '../utils/displayProfiles';
 
@@ -44,13 +45,23 @@ export const NewSessionScreen: React.FC = () => {
   };
 
   return (
-    <main className="nexus-content screen-layout new-session-screen">
-      <ScreenHeader
-        left={<BackButton onClick={handleBack} />}
-        center={<h2 className="screen-title">{isCompactViewport ? 'SESSION' : 'SESSION NAME'}</h2>}
-        right={<InfoButton />}
-      />
-
+    <ScreenLayout
+      className="screen-layout new-session-screen"
+      header={
+        <ScreenHeader
+          left={<BackButton onClick={handleBack} />}
+          center={<h2 className="screen-title">{isCompactViewport ? 'SESSION' : 'SESSION NAME'}</h2>}
+          right={<InfoButton />}
+        />
+      }
+      footer={
+        <div className="screen-footer">
+          <button className="nexus-btn continue-btn" onClick={handleContinue}>
+            Continue to session setup
+          </button>
+        </div>
+      }
+    >
       <div className="form-container">
         {!isCompactViewport && (
           <div className="form-group">
@@ -80,12 +91,6 @@ export const NewSessionScreen: React.FC = () => {
           />
         </div>
       </div>
-
-      <div className="screen-footer">
-        <button className="nexus-btn continue-btn" onClick={handleContinue}>
-          Continue to session setup
-        </button>
-      </div>
-    </main>
+    </ScreenLayout>
   );
 };

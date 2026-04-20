@@ -109,7 +109,7 @@ export const ActiveSessionScreen: React.FC = () => {
   const setComputeResultsHistory = useSetAtom(computeResultsHistoryAtom);
   const [stoppedSubjects, setStoppedSubjects] = useState<Set<string>>(new Set());
   const { startStreamForSubjects, isStarting, errorMsg: startError, dismissError: dismissStartError } = useStartStream();
-  const { stopStreamForAll, stopStreamForSubjects, isStopping, errorMsg, dismissError } = useStopStream();
+  const { stopStreamForSubjects, isStopping, errorMsg, dismissError } = useStopStream();
   const {
     disconnectAll,
     disconnectCount,
@@ -124,13 +124,14 @@ export const ActiveSessionScreen: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [disconnectRequested, setDisconnectRequested] = useState(false);
   const isCompactViewport = isCompactFlowViewport();
-  const itemsPerPage = isCompactViewport ? 1 : 4;
+  const itemsPerPage = isCompactViewport ? 1 : 2;
   const totalPages = Math.ceil(subjectCount / itemsPerPage);
   
   // Local state for view mode (only relevant when active)
   const [viewMode, setViewMode] = useState<'realtime' | 'periodic'>('realtime');
 
   const subjects = buildWorkflowSubjects(subjectCount, subjectPrefix, configuredSubjects, selectedSubject);
+  const allSubjectsStopped = subjects.length > 0 && subjects.every((subject) => stoppedSubjects.has(subject.name));
 
   const currentSubjects = subjects.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
 
@@ -147,10 +148,19 @@ export const ActiveSessionScreen: React.FC = () => {
   };
 
   const handleEndActivity = async () => {
+    const runningSubjectIds = subjects
+      .filter((subject) => !stoppedSubjects.has(subject.name))
+      .map((subject) => subject.name);
+
+    if (runningSubjectIds.length === 0) {
+      setActiveActivity(false);
+      return;
+    }
+
     try {
-      await stopStreamForAll();
+      await stopStreamForSubjects(runningSubjectIds);
       setStoppedSubjects(new Set(subjects.map((subject) => subject.name)));
-      setActiveActivity(null);
+      setActiveActivity(false);
     } catch {
       // Error state is handled by the hook for UI display.
     }
@@ -162,6 +172,9 @@ export const ActiveSessionScreen: React.FC = () => {
       setStoppedSubjects((prev) => {
         const next = new Set(prev);
         next.add(subjectId);
+        if (next.size >= subjects.length) {
+          setActiveActivity(false);
+        }
         return next;
       });
     } catch {
@@ -195,6 +208,7 @@ export const ActiveSessionScreen: React.FC = () => {
       });
 
       await startStreamForSubjects(activityTag, [subjectId]);
+      setActiveActivity(activityTag);
       setStoppedSubjects((prev) => {
         const next = new Set(prev);
         next.delete(subjectId);
@@ -368,7 +382,7 @@ export const ActiveSessionScreen: React.FC = () => {
 
       {/* Footer Buttons */}
       <div className="action-row">
-        {!activeActivity ? (
+        {allSubjectsStopped ? (
           <button className="nexus-btn disconnect-btn" onClick={handleDisconnectSensors} disabled={isDisconnecting}>
             {isDisconnecting ? 'Disconnecting sensors...' : 'Disconnect sensors'}
           </button>
@@ -380,7 +394,7 @@ export const ActiveSessionScreen: React.FC = () => {
           Manage sensors
         </button>
         
-        {activeActivity ? (
+        {!allSubjectsStopped ? (
           <button className="nexus-btn nexus-btn-danger" onClick={handleEndActivity} disabled={isStopping || isStarting}>
             {isStopping ? 'Ending activity...' : 'End activity'}
           </button>

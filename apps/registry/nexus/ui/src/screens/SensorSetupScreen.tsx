@@ -5,6 +5,7 @@ import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
 import { EditButton } from '../components/EditButton';
 import { DeleteButton } from '../components/DeleteButton';
+import { ScreenLayout } from '../components/ScreenLayout';
 import { configuredSubjectsAtom, setupsAtom, selectedSetupIdAtom, selectedSubjectAtom, sessionNameAtom, subjectCountAtom, supportedComputationsAtom, Setup, subjectPrefixAtom } from '../store/atoms';
 import { useSystemInitialization } from '../hooks/useSystemInitialization';
 import { isCompactFlowViewport } from '../utils/displayProfiles';
@@ -193,13 +194,27 @@ export const SensorSetupScreen: React.FC = () => {
   };
 
   return (
-    <main className="nexus-content screen-layout sensor-setup-screen">
-      <div className="sub-header-row">
-        <BackButton onClick={handleBack} disabled={isInitializing} />
-        <h2 className="screen-title">{isCompactViewport ? 'SETUP' : 'SENSOR SETUP'}</h2>
-        <InfoButton />
-      </div>
-
+    <ScreenLayout
+      className="screen-layout sensor-setup-screen"
+      header={
+        <div className="sub-header-row">
+          <BackButton onClick={handleBack} disabled={isInitializing} />
+          <h2 className="screen-title">{isCompactViewport ? 'SETUP' : 'SENSOR SETUP'}</h2>
+          <InfoButton />
+        </div>
+      }
+      footer={
+        <div className="action-row">
+          <div></div>
+          <button className="nexus-btn secondary-btn" onClick={handleModifyDefault} disabled={isInitializing}>
+            {isCompactViewport ? 'Modify default' : 'Modify default'}
+          </button>
+          <button className="nexus-btn" onClick={handleCreateSession} disabled={isInitializing}>
+            {isInitializing ? 'INITIALIZING...' : 'Create session'}
+          </button>
+        </div>
+      }
+    >
       {errorMsg && (
         <div className="error-banner">
           Error: {errorMsg}
@@ -298,17 +313,6 @@ export const SensorSetupScreen: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Footer Buttons */}
-      <div className="action-row">
-        <div></div>
-        <button className="nexus-btn secondary-btn" onClick={handleModifyDefault} disabled={isInitializing}>
-          {isCompactViewport ? 'Modify default' : 'Modify default'}
-        </button>
-        <button className="nexus-btn" onClick={handleCreateSession} disabled={isInitializing}>
-          {isInitializing ? 'INITIALIZING...' : 'Create session'}
-        </button>
-      </div>
-    </main>
+    </ScreenLayout>
   );
 };

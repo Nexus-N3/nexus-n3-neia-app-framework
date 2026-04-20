@@ -6,6 +6,7 @@ import { InfoButton } from '../components/InfoButton';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { StatusOverlay } from '../components/StatusOverlay';
 import { SubjectsCarousel } from '../components/SubjectsCarousel';
+import { ScreenLayout } from '../components/ScreenLayout';
 import { configuredSubjectsAtom, subjectCountAtom, setupsAtom, selectedSetupIdAtom, selectedSubjectAtom, placedSensorsAtom, subjectPrefixAtom, discoveredSensorsAtom, connectedSensorsAtom } from '../store/atoms';
 import { useDiscoverSensorsCore } from '../hooks/useDiscoverSensorsCore';
 import { useDisconnectSensorsCore } from '../hooks/useDisconnectSensorsCore';
@@ -45,10 +46,10 @@ export const SessionScreen: React.FC = () => {
   const { resetSessionState } = useResetSessionState();
   const [disconnectRequested, setDisconnectRequested] = useState(false);
 
-  // Pagination state (we show 4 items at a time in a 2x2 grid)
+  // Pagination state (desktop shows 2 items at a time, compact shows 1)
   const [currentPage, setCurrentPage] = useState(0);
   const isCompactViewport = isCompactFlowViewport();
-  const itemsPerPage = isCompactViewport ? 1 : 4;
+  const itemsPerPage = isCompactViewport ? 1 : 2;
   const totalPages = Math.ceil(subjectCount / itemsPerPage);
 
   const selectedSetup = setups.find((s) => s.id === selectedSetupId);
@@ -105,16 +106,41 @@ export const SessionScreen: React.FC = () => {
   const currentSubjects = subjects.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
 
   return (
-    <main className="nexus-content screen-layout session-screen">
-      {/* Header Row with Carousel */}
-      <ScreenHeader
-        className="compact"
-        left={<BackButton onClick={handleBack} />}
-        center={<SubjectsCarousel currentPage={currentPage} totalPages={totalPages} onPrev={handlePrevPage} onNext={handleNextPage} />}
-        right={<InfoButton />}
-      />
-
-      {/* Grid Content */}
+    <ScreenLayout
+      className="screen-layout session-screen"
+      header={
+        <ScreenHeader
+          className="compact"
+          left={<BackButton onClick={handleBack} />}
+          center={<SubjectsCarousel currentPage={currentPage} totalPages={totalPages} onPrev={handlePrevPage} onNext={handleNextPage} />}
+          right={<InfoButton />}
+        />
+      }
+      footer={
+        <div className="action-row">
+          <button
+            className="nexus-btn disconnect-btn"
+            onClick={async () => {
+              setDisconnectRequested(true);
+              try {
+                await disconnectAll();
+              } catch {
+                setDisconnectRequested(false);
+              }
+            }}
+            disabled={isBusy || isDisconnecting}
+          >
+            {isDisconnecting ? 'Disconnecting sensors...' : 'Disconnect sensors'}
+          </button>
+          <button className="nexus-btn secondary-btn" onClick={() => discoverAndConnect()} disabled={isBusy || isDisconnecting}>
+            {'Connect all subjects'}
+          </button>
+          <button className="nexus-btn" onClick={() => navigate('/new-activity')} disabled={!allSensorsPlaced || isDisconnecting}>
+            Create Activity
+          </button>
+        </div>
+      }
+    >
       <div className="subjects-grid">
         {currentSubjects.map((subject) => {
           const isComplete = subject.sensorsPlaced >= subject.sensorsRequired && subject.sensorsRequired > 0;
@@ -180,31 +206,6 @@ export const SessionScreen: React.FC = () => {
         })}
       </div>
 
-      {/* Footer Buttons */}
-      <div className="action-row">
-        <button
-          className="nexus-btn disconnect-btn"
-          onClick={async () => {
-            setDisconnectRequested(true);
-            try {
-              await disconnectAll();
-            } catch {
-              setDisconnectRequested(false);
-            }
-          }}
-          disabled={isBusy || isDisconnecting}
-        >
-          {isDisconnecting ? 'Disconnecting sensors...' : 'Disconnect sensors'}
-        </button>
-        <button className="nexus-btn secondary-btn" onClick={() => discoverAndConnect()} disabled={isBusy || isDisconnecting}>
-          {'Connect all subjects'}
-        </button>
-        <button className="nexus-btn" onClick={() => navigate('/new-activity')} disabled={!allSensorsPlaced || isDisconnecting}>
-          Create Activity
-        </button>
-      </div>
-
-      {/* Overlay Modal */}
       <StatusOverlay
         busy={isBusy || isDisconnecting}
         statusText={
@@ -223,6 +224,6 @@ export const SessionScreen: React.FC = () => {
         errors={[discoverError, disconnectError]}
         onDismiss={disconnectError ? dismissDisconnectError : phase === 'error' ? dismiss : undefined}
       />
-    </main>
+    </ScreenLayout>
   );
 };

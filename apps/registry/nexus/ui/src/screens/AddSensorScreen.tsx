@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAtom, useSetAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
+import { ScreenLayout } from '../components/ScreenLayout';
 import { setupsAtom, selectedSetupIdAtom, Sensor, supportedSensorsAtom, supportedLocationsAtom, supportedComputationsAtom } from '../store/atoms';
 import { isCompactFlowViewport } from '../utils/displayProfiles';
 
@@ -109,13 +110,29 @@ export const AddSensorScreen: React.FC = () => {
   };
 
   return (
-    <main className="nexus-content screen-layout">
-      <div className="sub-header-row">
-        <BackButton onClick={handleBack} />
-        <h2 className="screen-title">{isCompactViewport ? 'ADD SENSOR' : 'ADD SENSOR CONFIGURATION'}</h2>
-        <InfoButton />
-      </div>
-
+    <ScreenLayout
+      className="screen-layout"
+      header={
+        <div className="sub-header-row">
+          <BackButton onClick={handleBack} />
+          <h2 className="screen-title">{isCompactViewport ? 'ADD SENSOR' : 'ADD SENSOR CONFIGURATION'}</h2>
+          <InfoButton />
+        </div>
+      }
+      footer={
+        <div className="action-row">
+          <div></div>
+          <div></div>
+          <button
+            className="nexus-btn"
+            disabled={!selectedType || selectedPlacements.length === 0}
+            onClick={handleAddSensor}
+          >
+            Add sensor
+          </button>
+        </div>
+      }
+    >
       <div className="three-col-grid">
         {/* Column 1: SENSOR TYPE */}
         <div className="column-panel type-col">
@@ -222,18 +239,6 @@ export const AddSensorScreen: React.FC = () => {
         </div>
 
       </div>
-
-      <div className="action-row">
-        <div></div>
-        <div></div>
-        <button
-          className="nexus-btn"
-          disabled={!selectedType || selectedPlacements.length === 0}
-          onClick={handleAddSensor}
-        >
-          Add sensor
-        </button>
-      </div>
-    </main>
+    </ScreenLayout>
   );
 };

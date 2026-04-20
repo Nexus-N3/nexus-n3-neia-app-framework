@@ -6,6 +6,7 @@ import { InfoButton } from '../components/InfoButton';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { SensorRow } from '../components/SensorRow';
 import { SubjectsCarousel } from '../components/SubjectsCarousel';
+import { ScreenLayout } from '../components/ScreenLayout';
 import { configuredSubjectsAtom, subjectCountAtom, setupsAtom, selectedSetupIdAtom, selectedSubjectAtom, placedSensorsAtom, activeActivityAtom, subjectPrefixAtom, connectedSensorsAtom } from '../store/atoms';
 import { isCompactFlowViewport } from '../utils/displayProfiles';
 import { buildWorkflowSubjects } from '../utils/subjects';
@@ -72,27 +73,41 @@ export const AssignSensorsScreen: React.FC = () => {
   };
 
   return (
-    <main className="nexus-content screen-layout stretch assign-sensors-screen">
-      {/* Sub Header */}
-      <ScreenHeader
-        className="compact"
-        left={<BackButton onClick={handleBack} />}
-        center={
-          targetSubjectId ? (
-            <SubjectsCarousel
-              currentPage={targetSubjectId - 1}
-              totalPages={subjectCount}
-              onPrev={handlePrevSubject}
-              onNext={handleNextSubject}
-              title={subjects[0]?.displayName ?? subjects[0]?.name ?? ''}
-            />
-          ) : (
-            <h2 className="screen-title">{isCompactViewport ? 'SENSORS' : 'PLACE SENSORS'}</h2>
-          )
-        }
-        right={<InfoButton />}
-      />
-
+    <ScreenLayout
+      className="screen-layout stretch assign-sensors-screen"
+      header={
+        <ScreenHeader
+          className="compact"
+          left={<BackButton onClick={handleBack} />}
+          center={
+            targetSubjectId ? (
+              <SubjectsCarousel
+                currentPage={targetSubjectId - 1}
+                totalPages={subjectCount}
+                onPrev={handlePrevSubject}
+                onNext={handleNextSubject}
+                title={subjects[0]?.displayName ?? subjects[0]?.name ?? ''}
+              />
+            ) : (
+              <h2 className="screen-title">{isCompactViewport ? 'SENSORS' : 'PLACE SENSORS'}</h2>
+            )
+          }
+          right={<InfoButton />}
+        />
+      }
+      footer={
+        <div className="action-row">
+          <div></div>
+          <div></div>
+          <button
+            className="nexus-btn"
+            onClick={() => (activeActivity ? navigate('/active-session') : navigate('/session'))}
+          >
+            Return to session
+          </button>
+        </div>
+      }
+    >
       <div className="sensors-scroll-container">
         {subjects.map((subject) => (
           <div key={subject.id} className="subject-section">
@@ -119,18 +134,6 @@ export const AssignSensorsScreen: React.FC = () => {
           </div>
         ))}
       </div>
-
-      {/* Footer Buttons */}
-      <div className="action-row">
-        <div></div>
-        <div></div>
-        <button
-          className="nexus-btn"
-          onClick={() => (activeActivity ? navigate('/active-session') : navigate('/session'))}
-        >
-          Return to session
-        </button>
-      </div>
-    </main>
+    </ScreenLayout>
   );
 };

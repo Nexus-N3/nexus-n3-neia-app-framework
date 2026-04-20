@@ -4,6 +4,7 @@ import { useAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { ScreenLayout } from '../components/ScreenLayout';
 import { selectedSubjectAtom, subjectCountAtom, subjectPrefixAtom } from '../store/atoms';
 import { isCompactFlowViewport } from '../utils/displayProfiles';
 
@@ -37,13 +38,23 @@ export const SubjectsRequiredScreen: React.FC = () => {
   };
 
   return (
-    <main className="nexus-content">
-      <ScreenHeader
-        left={<BackButton onClick={handleBack} />}
-        center={<h2 className="screen-title">{isCompactViewport ? 'SUBJECTS' : 'SUBJECTS REQUIRED'}</h2>}
-        right={<InfoButton />}
-      />
-
+    <ScreenLayout
+      className="screen-layout subjects-required-screen"
+      header={
+        <ScreenHeader
+          left={<BackButton onClick={handleBack} />}
+          center={<h2 className="screen-title">{isCompactViewport ? 'SUBJECTS' : 'SUBJECTS REQUIRED'}</h2>}
+          right={<InfoButton />}
+        />
+      }
+      footer={
+        <div className="screen-footer">
+          <button className="nexus-btn continue-btn" onClick={handleContinue}>
+            Continue to sensor requirements
+          </button>
+        </div>
+      }
+    >
       <div className="subject-counter-container">
         <button className="counter-btn" onClick={decrement}>
           <svg width="60" height="10" viewBox="0 0 60 10" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -75,12 +86,6 @@ export const SubjectsRequiredScreen: React.FC = () => {
           </span>
         </div>
       </div>
-
-      <div className="screen-footer">
-        <button className="nexus-btn continue-btn" onClick={handleContinue}>
-          Continue to sensor requirements
-        </button>
-      </div>
-    </main>
+    </ScreenLayout>
   );
 };
