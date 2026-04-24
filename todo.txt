@@ -1,0 +1,8 @@
+review the end activity flow when it is stopped for a subject vs using the global end activity button in rs-nexus-neia/nexus
+
+requriements
+if there is one stop the subject and end the session as all subjects are stopped
+if there is more than one wait for the all subjects to be stopped before archiving the session
+make sure that when all subjects are stopped the global end activity button cannot be pressed
+
+ensure that when stopping subjects only a single session archive is created for the session.

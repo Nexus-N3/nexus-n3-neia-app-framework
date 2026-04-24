@@ -148,6 +148,10 @@ export const ActiveSessionScreen: React.FC = () => {
   };
 
   const handleEndActivity = async () => {
+    if (allSubjectsStopped || isStopping || isStarting) {
+      return;
+    }
+
     const runningSubjectIds = subjects
       .filter((subject) => !stoppedSubjects.has(subject.name))
       .map((subject) => subject.name);
