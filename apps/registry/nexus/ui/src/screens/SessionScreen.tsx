@@ -46,10 +46,10 @@ export const SessionScreen: React.FC = () => {
   const { resetSessionState } = useResetSessionState();
   const [disconnectRequested, setDisconnectRequested] = useState(false);
 
-  // Pagination state (desktop shows 2 items at a time, compact shows 1)
+  // Pagination state (larger screens show 4 items at a time, compact shows 1)
   const [currentPage, setCurrentPage] = useState(0);
   const isCompactViewport = isCompactFlowViewport();
-  const itemsPerPage = isCompactViewport ? 1 : 2;
+  const itemsPerPage = isCompactViewport ? 1 : 4;
   const totalPages = Math.ceil(subjectCount / itemsPerPage);
 
   const selectedSetup = setups.find((s) => s.id === selectedSetupId);

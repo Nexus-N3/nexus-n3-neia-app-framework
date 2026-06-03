@@ -889,6 +889,48 @@
     text-align: center;
   }
 
+  .startup-gate-card-content.compact {
+    padding: 12px 10px;
+    gap: 10px;
+  }
+
+  .startup-gate-card-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .startup-phase-badge {
+    align-self: center;
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+
+  .startup-gate-body {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .startup-countdown-panel,
+  .startup-status-panel {
+    padding: 12px;
+  }
+
+  .startup-countdown-value {
+    font-size: 42px;
+  }
+
+  .startup-status-message {
+    font-size: 14px;
+    line-height: 1.3;
+  }
+
+  .startup-status-reason,
+  .startup-countdown-label,
+  .startup-status-title {
+    font-size: 11px;
+  }
+
   .compact-intensity-values {
     display: grid;
     grid-template-columns: 1fr;

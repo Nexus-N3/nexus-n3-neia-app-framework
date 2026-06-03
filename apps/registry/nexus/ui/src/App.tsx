@@ -24,11 +24,13 @@ import { useBatteryUpdatesCore } from './hooks/useBatteryUpdatesCore';
 import { useConnectedSensorUpdatesCore } from './hooks/useConnectedSensorUpdatesCore';
 import { useDisconnectSensorsCore } from './hooks/useDisconnectSensorsCore';
 import { useResetSessionState } from './hooks/useResetSessionState';
+import { useStreamLifecycleCore } from './hooks/useStreamLifecycleCore';
 import { readSelectedSubjectContext } from './utils/subjectContext';
 import { readSelectedSessionConfig } from './utils/sessionConfigContext';
 
 const AppContent = () => {
   useServerReadiness(); // Request and listen for server readiness
+  useStreamLifecycleCore();
   const location = useLocation();
   const navigate = useNavigate();
   const [sessionName] = useAtom(sessionNameAtom);

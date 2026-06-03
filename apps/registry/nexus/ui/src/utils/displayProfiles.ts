@@ -8,6 +8,7 @@ export const normalizeProfile = (raw?: string | null): string => {
   const cleaned = raw.trim().toLowerCase().replace(/\s+/g, '').replace(/_/g, '-');
   const aliasMap: Record<string, string> = {
     '5in-800x480': '800x480',
+    '10in-landscape': '1280x800-landscape',
   };
 
   return aliasMap[cleaned] || cleaned;
@@ -31,6 +32,9 @@ export const resolveDisplayProfile = (): string => {
   const { innerWidth, innerHeight } = window;
   if (innerWidth <= 800 && innerHeight <= 480) {
     return '800x480';
+  }
+  if (innerWidth <= 1280 && innerHeight <= 800 && innerWidth > 800) {
+    return '1280x800-landscape';
   }
 
   return '';
