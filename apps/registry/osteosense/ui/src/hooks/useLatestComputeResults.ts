@@ -5,6 +5,7 @@ import {
   activeActivityAtom,
   computeResultsHistoryAtom,
   latestComputeResultsAtom,
+  streamLifecycleBySubjectAtom,
   type LatestComputeResultsMap,
   type LatestSensorResult,
 } from '../store/atoms';
@@ -15,6 +16,7 @@ export const useLatestComputeResults = () => {
   const { subscribe } = useGatewaySocket();
   const latestResults = useAtomValue(latestComputeResultsAtom);
   const activeActivity = useAtomValue(activeActivityAtom);
+  const streamLifecycleBySubject = useAtomValue(streamLifecycleBySubjectAtom);
   const resultHistory = useAtomValue(computeResultsHistoryAtom);
   const setLatestResults = useSetAtom(latestComputeResultsAtom);
   const setResultHistory = useSetAtom(computeResultsHistoryAtom);
@@ -46,8 +48,9 @@ export const useLatestComputeResults = () => {
       const subjectId = payload.subject_id;
       const address = payload.result?.address;
       const resultCount = payload.result?.result_count;
+      const lifecycle = subjectId ? streamLifecycleBySubject[subjectId] : undefined;
 
-      if (!subjectId || !address) {
+      if (!subjectId || !address || lifecycle?.phase !== 'official_streaming') {
         return;
       }
 
@@ -117,7 +120,7 @@ export const useLatestComputeResults = () => {
     });
 
     return unsubscribe;
-  }, [activeActivity, setLatestResults, setResultHistory, subscribe]);
+  }, [activeActivity, setLatestResults, setResultHistory, streamLifecycleBySubject, subscribe]);
 
   const clearLatestResults = useCallback(() => {
     setLatestResults({});

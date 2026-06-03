@@ -1,8 +1,8 @@
 {
-  "id": "nexus_load",
-  "name": "Nexus Load",
+  "id": "osteosense",
+  "name": "Osteosense",
   "version": "0.1.0",
-  "description": "Nexus Load Workflow",
+  "description": "Osteosense Workflow",
   "app_type": "workflow",
   "developer": "RS Nexus",
   "icon": "icon.png",
@@ -11,7 +11,7 @@
   "layout_mode": "framed",
   "entry_ui": "ui/assets/index.js?v=8",
   "style": "ui/assets/index.css?v=8",
-  "mount": "NexusLoadMount",
+  "mount": "OsteosenseMount",
   "dev_entry_ui": "http://localhost:3003/src/main.tsx",
-  "dev_mount": "NexusLoadMount"
+  "dev_mount": "OsteosenseMount"
 }

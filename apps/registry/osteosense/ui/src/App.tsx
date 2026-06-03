@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-ro
 import { useAtom, useSetAtom } from 'jotai';
 import './App.css';
 import './styles/App.compact.css';
-import logo from './assets/logo.svg';
+import logo from './assets/osteosense_logo.png';
 import appManifest from '../../app.json';
 import { HomeScreen } from './screens/HomeScreen';
 import { SubjectsRequiredScreen } from './screens/SubjectsRequiredScreen';
@@ -20,10 +20,12 @@ import { useBatteryUpdatesCore } from './hooks/useBatteryUpdatesCore';
 import { useConnectedSensorUpdatesCore } from './hooks/useConnectedSensorUpdatesCore';
 import { useDisconnectSensorsCore } from './hooks/useDisconnectSensorsCore';
 import { useResetSessionState } from './hooks/useResetSessionState';
+import { useStreamLifecycleCore } from './hooks/useStreamLifecycleCore';
 import { readSelectedSubjectContext } from './utils/subjectContext';
 
 const AppContent = () => {
   useServerReadiness(); // Request and listen for server readiness
+  useStreamLifecycleCore();
   const location = useLocation();
   const navigate = useNavigate();
   const [sessionName] = useAtom(sessionNameAtom);
@@ -96,7 +98,7 @@ const AppContent = () => {
       <div className="nexus-app">
         <header className="nexus-header">
           <div className="header-left">
-            <img src={logo} alt="Nexus Logo" className="logo-img" />
+            <img src={logo} alt="Osteosense Logo" className="logo-img" />
           </div>
           <div className="header-center">
             <div className="header-app-meta">

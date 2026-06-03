@@ -88,8 +88,8 @@ export const BarGraph: React.FC<BarGraphProps> = ({
               flex: 1,
             }}
           >
-            <div style={{ flex: 1, height: heights.l, backgroundColor: '#5960F6', borderRadius: '4px' }}></div>
-            <div style={{ flex: 1, height: heights.r, backgroundColor: '#19D2EA', borderRadius: '4px' }}></div>
+            <div style={{ flex: 1, height: heights.l, backgroundColor: '#617BFE', borderRadius: '4px' }}></div>
+            <div style={{ flex: 1, height: heights.r, backgroundColor: '#1CDEF6', borderRadius: '4px' }}></div>
           </div>
         ))}
       </div>
@@ -157,9 +157,9 @@ export const BarGraph: React.FC<BarGraphProps> = ({
           {graphData.map((heights, i) => (
             <div key={i} style={{ display: 'flex', gap: '6px', alignItems: 'flex-end', height: '100%', width: columnWidth, maxWidth: '96px' }}>
               {/* Left Bar (Darker) */}
-              <div style={{ flex: 1, height: heights.l, backgroundColor: '#5960F6', borderRadius: '4px 4px 0 0' }}></div>
+              <div style={{ flex: 1, height: heights.l, backgroundColor: '#617BFE', borderRadius: '4px 4px 0 0' }}></div>
               {/* Right Bar (Lighter) */}
-              <div style={{ flex: 1, height: heights.r, backgroundColor: '#19D2EA', borderRadius: '4px 4px 0 0' }}></div>
+              <div style={{ flex: 1, height: heights.r, backgroundColor: '#1CDEF6', borderRadius: '4px 4px 0 0' }}></div>
             </div>
           ))}
         </div>

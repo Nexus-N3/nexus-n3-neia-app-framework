@@ -15,7 +15,7 @@ const mount: MountFn = (el) => {
 };
 
 if (typeof globalThis !== 'undefined') {
-  globalThis.NexusLoadMount = mount;
+  globalThis.OsteosenseMount = mount;
 }
 
 const appMountEl = document.getElementById('app-mount');

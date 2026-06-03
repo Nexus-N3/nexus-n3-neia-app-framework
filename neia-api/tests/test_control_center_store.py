@@ -44,7 +44,7 @@ def test_store_merges_control_center_app_metadata_with_local_registry(tmp_path: 
     registry_dir = tmp_path / "registry"
     installed_file = tmp_path / "installed.json"
     _write_app_manifest(registry_dir, "nexus", "Nexus")
-    _write_app_manifest(registry_dir, "nexus_load", "Nexus Load")
+    _write_app_manifest(registry_dir, "osteosense", "Osteosense")
     installed_file.write_text(json.dumps(["nexus"]), encoding="utf-8")
 
     registry = AppRegistry(registry_dir=registry_dir, installed_file=installed_file)
@@ -66,7 +66,7 @@ def test_store_merges_control_center_app_metadata_with_local_registry(tmp_path: 
 
     assert result["status"] == "accepted"
     assert catalog["control_center_state"]["cloud_app_count"] == 2
-    assert [item["id"] for item in catalog["apps"]] == ["nexus", "nexus_load"]
+    assert [item["id"] for item in catalog["apps"]] == ["nexus", "osteosense"]
     assert catalog["apps"][0]["installed"] is True
     assert catalog["apps"][0]["control_center_enabled"] is True
     assert catalog["apps"][0]["display_order"] == 2

@@ -1,0 +1,207 @@
+import { useEffect } from 'react';
+import { useSetAtom } from 'jotai';
+import { useGatewaySocket } from './useGatewaySocket';
+import {
+  activeStreamTargetSubjectIdsAtom,
+  streamLifecycleBySubjectAtom,
+  type StreamLifecyclePhase,
+  type SubjectStreamLifecycleState,
+} from '../store/atoms';
+
+type UnknownRecord = Record<string, unknown>;
+
+const DEFAULT_GATE_SECONDS = 5;
+
+const isRecord = (value: unknown): value is UnknownRecord =>
+  typeof value === 'object' && value !== null;
+
+const normalizeSubjectIds = (payload: unknown): string[] => {
+  if (!isRecord(payload)) {
+    return [];
+  }
+
+  if (Array.isArray(payload.subject_ids)) {
+    return payload.subject_ids.filter((value): value is string => typeof value === 'string' && value.length > 0);
+  }
+
+  if (Array.isArray(payload.subjects)) {
+    return payload.subjects
+      .filter(isRecord)
+      .map((subject) => (typeof subject.subject_id === 'string' ? subject.subject_id : ''))
+      .filter((subjectId): subjectId is string => subjectId.length > 0);
+  }
+
+  return [];
+};
+
+const asNumber = (value: unknown, fallback: number): number =>
+  typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+
+const buildLifecycleState = (
+  phase: StreamLifecyclePhase,
+  previous: SubjectStreamLifecycleState | undefined,
+  options: {
+    attempt?: number;
+    maxAttempts?: number;
+    gateDurationSeconds?: number;
+    statusMessage: string;
+    reason?: string | null;
+    isOfficial?: boolean;
+    lastEventType: string;
+    restartCountdown?: boolean;
+  },
+): SubjectStreamLifecycleState => ({
+  phase,
+  attempt: options.attempt ?? previous?.attempt ?? 0,
+  maxAttempts: options.maxAttempts ?? previous?.maxAttempts ?? 2,
+  countdownStartedAtMs: options.restartCountdown ? Date.now() : (previous?.countdownStartedAtMs ?? null),
+  gateDurationSeconds: options.gateDurationSeconds ?? previous?.gateDurationSeconds ?? DEFAULT_GATE_SECONDS,
+  statusMessage: options.statusMessage,
+  reason: options.reason ?? null,
+  isOfficial: options.isOfficial ?? previous?.isOfficial ?? false,
+  lastEventType: options.lastEventType,
+});
+
+export const useStreamLifecycleCore = () => {
+  const { subscribe } = useGatewaySocket();
+  const setStreamLifecycleBySubject = useSetAtom(streamLifecycleBySubjectAtom);
+  const setActiveStreamTargetSubjectIds = useSetAtom(activeStreamTargetSubjectIdsAtom);
+
+  useEffect(() => {
+    const unsubscribe = subscribe((msg) => {
+      const subjectIds = normalizeSubjectIds(msg.payload);
+      if (subjectIds.length === 0) {
+        return;
+      }
+
+      if (msg.type === 'stream_started') {
+        setActiveStreamTargetSubjectIds(subjectIds);
+        setStreamLifecycleBySubject((prev) => {
+          const next = { ...prev };
+          subjectIds.forEach((subjectId) => {
+            next[subjectId] = buildLifecycleState('starting', prev[subjectId], {
+              statusMessage: 'Starting measurement',
+              lastEventType: msg.type,
+              reason: null,
+              isOfficial: false,
+              restartCountdown: false,
+            });
+          });
+          return next;
+        });
+        return;
+      }
+
+      if (msg.type === 'stream_warmup_started') {
+        const payload = isRecord(msg.payload) ? msg.payload : {};
+        const gateDurationSeconds = asNumber(payload.startup_total_gate_seconds, DEFAULT_GATE_SECONDS);
+        const attempt = asNumber(payload.attempt, 1);
+        const maxAttempts = asNumber(payload.max_attempts, 2);
+        setActiveStreamTargetSubjectIds(subjectIds);
+        setStreamLifecycleBySubject((prev) => {
+          const next = { ...prev };
+          subjectIds.forEach((subjectId) => {
+            next[subjectId] = buildLifecycleState('warming_up', prev[subjectId], {
+              attempt,
+              maxAttempts,
+              gateDurationSeconds,
+              statusMessage: 'Preparing sensors',
+              reason: null,
+              isOfficial: false,
+              lastEventType: msg.type,
+              restartCountdown: true,
+            });
+          });
+          return next;
+        });
+        return;
+      }
+
+      if (msg.type === 'stream_startup_retry') {
+        const payload = isRecord(msg.payload) ? msg.payload : {};
+        const attempt = asNumber(payload.attempt, 1);
+        const maxAttempts = asNumber(payload.max_attempts, 2);
+        const reason = typeof payload.reason === 'string' ? payload.reason : null;
+        setStreamLifecycleBySubject((prev) => {
+          const next = { ...prev };
+          subjectIds.forEach((subjectId) => {
+            next[subjectId] = buildLifecycleState('retrying', prev[subjectId], {
+              attempt,
+              maxAttempts,
+              statusMessage: `Retrying start (${attempt}/${maxAttempts})`,
+              reason,
+              isOfficial: false,
+              lastEventType: msg.type,
+              restartCountdown: false,
+            });
+          });
+          return next;
+        });
+        return;
+      }
+
+      if (msg.type === 'stream_official_started') {
+        const payload = isRecord(msg.payload) ? msg.payload : {};
+        const attempt = asNumber(payload.attempt, 1);
+        const maxAttempts = asNumber(payload.max_attempts, 2);
+        setStreamLifecycleBySubject((prev) => {
+          const next = { ...prev };
+          subjectIds.forEach((subjectId) => {
+            next[subjectId] = buildLifecycleState('official_streaming', prev[subjectId], {
+              attempt,
+              maxAttempts,
+              statusMessage: 'Official measurement started',
+              reason: null,
+              isOfficial: true,
+              lastEventType: msg.type,
+              restartCountdown: false,
+            });
+          });
+          return next;
+        });
+        return;
+      }
+
+      if (msg.type === 'stream_startup_failed') {
+        const payload = isRecord(msg.payload) ? msg.payload : {};
+        const attempt = asNumber(payload.attempt, 1);
+        const maxAttempts = asNumber(payload.max_attempts, 2);
+        const reason = typeof payload.reason === 'string' ? payload.reason : 'Measurement start failed';
+        setStreamLifecycleBySubject((prev) => {
+          const next = { ...prev };
+          subjectIds.forEach((subjectId) => {
+            next[subjectId] = buildLifecycleState('startup_failed', prev[subjectId], {
+              attempt,
+              maxAttempts,
+              statusMessage: 'Failed to start measurement',
+              reason,
+              isOfficial: false,
+              lastEventType: msg.type,
+              restartCountdown: false,
+            });
+          });
+          return next;
+        });
+        return;
+      }
+
+      if (msg.type === 'stream_stopped') {
+        setStreamLifecycleBySubject((prev) => {
+          const next = { ...prev };
+          subjectIds.forEach((subjectId) => {
+            next[subjectId] = buildLifecycleState('stopped', prev[subjectId], {
+              statusMessage: 'Measurement stopped',
+              reason: null,
+              isOfficial: false,
+              lastEventType: msg.type,
+              restartCountdown: false,
+            });
+          });
+          return next;
+        });
+      }
+    });
+
+    return unsubscribe;
+  }, [setActiveStreamTargetSubjectIds, setStreamLifecycleBySubject, subscribe]);
+};

@@ -6,6 +6,7 @@ import {
   latestIntermediateComparisonsAtom,
   latestComputeResultsAtom,
   latestIntermediateResultsAtom,
+  streamLifecycleBySubjectAtom,
   type IntermediateComparisonResult,
   type LatestSensorResult,
 } from '../store/atoms';
@@ -14,6 +15,7 @@ export const useLatestIntermediateResults = () => {
   const { subscribe } = useGatewaySocket();
   const activeActivity = useAtomValue(activeActivityAtom);
   const latestResults = useAtomValue(latestComputeResultsAtom);
+  const streamLifecycleBySubject = useAtomValue(streamLifecycleBySubjectAtom);
   const latestIntermediateResults = useAtomValue(latestIntermediateResultsAtom);
   const latestIntermediateComparisons = useAtomValue(latestIntermediateComparisonsAtom);
   const setLatestIntermediateResults = useSetAtom(latestIntermediateResultsAtom);
@@ -43,8 +45,9 @@ export const useLatestIntermediateResults = () => {
 
       const subjectId = payload.subject_id;
       const results = payload.results;
+      const lifecycle = subjectId ? streamLifecycleBySubject[subjectId] : undefined;
 
-      if (!subjectId || !Array.isArray(results) || results.length === 0) {
+      if (!subjectId || !Array.isArray(results) || results.length === 0 || lifecycle?.phase !== 'official_streaming') {
         return;
       }
 
@@ -101,7 +104,7 @@ export const useLatestIntermediateResults = () => {
     });
 
     return unsubscribe;
-  }, [activeActivity, latestResults, setLatestIntermediateComparisons, setLatestIntermediateResults, subscribe]);
+  }, [activeActivity, latestResults, setLatestIntermediateComparisons, setLatestIntermediateResults, streamLifecycleBySubject, subscribe]);
 
   const clearLatestIntermediateResults = useCallback(() => {
     setLatestIntermediateResults({});

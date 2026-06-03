@@ -1,15 +1,41 @@
 import { useCallback, useState } from 'react';
+import { useSetAtom } from 'jotai';
 import { useGatewaySocket } from './useGatewaySocket';
+import { activeStreamTargetSubjectIdsAtom, streamLifecycleBySubjectAtom } from '../store/atoms';
 
 export const useStartStream = () => {
   const { sendCommand } = useGatewaySocket();
   const [isStarting, setIsStarting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const setActiveStreamTargetSubjectIds = useSetAtom(activeStreamTargetSubjectIdsAtom);
+  const setStreamLifecycleBySubject = useSetAtom(streamLifecycleBySubjectAtom);
+
+  const markStarting = useCallback((subjectIds: string[]) => {
+    setActiveStreamTargetSubjectIds(subjectIds);
+    setStreamLifecycleBySubject((prev) => {
+      const next = { ...prev };
+      subjectIds.forEach((subjectId) => {
+        next[subjectId] = {
+          phase: 'starting',
+          attempt: 1,
+          maxAttempts: 2,
+          countdownStartedAtMs: null,
+          gateDurationSeconds: 5,
+          statusMessage: 'Starting measurement',
+          reason: null,
+          isOfficial: false,
+          lastEventType: 'command_start_requested',
+        };
+      });
+      return next;
+    });
+  }, [setActiveStreamTargetSubjectIds, setStreamLifecycleBySubject]);
 
   const startStreamForAll = useCallback(
-    async (tag: string) => {
+    async (tag: string, subjectIds: string[]) => {
       setIsStarting(true);
       setErrorMsg(null);
+      markStarting(subjectIds);
 
       try {
         await sendCommand({
@@ -24,13 +50,14 @@ export const useStartStream = () => {
         setIsStarting(false);
       }
     },
-    [sendCommand],
+    [markStarting, sendCommand],
   );
 
   const startStreamForSubjects = useCallback(
     async (tag: string, subjectIds: string[]) => {
       setIsStarting(true);
       setErrorMsg(null);
+      markStarting(subjectIds);
 
       try {
         await sendCommand({
@@ -48,7 +75,7 @@ export const useStartStream = () => {
         setIsStarting(false);
       }
     },
-    [sendCommand],
+    [markStarting, sendCommand],
   );
 
   const dismissError = useCallback(() => {

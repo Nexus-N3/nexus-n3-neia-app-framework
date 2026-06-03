@@ -129,3 +129,32 @@ export interface ComputeResultsHistoryMap {
 }
 
 export const computeResultsHistoryAtom = atom<ComputeResultsHistoryMap>({});
+
+export type StreamLifecyclePhase =
+  | 'idle'
+  | 'starting'
+  | 'warming_up'
+  | 'retrying'
+  | 'official_streaming'
+  | 'startup_failed'
+  | 'stopping'
+  | 'stopped';
+
+export interface SubjectStreamLifecycleState {
+  phase: StreamLifecyclePhase;
+  attempt: number;
+  maxAttempts: number;
+  countdownStartedAtMs: number | null;
+  gateDurationSeconds: number;
+  statusMessage: string;
+  reason: string | null;
+  isOfficial: boolean;
+  lastEventType: string | null;
+}
+
+export interface StreamLifecycleStateMap {
+  [subjectId: string]: SubjectStreamLifecycleState;
+}
+
+export const streamLifecycleBySubjectAtom = atom<StreamLifecycleStateMap>({});
+export const activeStreamTargetSubjectIdsAtom = atom<string[]>([]);

@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useSetAtom } from 'jotai';
 import {
   activeActivityAtom,
+  activeStreamTargetSubjectIdsAtom,
   batteryStatusesAtom,
   computeResultsHistoryAtom,
   connectedSensorsAtom,
@@ -13,6 +14,7 @@ import {
   selectedSetupIdAtom,
   selectedSubjectAtom,
   sessionNameAtom,
+  streamLifecycleBySubjectAtom,
   subjectCountAtom,
   subjectPrefixAtom,
 } from '../store/atoms';
@@ -25,6 +27,7 @@ export const useResetSessionState = () => {
   const setSubjectCount = useSetAtom(subjectCountAtom);
   const setSelectedSetupId = useSetAtom(selectedSetupIdAtom);
   const setSelectedSubject = useSetAtom(selectedSubjectAtom);
+  const setActiveStreamTargetSubjectIds = useSetAtom(activeStreamTargetSubjectIdsAtom);
   const setPlacedSensors = useSetAtom(placedSensorsAtom);
   const setDiscoveredSensors = useSetAtom(discoveredSensorsAtom);
   const setConnectedSensors = useSetAtom(connectedSensorsAtom);
@@ -32,6 +35,7 @@ export const useResetSessionState = () => {
   const setLatestIntermediateResults = useSetAtom(latestIntermediateResultsAtom);
   const setLatestIntermediateComparisons = useSetAtom(latestIntermediateComparisonsAtom);
   const setComputeResultsHistory = useSetAtom(computeResultsHistoryAtom);
+  const setStreamLifecycleBySubject = useSetAtom(streamLifecycleBySubjectAtom);
 
   const resetSessionState = useCallback(() => {
     setSessionName('');
@@ -40,6 +44,7 @@ export const useResetSessionState = () => {
     setBatteryStatuses({});
     setSubjectCount(1);
     setSelectedSubject(null);
+    setActiveStreamTargetSubjectIds([]);
     setSelectedSetupId('default');
     setPlacedSensors(new Set<string>());
     setDiscoveredSensors({});
@@ -48,8 +53,10 @@ export const useResetSessionState = () => {
     setLatestIntermediateResults({});
     setLatestIntermediateComparisons({});
     setComputeResultsHistory({});
+    setStreamLifecycleBySubject({});
   }, [
     setActiveActivity,
+    setActiveStreamTargetSubjectIds,
     setBatteryStatuses,
     setComputeResultsHistory,
     setConnectedSensors,
@@ -61,6 +68,7 @@ export const useResetSessionState = () => {
     setSelectedSetupId,
     setSelectedSubject,
     setSessionName,
+    setStreamLifecycleBySubject,
     setSubjectCount,
     setSubjectPrefix,
   ]);

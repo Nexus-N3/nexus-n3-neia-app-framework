@@ -14,7 +14,7 @@ TARGET_ALIASES = {
     "neia-api.control_center",
 }
 SUPPORTED_MESSAGE_TYPES = {"app_catalog_update", "subject_catalog_update", "session_config_update"}
-WORKFLOW_APP_IDS = {"nexus", "nexus_load"}
+WORKFLOW_APP_IDS = {"nexus", "osteosense"}
 FORWARDED_EVENT_TYPES = {"control_center_message", "neia_control_message"}
 DUMMY_SUBJECT_CATALOG = {
     "customer_id": "customer-dlr",
