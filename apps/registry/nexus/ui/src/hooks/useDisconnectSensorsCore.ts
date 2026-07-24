@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useAtomValue } from 'jotai';
 import { useGatewaySocket } from './useGatewaySocket';
+import { streamDrainStateAtom } from '../store/atoms';
 
 export const useDisconnectSensorsCore = () => {
   const { sendCommand, subscribe } = useGatewaySocket();
+  const streamDrainState = useAtomValue(streamDrainStateAtom);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [disconnectCount, setDisconnectCount] = useState(0);
@@ -37,6 +40,12 @@ export const useDisconnectSensorsCore = () => {
   }, [isDisconnecting, subscribe]);
 
   const disconnectAll = useCallback(async () => {
+    if (streamDrainState.pending) {
+      const message = 'Session finalization is still in progress. Wait for stream drain to complete before disconnecting.';
+      setErrorMsg(message);
+      throw new Error(message);
+    }
+
     setIsDisconnecting(true);
     setErrorMsg(null);
 
@@ -48,7 +57,7 @@ export const useDisconnectSensorsCore = () => {
       setIsDisconnecting(false);
       throw error;
     }
-  }, [sendCommand]);
+  }, [sendCommand, streamDrainState.pending]);
 
   const dismissError = useCallback(() => {
     setErrorMsg(null);
@@ -58,6 +67,7 @@ export const useDisconnectSensorsCore = () => {
     disconnectAll,
     disconnectCount,
     isDisconnecting,
+    isDrainPending: streamDrainState.pending,
     errorMsg,
     dismissError,
   };

@@ -3,6 +3,7 @@ import { useSetAtom } from 'jotai';
 import { useGatewaySocket } from './useGatewaySocket';
 import {
   activeStreamTargetSubjectIdsAtom,
+  streamDrainStateAtom,
   streamLifecycleBySubjectAtom,
   type StreamLifecyclePhase,
   type SubjectStreamLifecycleState,
@@ -66,6 +67,7 @@ export const useStreamLifecycleCore = () => {
   const { subscribe } = useGatewaySocket();
   const setStreamLifecycleBySubject = useSetAtom(streamLifecycleBySubjectAtom);
   const setActiveStreamTargetSubjectIds = useSetAtom(activeStreamTargetSubjectIdsAtom);
+  const setStreamDrainState = useSetAtom(streamDrainStateAtom);
 
   useEffect(() => {
     const unsubscribe = subscribe((msg) => {
@@ -75,6 +77,12 @@ export const useStreamLifecycleCore = () => {
       }
 
       if (msg.type === 'stream_started') {
+        setStreamDrainState({
+          pending: false,
+          subjectIds: [],
+          status: null,
+          sessionArchiveExists: null,
+        });
         setActiveStreamTargetSubjectIds(subjectIds);
         setStreamLifecycleBySubject((prev) => {
           const next = { ...prev };
@@ -93,6 +101,12 @@ export const useStreamLifecycleCore = () => {
       }
 
       if (msg.type === 'stream_warmup_started') {
+        setStreamDrainState({
+          pending: false,
+          subjectIds: [],
+          status: null,
+          sessionArchiveExists: null,
+        });
         const payload = isRecord(msg.payload) ? msg.payload : {};
         const gateDurationSeconds = asNumber(payload.startup_total_gate_seconds, DEFAULT_GATE_SECONDS);
         const attempt = asNumber(payload.attempt, 1);
@@ -141,6 +155,12 @@ export const useStreamLifecycleCore = () => {
       }
 
       if (msg.type === 'stream_official_started') {
+        setStreamDrainState({
+          pending: false,
+          subjectIds: [],
+          status: null,
+          sessionArchiveExists: null,
+        });
         const payload = isRecord(msg.payload) ? msg.payload : {};
         const attempt = asNumber(payload.attempt, 1);
         const maxAttempts = asNumber(payload.max_attempts, 2);
@@ -186,12 +206,48 @@ export const useStreamLifecycleCore = () => {
       }
 
       if (msg.type === 'stream_stopped') {
+        setStreamDrainState({
+          pending: true,
+          subjectIds,
+          status: 'Finalizing session files...',
+          sessionArchiveExists: null,
+        });
         setStreamLifecycleBySubject((prev) => {
           const next = { ...prev };
           subjectIds.forEach((subjectId) => {
-            next[subjectId] = buildLifecycleState('stopped', prev[subjectId], {
-              statusMessage: 'Measurement stopped',
+            next[subjectId] = buildLifecycleState('draining', prev[subjectId], {
+              statusMessage: 'Finalizing session files',
               reason: null,
+              isOfficial: false,
+              lastEventType: msg.type,
+              restartCountdown: false,
+            });
+          });
+          return next;
+        });
+        return;
+      }
+
+      if (msg.type === 'stream_drained') {
+        const payload = isRecord(msg.payload) ? msg.payload : {};
+        const drainedSubjectIds = normalizeSubjectIds(payload);
+        const archiveExists =
+          typeof payload.session_archive_exists === 'boolean' ? payload.session_archive_exists : null;
+        setStreamDrainState({
+          pending: false,
+          subjectIds: drainedSubjectIds,
+          status: archiveExists === false ? 'Session finalized without archive.' : 'Session finalization complete.',
+          sessionArchiveExists: archiveExists,
+        });
+        if (drainedSubjectIds.length === 0) {
+          return;
+        }
+        setStreamLifecycleBySubject((prev) => {
+          const next = { ...prev };
+          drainedSubjectIds.forEach((subjectId) => {
+            next[subjectId] = buildLifecycleState('drained', prev[subjectId], {
+              statusMessage: archiveExists === false ? 'Session finalized' : 'Session finalized and archived',
+              reason: typeof payload.reason === 'string' ? payload.reason : null,
               isOfficial: false,
               lastEventType: msg.type,
               restartCountdown: false,
@@ -203,5 +259,5 @@ export const useStreamLifecycleCore = () => {
     });
 
     return unsubscribe;
-  }, [setActiveStreamTargetSubjectIds, setStreamLifecycleBySubject, subscribe]);
+  }, [setActiveStreamTargetSubjectIds, setStreamDrainState, setStreamLifecycleBySubject, subscribe]);
 };

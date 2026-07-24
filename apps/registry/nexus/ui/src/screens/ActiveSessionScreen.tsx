@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAtom, useSetAtom } from 'jotai';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { ErrorBanner } from '../components/ErrorBanner';
 import { InfoButton } from '../components/InfoButton';
@@ -18,6 +18,7 @@ import {
   latestIntermediateResultsAtom,
   latestIntermediateComparisonsAtom,
   computeResultsHistoryAtom,
+  streamDrainStateAtom,
   streamLifecycleBySubjectAtom,
   type SubjectStreamLifecycleState,
 } from '../store/atoms';
@@ -150,6 +151,7 @@ export const ActiveSessionScreen: React.FC = () => {
   const [activeActivity, setActiveActivity] = useAtom(activeActivityAtom);
   const [activeStreamTargetSubjectIds] = useAtom(activeStreamTargetSubjectIdsAtom);
   const [streamLifecycleBySubject] = useAtom(streamLifecycleBySubjectAtom);
+  const streamDrainState = useAtomValue(streamDrainStateAtom);
   const setLatestComputeResults = useSetAtom(latestComputeResultsAtom);
   const setLatestIntermediateResults = useSetAtom(latestIntermediateResultsAtom);
   const setLatestIntermediateComparisons = useSetAtom(latestIntermediateComparisonsAtom);
@@ -161,6 +163,7 @@ export const ActiveSessionScreen: React.FC = () => {
     disconnectAll,
     disconnectCount,
     isDisconnecting,
+    isDrainPending,
     errorMsg: disconnectError,
     dismissError: dismissDisconnectError,
   } = useDisconnectSensorsCore();
@@ -567,8 +570,8 @@ export const ActiveSessionScreen: React.FC = () => {
         ) : (
           <>
             {allSubjectsStopped ? (
-              <button className="nexus-btn disconnect-btn" onClick={handleDisconnectSensors} disabled={isDisconnecting}>
-                {isDisconnecting ? 'Disconnecting sensors...' : 'Disconnect sensors'}
+              <button className="nexus-btn disconnect-btn" onClick={handleDisconnectSensors} disabled={isDisconnecting || isDrainPending}>
+                {isDisconnecting ? 'Disconnecting sensors...' : isDrainPending ? 'Finalizing session...' : 'Disconnect sensors'}
               </button>
             ) : (
               <div></div>
@@ -592,10 +595,12 @@ export const ActiveSessionScreen: React.FC = () => {
       </div>
 
       <StatusOverlay
-        busy={isDisconnecting}
+        busy={isDisconnecting || streamDrainState.pending}
         statusText={
           isDisconnecting
             ? 'Disconnecting sensors...'
+            : streamDrainState.pending
+              ? streamDrainState.status ?? 'Finalizing session files...'
             : hasTargetStartupFailure
               ? 'Startup failed'
               : disconnectError

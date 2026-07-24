@@ -17,7 +17,7 @@ import { NewActivityScreen } from './screens/NewActivityScreen';
 import { SubjectActivityScreen } from './screens/SubjectActivityScreen';
 import { ConfigBootstrapScreen } from './screens/ConfigBootstrapScreen';
 import { ResetButton } from './components/ResetButton';
-import { activeActivityAtom, batteryStatusesAtom, configuredSubjectsAtom, connectedSensorsAtom, selectedSessionConfigAtom, selectedSubjectAtom, sessionNameAtom, serverReadyAtom, subjectCountAtom, subjectPrefixAtom } from './store/atoms';
+import { activeActivityAtom, batteryStatusesAtom, configuredSubjectsAtom, connectedSensorsAtom, selectedSessionConfigAtom, selectedSubjectAtom, sessionNameAtom, serverReadyAtom, streamDrainStateAtom, subjectCountAtom, subjectPrefixAtom } from './store/atoms';
 import { GatewaySocketProvider } from './hooks/useGatewaySocket';
 import { useServerReadiness } from './hooks/useServerReadiness';
 import { useBatteryUpdatesCore } from './hooks/useBatteryUpdatesCore';
@@ -37,6 +37,7 @@ const AppContent = () => {
   const [activeActivity] = useAtom(activeActivityAtom);
   const [connectedSensors] = useAtom(connectedSensorsAtom);
   const [serverReady] = useAtom(serverReadyAtom);
+  const [streamDrainState] = useAtom(streamDrainStateAtom);
   const setConfiguredSubjects = useSetAtom(configuredSubjectsAtom);
   const setSelectedSessionConfig = useSetAtom(selectedSessionConfigAtom);
   const setSelectedSubject = useSetAtom(selectedSubjectAtom);
@@ -47,7 +48,7 @@ const AppContent = () => {
   const setBatteryStatuses = useSetAtom(batteryStatusesAtom);
   const { batteryStatuses } = useBatteryUpdatesCore();
   const { connectedSensors: liveConnectedSensors } = useConnectedSensorUpdatesCore();
-  const { disconnectAll, isDisconnecting } = useDisconnectSensorsCore();
+  const { disconnectAll, isDisconnecting, isDrainPending } = useDisconnectSensorsCore();
   const { resetSessionState } = useResetSessionState();
   const isHome = location.pathname === '/';
   const isSessionRelated =
@@ -128,6 +129,9 @@ const AppContent = () => {
   const hasConnectedSensors = Object.values(connectedSensors).some((sensors) => sensors.length > 0);
 
   const handleReset = React.useCallback(async () => {
+    if (streamDrainState.pending) {
+      return;
+    }
     if (hasConnectedSensors) {
       try {
         await disconnectAll();
@@ -138,7 +142,7 @@ const AppContent = () => {
 
     resetSessionState();
     navigate('/', { replace: true });
-  }, [disconnectAll, hasConnectedSensors, navigate, resetSessionState]);
+  }, [disconnectAll, hasConnectedSensors, navigate, resetSessionState, streamDrainState.pending]);
 
   return (
     <div className="nexus-shell">
@@ -153,7 +157,7 @@ const AppContent = () => {
             </div>
           </div>
           <div className="header-right">
-            <ResetButton onClick={handleReset} disabled={isDisconnecting} />
+            <ResetButton onClick={handleReset} disabled={isDisconnecting || isDrainPending} />
           </div>
         </header>
 

@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAtom, useSetAtom } from 'jotai';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { StatusOverlay } from '../components/StatusOverlay';
 import { SubjectsCarousel } from '../components/SubjectsCarousel';
 import { ScreenLayout } from '../components/ScreenLayout';
-import { configuredSubjectsAtom, subjectCountAtom, setupsAtom, selectedSetupIdAtom, selectedSubjectAtom, placedSensorsAtom, subjectPrefixAtom, discoveredSensorsAtom, connectedSensorsAtom } from '../store/atoms';
+import { configuredSubjectsAtom, subjectCountAtom, setupsAtom, selectedSetupIdAtom, selectedSubjectAtom, placedSensorsAtom, subjectPrefixAtom, discoveredSensorsAtom, connectedSensorsAtom, streamDrainStateAtom } from '../store/atoms';
 import { useDiscoverSensorsCore } from '../hooks/useDiscoverSensorsCore';
 import { useDisconnectSensorsCore } from '../hooks/useDisconnectSensorsCore';
 import { useResetSessionState } from '../hooks/useResetSessionState';
@@ -25,6 +25,7 @@ export const SessionScreen: React.FC = () => {
   const [placedSensors] = useAtom(placedSensorsAtom);
   const [discoveredSensors] = useAtom(discoveredSensorsAtom);
   const [connectedSensors] = useAtom(connectedSensorsAtom);
+  const streamDrainState = useAtomValue(streamDrainStateAtom);
   const setDiscoveredSensors = useSetAtom(discoveredSensorsAtom);
   const {
     phase,
@@ -40,6 +41,7 @@ export const SessionScreen: React.FC = () => {
     disconnectAll,
     disconnectCount,
     isDisconnecting,
+    isDrainPending,
     errorMsg: disconnectError,
     dismissError: dismissDisconnectError,
   } = useDisconnectSensorsCore();
@@ -128,9 +130,9 @@ export const SessionScreen: React.FC = () => {
                 setDisconnectRequested(false);
               }
             }}
-            disabled={isBusy || isDisconnecting}
+            disabled={isBusy || isDisconnecting || isDrainPending}
           >
-            {isDisconnecting ? 'Disconnecting sensors...' : 'Disconnect sensors'}
+            {isDisconnecting ? 'Disconnecting sensors...' : isDrainPending ? 'Finalizing session...' : 'Disconnect sensors'}
           </button>
           <button className="nexus-btn secondary-btn" onClick={() => discoverAndConnect()} disabled={isBusy || isDisconnecting}>
             {'Connect all subjects'}
@@ -207,10 +209,12 @@ export const SessionScreen: React.FC = () => {
       </div>
 
       <StatusOverlay
-        busy={isBusy || isDisconnecting}
+        busy={isBusy || isDisconnecting || streamDrainState.pending}
         statusText={
           isDisconnecting
             ? 'Disconnecting sensors...'
+            : streamDrainState.pending
+              ? streamDrainState.status ?? 'Finalizing session files...'
             : phase === 'discovering'
             ? 'Discovering sensors...'
             : phase === 'connecting'

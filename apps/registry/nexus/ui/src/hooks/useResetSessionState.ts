@@ -16,6 +16,7 @@ import {
   selectedSetupIdAtom,
   selectedSubjectAtom,
   sessionNameAtom,
+  streamDrainStateAtom,
   streamLifecycleBySubjectAtom,
   subjectCountAtom,
   subjectPrefixAtom,
@@ -40,6 +41,7 @@ export const useResetSessionState = () => {
   const setLatestIntermediateComparisons = useSetAtom(latestIntermediateComparisonsAtom);
   const setComputeResultsHistory = useSetAtom(computeResultsHistoryAtom);
   const setStreamLifecycleBySubject = useSetAtom(streamLifecycleBySubjectAtom);
+  const setStreamDrainState = useSetAtom(streamDrainStateAtom);
 
   const resetSessionState = useCallback(() => {
     setSessionName('');
@@ -60,6 +62,12 @@ export const useResetSessionState = () => {
     setLatestIntermediateComparisons({});
     setComputeResultsHistory({});
     setStreamLifecycleBySubject({});
+    setStreamDrainState({
+      pending: false,
+      subjectIds: [],
+      status: null,
+      sessionArchiveExists: null,
+    });
   }, [
     setActiveActivity,
     setActiveStreamTargetSubjectIds,
@@ -76,6 +84,7 @@ export const useResetSessionState = () => {
     setSelectedSessionConfig,
     setSelectedSubject,
     setSessionName,
+    setStreamDrainState,
     setStreamLifecycleBySubject,
     setSubjectCount,
     setSubjectPrefix,

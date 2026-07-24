@@ -140,6 +140,8 @@ export type StreamLifecyclePhase =
   | 'official_streaming'
   | 'startup_failed'
   | 'stopping'
+  | 'draining'
+  | 'drained'
   | 'stopped';
 
 export interface SubjectStreamLifecycleState {
@@ -160,3 +162,17 @@ export interface StreamLifecycleStateMap {
 
 export const streamLifecycleBySubjectAtom = atom<StreamLifecycleStateMap>({});
 export const activeStreamTargetSubjectIdsAtom = atom<string[]>([]);
+
+export interface StreamDrainState {
+  pending: boolean;
+  subjectIds: string[];
+  status: string | null;
+  sessionArchiveExists: boolean | null;
+}
+
+export const streamDrainStateAtom = atom<StreamDrainState>({
+  pending: false,
+  subjectIds: [],
+  status: null,
+  sessionArchiveExists: null,
+});

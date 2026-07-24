@@ -71,7 +71,11 @@ export const useServerReadiness = () => {
                   ? {
                       ...setup,
                       name: 'Loading intensity',
-                      sensors: setup.sensors.map((s) => ({ ...s, comp: firstCompName })),
+                      sensors: setup.sensors.map((s) => ({
+                        ...s,
+                        type: firstSensorType.name,
+                        comp: firstCompName,
+                      })),
                     }
                   : setup,
               ),

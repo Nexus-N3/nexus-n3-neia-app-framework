@@ -1,3 +1,0 @@
-
-
-Osteosense workflow app needs to be re sized and spaced to mirror nexus for each screen size
