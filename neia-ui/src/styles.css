@@ -404,14 +404,46 @@ body::-webkit-scrollbar,
   flex-wrap: wrap;
 }
 
-.gateway-settings-save {
-  width: auto;
-  min-width: 160px;
-  height: auto;
-  min-height: 0;
-  padding: 12px 18px;
+.gateway-settings-button {
+  appearance: none;
   border-radius: 999px;
-  align-self: auto;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.gateway-settings-button:hover {
+  border-color: var(--accent-2);
+  box-shadow: 0 10px 18px rgba(58, 49, 97, 0.12);
+  transform: translateY(-1px);
+}
+
+.gateway-settings-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+  box-shadow: none;
+  transform: none;
+}
+
+.gateway-settings-button-primary {
+  border: 1px solid transparent;
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 12px 22px rgba(58, 49, 97, 0.2);
+}
+
+.gateway-settings-button-secondary {
+  border: 1px solid var(--border);
+  background: #ffffff;
+  color: #3f3f3f;
 }
 
 .session-config-list {
