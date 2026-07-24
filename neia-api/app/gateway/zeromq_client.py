@@ -8,18 +8,21 @@ import zmq
 
 
 class ZeroMQClient:
-    def __init__(self) -> None:
-        cmd_connect = os.environ.get("ZEROMQ_CMD_CONNECT", "tcp://localhost:5555")
-        event_connect = os.environ.get("ZEROMQ_EVENT_CONNECT", "tcp://localhost:5556")
+    def __init__(self, *, cmd_connect: str | None = None, event_connect: str | None = None) -> None:
+        cmd_connect = cmd_connect or os.environ.get("ZEROMQ_CMD_CONNECT", "tcp://localhost:5555")
+        event_connect = event_connect or os.environ.get("ZEROMQ_EVENT_CONNECT", "tcp://localhost:5556")
 
         self._ctx = zmq.Context.instance()
 
         # Publish commands to server's SUB
         self._cmd_pub = self._ctx.socket(zmq.PUB)
+        self._cmd_pub.setsockopt(zmq.LINGER, 0)
         self._cmd_pub.connect(cmd_connect)
 
         # Subscribe to server's PUB
         self._event_sub = self._ctx.socket(zmq.SUB)
+        self._event_sub.setsockopt(zmq.LINGER, 0)
+        self._event_sub.setsockopt(zmq.RCVTIMEO, 1000)
         self._event_sub.connect(event_connect)
         self._event_sub.setsockopt_string(zmq.SUBSCRIBE, "")
 
@@ -37,7 +40,12 @@ class ZeroMQClient:
 
     def _recv_loop(self, handler: Callable[[dict], None]) -> None:
         while self._running:
-            msg = self._event_sub.recv_json()
+            try:
+                msg = self._event_sub.recv_json()
+            except zmq.Again:
+                continue
+            except zmq.ZMQError:
+                break
             handler(msg)
 
     def send_command(self, command: dict) -> None:
@@ -49,3 +57,11 @@ class ZeroMQClient:
 
     def stop(self) -> None:
         self._running = False
+        try:
+            self._event_sub.close(0)
+        except Exception:
+            pass
+        try:
+            self._cmd_pub.close(0)
+        except Exception:
+            pass

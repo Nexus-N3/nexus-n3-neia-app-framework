@@ -105,7 +105,8 @@ const getCountdownValue = (state: SubjectStreamLifecycleState | undefined, clock
     return null;
   }
 
-  const elapsedSeconds = Math.floor((clockNow - state.countdownStartedAtMs) / 1000);
+  const elapsedMs = Math.max(0, clockNow - state.countdownStartedAtMs);
+  const elapsedSeconds = Math.floor(elapsedMs / 1000);
   const remaining = state.gateDurationSeconds - elapsedSeconds;
   return remaining > 0 ? remaining : 0;
 };

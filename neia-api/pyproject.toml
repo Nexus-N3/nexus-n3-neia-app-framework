@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=64,<80", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nexus-n3-neia-api"
+version = "0.1.0"
+description = "Nexus N3 NEIA API"
+requires-python = ">=3.10"
+dependencies = [
+  "fastapi>=0.110",
+  "uvicorn[standard]>=0.27",
+  "pydantic>=2.5",
+  "pika>=1.3",
+  "pyzmq>=26.0",
+  "sounddevice>=0.4.6",
+  "vosk>=0.3.45",
+  "python-dotenv>=1.0",
+  "zeroconf>=0.136",
+  "piper-tts>=1.2",
+  "pathvalidate>=3.2",
+  "faster-whisper",
+]
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

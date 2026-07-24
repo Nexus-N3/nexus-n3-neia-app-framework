@@ -2,19 +2,30 @@
 
 This guide covers deploying NEIA to an edge device for offline use.
 
+## 0) Build the API wheel (on a dev machine)
+
+Build the NEIA API wheel before deployment:
+
+```bash
+cd nexus-n3-neia-app-framework/neia-api
+python3 -m build --wheel
+```
+
+This creates a wheel under `nexus-n3-neia-app-framework/neia-api/dist/`.
+
 ## 1) Build UI assets (on a dev machine)
 Build the dashboard UI so the API can serve static files offline:
 ```bash
-cd rs-nexus-neia/neia-ui
+cd nexus-n3-neia-app-framework/neia-ui
 npm install
 npm run build
 ```
-This creates `rs-nexus-neia/neia-ui/dist/`.
+This creates `nexus-n3-neia-app-framework/neia-ui/dist/`.
 
 ## 2) Build app UI assets (if any apps use a build step)
 For each app that has a UI build (e.g. React apps), build into `ui/assets/`:
 ```bash
-cd rs-nexus-neia/apps/registry/app_react_template/ui
+cd nexus-n3-neia-app-framework/apps/registry/app_react_template/ui
 npm install
 npm run build
 ```
@@ -28,7 +39,7 @@ For each `apps/registry/<app_id>/app.json`:
 Apps are considered "installed" if their ID is in `apps/installed.json`.
 If you want apps to appear as installed immediately after deployment, edit:
 ```
-rs-nexus-neia/apps/installed.json
+nexus-n3-neia-app-framework/apps/installed.json
 ```
 Example:
 ```json
@@ -42,12 +53,12 @@ You can also install apps later via the UI or API (see below), so this step
 is only needed for pre-provisioning.
 
 ## 5) Copy to the edge device
-Copy the full `rs-nexus-neia` folder to the device (including `neia-ui/dist`
+Copy the full `nexus-n3-neia-app-framework` folder to the device (including `neia-ui/dist`
 and any app `ui/assets/`).
 
 ## 6) Install API dependencies on the edge device
 ```bash
-cd rs-nexus-neia/neia-api
+cd nexus-n3-neia-app-framework/neia-api
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt

@@ -13,7 +13,7 @@ Key goals:
 
 ## Repository Layout
 ```
-rs-nexus-neia/
+nexus-n3-neia-app-framework/
   neia-api/          # FastAPI service (API + static UI + plugin assets)
   neia-ui/           # React + Vite shell UI
   apps/              # Registry + installed apps

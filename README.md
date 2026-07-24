@@ -1,4 +1,4 @@
-# RS Nexus NEIA
+# Nexus N3 NEIA App Framework
 
 NEIA is a Python-based application framework that interfaces with rs-nexus-os via ZeroMQ or LavinMQ.
 It hosts installable apps (plugins) built on a fixed step model, and exposes a UI dashboard for
@@ -17,6 +17,13 @@ App display/layout contract: see `docs/app_contract.md`.
 UI-owned voice flow design: see `docs/voice_flow_ui.md`.
 Offline deployment guide: see `DEPLOYMENT.md`.
 Ansible deployment guide: see `deployment/ansible/README.md`.
+
+Release artifact build:
+
+```bash
+cd neia-api
+python3 -m build --wheel
+```
 
 Embedded compact rule:
 - when running inside the NEIA shell, treat `800x480` devices as a compact embedded app stage and size layouts to the actual mount surface rather than assuming the full raw viewport
@@ -59,11 +66,11 @@ Resolution priority:
 Examples:
 ```bash
 # NEIA shell
-cd rs-nexus-neia/neia-ui
+cd nexus-n3-neia-app-framework/neia-ui
 VITE_DISPLAY_PROFILE=1920x1080 npm run dev
 
 # Voice assistant UI (standalone dev server)
-cd rs-nexus-neia/apps/registry/neia_voice_assistant/ui
+cd nexus-n3-neia-app-framework/apps/registry/neia_voice_assistant/ui
 VITE_DISPLAY_PROFILE=1920x1080 npm run dev
 ```
 
@@ -78,20 +85,20 @@ http://localhost:3000/?display_profile=1920x1080
 
 Terminal 1 (API):
 ```bash
-cd rs-nexus-neia/neia-api
+cd nexus-n3-neia-app-framework/neia-api
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8050
 ```
 
 Terminal 2 (Dashboard shell):
 ```bash
-cd rs-nexus-neia/neia-ui
+cd nexus-n3-neia-app-framework/neia-ui
 npm install
 npm run dev
 ```
 
 Terminal 3 (Voice assistant app dev server):
 ```bash
-cd rs-nexus-neia/apps/registry/neia_voice_assistant/ui
+cd nexus-n3-neia-app-framework/apps/registry/neia_voice_assistant/ui
 npm install
 npm run dev
 ```
@@ -143,7 +150,7 @@ Optional API env vars:
 - `NEIA_AI_NODE=1` to auto-point gateway connections at the master node
 - `NEIA_DISCOVER_MASTER=1` to resolve the master via mDNS when `NEIA_AI_NODE=1`
 - `NEIA_MASTER_DISCOVERY_TIMEOUT=5` (seconds)
-- `NEIA_MASTER_HOST=rs-nexus-master.local` (used when `NEIA_AI_NODE=1`)
+- `NEIA_MASTER_HOST=nexus-n3-master.local` (used when `NEIA_AI_NODE=1`)
 - `NEIA_MASTER_CMD_PORT=5555` (ZeroMQ command port)
 - `NEIA_MASTER_EVENT_PORT=5556` (ZeroMQ event port)
 - `NEIA_MASTER_AMQP_URL=<amqp_url>` (LavinMQ fallback when `AMQP_URL` is not set)
@@ -175,10 +182,10 @@ Optional API env vars:
 - `VITE_DISPLAY_PROFILE=1920x1080` (applies when building/running the React UI bundles)
 - `VITE_GATEWAY_WS_URL=ws://<host>:<port>/api/v1/gateway/events` (optional WS endpoint override for UI)
 
-Use a `.env` file in `rs-nexus-neia/neia-api/` to avoid long command lines:
+Use a `.env` file in `nexus-n3-neia-app-framework/neia-api/` to avoid long command lines:
 ```bash
-cp rs-nexus-neia/neia-api/.env.example rs-nexus-neia/neia-api/.env
-# edit rs-nexus-neia/neia-api/.env to match your device + model paths
+cp nexus-n3-neia-app-framework/neia-api/.env.example nexus-n3-neia-app-framework/neia-api/.env
+# edit nexus-n3-neia-app-framework/neia-api/.env to match your device + model paths
 ```
 
 For TTS on Linux:
@@ -195,7 +202,7 @@ NEIA_VOICE_DEVICE="Sennheiser XS LAV USB-C: Audio (hw:1,0)" \
 NEIA_VOICE_DEBUG=1 \
 NEIA_VOICE_TTS_ENABLED=1 \
 NEIA_VOICE_TTS_ENGINE=piper \
-NEIA_VOICE_TTS_PIPER_MODEL="/home/mike/Desktop/apps/dev/rs-nexus-project/rs-nexus-neia/models/piper/en_GB-southern_english_female-low.onnx" \
+NEIA_VOICE_TTS_PIPER_MODEL="/home/mike/Desktop/apps/dev/rs-nexus-project/nexus-n3-neia-app-framework/models/piper/en_GB-southern_english_female-low.onnx" \
 NEIA_DEV=1 \
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8050 --log-level info
 ```
@@ -204,16 +211,16 @@ Piper setup (download a model + binary):
 ```bash
 # Install Piper (Python package) and download a model into the repo.
 pip install piper-tts
-python3 -m piper.download_voices --data-dir rs-nexus-neia/models/piper en_US-lessac-medium
+python3 -m piper.download_voices --data-dir nexus-n3-neia-app-framework/models/piper en_US-lessac-medium
 
 # Models will be placed under:
-# rs-nexus-neia/models/piper/en_US-lessac-medium.onnx
-# rs-nexus-neia/models/piper/en_US-lessac-medium.onnx.json
+# nexus-n3-neia-app-framework/models/piper/en_US-lessac-medium.onnx
+# nexus-n3-neia-app-framework/models/piper/en_US-lessac-medium.onnx.json
 
 # To fetch additional voices:
 python3 -m piper.download_voices --list
-python3 -m piper.download_voices --data-dir rs-nexus-neia/models/piper en_US-amy-medium
-python3 -m piper.download_voices --data-dir rs-nexus-neia/models/piper en_GB-southern_english_female-low
+python3 -m piper.download_voices --data-dir nexus-n3-neia-app-framework/models/piper en_US-amy-medium
+python3 -m piper.download_voices --data-dir nexus-n3-neia-app-framework/models/piper en_GB-southern_english_female-low
 ```
 
 Faster-Whisper setup (local STT alternative to Vosk):

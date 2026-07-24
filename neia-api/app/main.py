@@ -10,6 +10,7 @@ from .config import BASE_DIR
 from .control_center_store import ControlCenterStore
 from .gateway.manager import create_gateway_manager
 from .registry import AppRegistry
+from .runtime_settings import save_gateway_runtime_settings
 from .voice import create_voice_manager
 
 registry = AppRegistry()
@@ -92,6 +93,39 @@ def send_gateway_command(command: dict):
 @api_v1.get("/gateway/status")
 def gateway_status():
     return {"gateway": gateway_manager.gateway_type}
+
+
+@api_v1.get("/settings/gateway")
+def get_gateway_settings():
+    return gateway_manager.gateway_settings()
+
+
+@api_v1.post("/settings/gateway")
+async def update_gateway_settings(payload: dict):
+    if gateway_manager.gateway_type != "zeromq":
+        raise HTTPException(status_code=400, detail="Gateway host switching is only supported for zeromq")
+    if not isinstance(payload, dict):
+        raise HTTPException(status_code=400, detail="Invalid payload")
+    target_host = payload.get("target_host")
+    if not isinstance(target_host, str) or not target_host.strip():
+        raise HTTPException(status_code=400, detail="Missing target_host")
+    current_settings = gateway_manager.gateway_settings()
+    cmd_port = payload.get("cmd_port", current_settings.get("cmd_port"))
+    event_port = payload.get("event_port", current_settings.get("event_port"))
+    if not isinstance(cmd_port, int) or cmd_port <= 0:
+        raise HTTPException(status_code=400, detail="Invalid cmd_port")
+    if not isinstance(event_port, int) or event_port <= 0:
+        raise HTTPException(status_code=400, detail="Invalid event_port")
+    settings = save_gateway_runtime_settings(
+        target_host=target_host.strip(),
+        cmd_port=cmd_port,
+        event_port=event_port,
+    )
+    return await gateway_manager.reconfigure_zeromq_target(
+        target_host=settings.target_host,
+        cmd_port=settings.cmd_port,
+        event_port=settings.event_port,
+    )
 
 
 @api_v1.post("/control-center/messages")

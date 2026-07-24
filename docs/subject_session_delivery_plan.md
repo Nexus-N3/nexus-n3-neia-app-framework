@@ -2,7 +2,7 @@
 
 ## Purpose
 This note captures the next integration slice between Control Center, the Azure bridge,
-`rs-nexus-os`, and `rs-nexus-neia`.
+`rs-nexus-os`, and `nexus-n3-neia-app-framework`.
 
 The goal is to allow Control Center to push subject groups and session configuration
 down to the deployed edge environment so the NEIA dashboard can surface the available

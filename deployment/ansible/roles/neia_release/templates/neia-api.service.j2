@@ -1,14 +1,16 @@
 [Unit]
-Description=RS Nexus NEIA API
+Description=Nexus N3 NEIA App Framework API
 After=network.target
 
 [Service]
 Type=simple
 User={{ neia_service_user }}
 Group={{ neia_service_group }}
-WorkingDirectory={{ neia_api_dir }}
+WorkingDirectory={{ neia_install_root }}
 {% for key, value in neia_service_env.items() %}
+{% if value is not none and (value | string | length) > 0 %}
 Environment={{ key }}={{ value }}
+{% endif %}
 {% endfor %}
 ExecStart={{ neia_venv_path }}/bin/uvicorn app.main:app --host {{ neia_host }} --port {{ neia_port }}
 Restart=on-failure

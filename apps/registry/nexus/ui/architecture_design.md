@@ -46,7 +46,7 @@ This architecture keeps most screen components simple: they read state from atom
 
 ## Project Structure
 
-Path: `rs-nexus-neia/apps/registry/nexus/ui`
+Path: `nexus-n3-neia-app-framework/apps/registry/nexus/ui`
 
 Important files:
 

@@ -103,6 +103,28 @@ body::-webkit-scrollbar,
   cursor: pointer;
 }
 
+.gateway-summary-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.gateway-summary-copy {
+  color: #b8b8b8;
+  font-size: 13px;
+}
+
+.gateway-settings-toggle {
+  border: 1px solid #343434;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: transparent;
+  color: #f0f0f0;
+  font-size: 12px;
+  cursor: pointer;
+}
+
 .shell-logo {
   height: 120px;
   width: auto;
@@ -312,6 +334,84 @@ body::-webkit-scrollbar,
 .session-config-panel {
   display: grid;
   gap: 20px;
+}
+
+.gateway-settings-panel {
+  display: grid;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.gateway-settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.gateway-settings-copy {
+  margin: 6px 0 0;
+  color: #a8a8a8;
+}
+
+.gateway-settings-meta {
+  display: grid;
+  gap: 6px;
+  color: #a8a8a8;
+  font-size: 13px;
+}
+
+.gateway-settings-form {
+  display: grid;
+  gap: 10px;
+  max-width: 520px;
+}
+
+.gateway-settings-label {
+  color: #d9d9d9;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.gateway-settings-input {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid #343434;
+  background: #0f0f0f;
+  color: #f3f3f3;
+  padding: 12px 14px;
+  font: inherit;
+}
+
+.gateway-settings-hint {
+  margin: 0;
+  color: #8d8d8d;
+  font-size: 13px;
+}
+
+.gateway-settings-error {
+  margin: 0;
+  color: #ff8f8f;
+  font-size: 13px;
+}
+
+.gateway-settings-actions {
+  display: flex;
+  justify-content: flex-start;
+  gap: 12px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.gateway-settings-save {
+  width: auto;
+  min-width: 160px;
+  height: auto;
+  min-height: 0;
+  padding: 12px 18px;
+  border-radius: 999px;
+  align-self: auto;
 }
 
 .session-config-list {

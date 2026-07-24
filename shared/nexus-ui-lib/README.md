@@ -1,6 +1,6 @@
 # Nexus UI Lib
 
-Reusable Nexus UI parts for apps inside the `rs-nexus-neia` framework.
+Reusable Nexus UI parts for apps inside the `nexus-n3-neia-app-framework` framework.
 
 This package is intentionally not an app. It exposes a reusable subset of the Nexus UI so
 other apps can compose their own flows without inheriting the full shell.

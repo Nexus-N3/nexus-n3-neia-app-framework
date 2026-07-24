@@ -3,18 +3,54 @@ from __future__ import annotations
 import os
 import socket
 import time
-from typing import Optional
 from pathlib import Path
+from typing import Optional
 
 try:
     from dotenv import load_dotenv
 except Exception:
     load_dotenv = None
 
-if load_dotenv:
-    load_dotenv()
+PACKAGE_DIR = Path(__file__).resolve().parent
+SOURCE_BASE_DIR = Path(__file__).resolve().parents[2]
 
-BASE_DIR = Path(__file__).resolve().parents[2]
+
+def _is_content_root(path: Path) -> bool:
+    return (path / "apps").exists() and (path / "shared").exists()
+
+
+def _resolve_content_root() -> Path:
+    explicit_root = os.getenv("NEIA_CONTENT_ROOT", "").strip()
+    candidates = []
+    if explicit_root:
+        candidates.append(Path(explicit_root).expanduser())
+    candidates.extend(
+        [
+            SOURCE_BASE_DIR,
+            Path.cwd().resolve(),
+            Path.cwd().resolve().parent,
+        ]
+    )
+    for candidate in candidates:
+        resolved = candidate.resolve()
+        if _is_content_root(resolved):
+            return resolved
+    return SOURCE_BASE_DIR
+
+
+BASE_DIR = _resolve_content_root()
+
+
+def _load_env_file() -> None:
+    if not load_dotenv:
+        return
+    for env_path in (BASE_DIR / ".env", BASE_DIR / "neia-api" / ".env", SOURCE_BASE_DIR / "neia-api" / ".env"):
+        if env_path.exists():
+            load_dotenv(env_path, override=False)
+            break
+
+
+_load_env_file()
 APPS_DIR = BASE_DIR / "apps"
 REGISTRY_DIR = APPS_DIR / "registry"
 INSTALLED_FILE = APPS_DIR / "installed.json"
@@ -67,7 +103,7 @@ NEIA_SITE = os.getenv("NEIA_SITE", "my_house")
 NEIA_AI_NODE = os.getenv("NEIA_AI_NODE", "0") == "1"
 NEIA_DISCOVER_MASTER = os.getenv("NEIA_DISCOVER_MASTER", "1") == "1"
 NEIA_MASTER_DISCOVERY_TIMEOUT = float(os.getenv("NEIA_MASTER_DISCOVERY_TIMEOUT", "5"))
-NEIA_MASTER_HOST = os.getenv("NEIA_MASTER_HOST", "rs-nexus-master.local")
+NEIA_MASTER_HOST = os.getenv("NEIA_MASTER_HOST", "nexus-n3-master.local")
 NEIA_MASTER_CMD_PORT = int(os.getenv("NEIA_MASTER_CMD_PORT", "5555"))
 NEIA_MASTER_EVENT_PORT = int(os.getenv("NEIA_MASTER_EVENT_PORT", "5556"))
 NEIA_MASTER_AMQP_URL = os.getenv("NEIA_MASTER_AMQP_URL")

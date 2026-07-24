@@ -77,6 +77,15 @@ type RemoteOperationState = {
   operator_username?: string | null;
 };
 
+type GatewayTargetSettings = {
+  gateway: string;
+  site?: string | null;
+  target_host: string;
+  cmd_port: number;
+  event_port: number;
+  amqp_url?: string | null;
+};
+
 type AppsSnapshot = {
   installed: AppInfo[];
   available: AppInfo[];
@@ -437,6 +446,66 @@ function useHostServerStatus() {
   return { serverReady, siteName, retrying, retryServer, usbPresent, usbBusy, usbError, sendUsbCommand };
 }
 
+function useGatewayTargetSettings() {
+  const [settings, setSettings] = useState<GatewayTargetSettings | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const resp = await fetch("/api/v1/settings/gateway");
+      if (!resp.ok) {
+        throw new Error("Failed to load gateway settings");
+      }
+      const data = (await resp.json()) as GatewayTargetSettings;
+      setSettings(data);
+    } catch {
+      setError("Failed to load gateway settings.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  const save = useCallback(async (nextHost: string) => {
+    if (!settings) {
+      throw new Error("Gateway settings are unavailable");
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      const resp = await fetch("/api/v1/settings/gateway", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          target_host: nextHost,
+          cmd_port: settings.cmd_port,
+          event_port: settings.event_port,
+        }),
+      });
+      if (!resp.ok) {
+        throw new Error("Failed to save gateway settings");
+      }
+      const data = (await resp.json()) as GatewayTargetSettings;
+      setSettings(data);
+      return data;
+    } catch {
+      setError("Failed to update gateway target.");
+      throw new Error("Failed to update gateway target");
+    } finally {
+      setSaving(false);
+    }
+  }, [settings]);
+
+  return { settings, loading, saving, error, refresh, save };
+}
+
 function getAssetUrl(appId: string, assetPath?: string | null) {
   if (!assetPath) return null;
   if (assetPath.startsWith("http")) return assetPath;
@@ -709,6 +778,13 @@ export default function App() {
     applyMessage,
   } = useControlCenterCatalog();
   const { serverReady, siteName, retrying, retryServer, usbPresent, usbBusy, usbError, sendUsbCommand } = useHostServerStatus();
+  const {
+    settings: gatewaySettings,
+    loading: gatewaySettingsLoading,
+    saving: gatewaySettingsSaving,
+    error: gatewaySettingsError,
+    save: saveGatewaySettings,
+  } = useGatewayTargetSettings();
   const [launchError, setLaunchError] = useState<string | null>(null);
   const [appView, setAppView] = useState<AppInfo | null>(null);
   const [appViewError, setAppViewError] = useState<string | null>(null);
@@ -725,6 +801,15 @@ export default function App() {
   const [subjectIndex, setSubjectIndex] = useState(0);
   const [showSessionConfigScreen, setShowSessionConfigScreen] = useState(false);
   const [remoteOperation, setRemoteOperation] = useState<RemoteOperationState>({ active: false });
+  const [showGatewaySettings, setShowGatewaySettings] = useState(false);
+  const [gatewayHostDraft, setGatewayHostDraft] = useState("localhost");
+  const [gatewaySaveError, setGatewaySaveError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (gatewaySettings?.target_host) {
+      setGatewayHostDraft(gatewaySettings.target_host);
+    }
+  }, [gatewaySettings?.target_host]);
 
   const install = async (appId: string) => {
     await fetch(`/api/v1/apps/install/${appId}`, { method: "POST" });
@@ -1150,6 +1235,22 @@ export default function App() {
     </div>
   );
 
+  const saveGatewayTarget = async () => {
+    const nextHost = gatewayHostDraft.trim();
+    if (!nextHost) {
+      setGatewaySaveError("Enter a Nexus core host.");
+      return;
+    }
+    setGatewaySaveError(null);
+    try {
+      await saveGatewaySettings(nextHost);
+      await retryServer();
+      setShowGatewaySettings(false);
+    } catch {
+      // handled in hook state
+    }
+  };
+
   const renderAppCard = (app: AppInfo, actions: React.ReactNode) => {
     const iconUrl = getAssetUrl(app.manifest.id, app.manifest.icon || undefined);
     return (
@@ -1330,9 +1431,83 @@ export default function App() {
           ) : (
             <p>Manage and launch installed apps.</p>
           )}
+          <div className="gateway-summary-row">
+            <span className="gateway-summary-copy">
+              Core target: {gatewaySettings?.target_host || (gatewaySettingsLoading ? "Loading..." : "Unavailable")}
+            </span>
+            <button
+              className="gateway-settings-toggle"
+              onClick={() => {
+                setGatewaySaveError(null);
+                setShowGatewaySettings((value) => !value);
+              }}
+              type="button"
+            >
+              {showGatewaySettings ? "Close settings" : "Connection settings"}
+            </button>
+          </div>
         </div>
         <img className="shell-logo" src="/neia_logo.png" alt="NEIA logo" />
       </header>
+
+      {showGatewaySettings ? (
+        <section className="panel wide gateway-settings-panel">
+          <div className="gateway-settings-header">
+            <div>
+              <h2>Gateway Connection</h2>
+              <p className="gateway-settings-copy">
+                Point NEIA at the Nexus N3 core deployment it should talk to.
+              </p>
+            </div>
+            <div className="gateway-settings-meta">
+              <span>Mode: {gatewaySettings?.gateway || "unknown"}</span>
+              <span>
+                Ports: {gatewaySettings?.cmd_port ?? 5555} / {gatewaySettings?.event_port ?? 5556}
+              </span>
+            </div>
+          </div>
+          <div className="gateway-settings-form">
+            <label className="gateway-settings-label" htmlFor="gateway-target-host">
+              Core Host
+            </label>
+            <input
+              id="gateway-target-host"
+              className="gateway-settings-input"
+              value={gatewayHostDraft}
+              onChange={(event) => setGatewayHostDraft(event.target.value)}
+              placeholder="localhost or nexus-n3-master.local"
+              autoComplete="off"
+            />
+            <p className="gateway-settings-hint">
+              Use `localhost` when NEIA and `nexus-n3-core` run on the same machine.
+            </p>
+            {gatewaySettingsError || gatewaySaveError ? (
+              <p className="gateway-settings-error">{gatewaySaveError || gatewaySettingsError}</p>
+            ) : null}
+            <div className="gateway-settings-actions">
+              <button
+                className="subject-skip-action"
+                type="button"
+                onClick={() => {
+                  setGatewayHostDraft(gatewaySettings?.target_host || "localhost");
+                  setGatewaySaveError(null);
+                  setShowGatewaySettings(false);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="session-config-launch-btn gateway-settings-save"
+                type="button"
+                onClick={() => void saveGatewayTarget()}
+                disabled={gatewaySettingsSaving || gatewaySettings?.gateway !== "zeromq"}
+              >
+                {gatewaySettingsSaving ? "Saving..." : "Save target"}
+              </button>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <div className="shell-tabs">
         <button

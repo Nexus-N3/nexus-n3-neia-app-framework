@@ -2,7 +2,7 @@
 
 ## Goal
 
-Create a repo-local CLI for `rs-nexus-neia` that scaffolds a new app under `apps/registry/<app_id>` with:
+Create a repo-local CLI for `nexus-n3-neia-app-framework` that scaffolds a new app under `apps/registry/<app_id>` with:
 
 - a valid `app.json`
 - a working React UI app

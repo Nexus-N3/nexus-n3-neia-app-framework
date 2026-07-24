@@ -13,7 +13,7 @@ This note covers the main NEIA UI test cases when using the `neia-api` directly:
 Start `neia-api`:
 
 ```bash
-cd /home/mike/Desktop/apps/dev/rs-nexus-project/rs-nexus-neia/neia-api
+cd /home/mike/Desktop/apps/dev/rs-nexus-project/nexus-n3-neia-app-framework/neia-api
 env PYTHONPATH=. uvicorn app.main:app --reload --host 0.0.0.0 --port 8050
 ```
 
