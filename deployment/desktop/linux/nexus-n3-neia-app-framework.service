@@ -1,0 +1,18 @@
+[Unit]
+Description=Nexus N3 NEIA App Framework Desktop Service
+After=network.target
+
+[Service]
+Type=simple
+User=@SERVICE_USER@
+Group=@SERVICE_GROUP@
+WorkingDirectory=@INSTALL_ROOT@/neia-api
+EnvironmentFile=@ENV_FILE@
+ExecStart=@VENV_PYTHON@ -m app.daemon --host ${NEIA_HOST} --port ${NEIA_PORT}
+Restart=on-failure
+RestartSec=3
+RuntimeDirectory=nexus-n3-neia-app-framework
+RuntimeDirectoryMode=0755
+
+[Install]
+WantedBy=multi-user.target

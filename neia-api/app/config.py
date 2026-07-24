@@ -41,6 +41,13 @@ def _resolve_content_root() -> Path:
 BASE_DIR = _resolve_content_root()
 
 
+def _path_from_env(name: str, default: Path) -> Path:
+    raw = os.getenv(name, "").strip()
+    if not raw:
+        return default
+    return Path(raw).expanduser().resolve()
+
+
 def _load_env_file() -> None:
     if not load_dotenv:
         return
@@ -52,8 +59,11 @@ def _load_env_file() -> None:
 
 _load_env_file()
 APPS_DIR = BASE_DIR / "apps"
-REGISTRY_DIR = APPS_DIR / "registry"
-INSTALLED_FILE = APPS_DIR / "installed.json"
+REGISTRY_DIR = _path_from_env("NEIA_REGISTRY_DIR", APPS_DIR / "registry")
+STATE_DIR = _path_from_env("NEIA_STATE_DIR", BASE_DIR / "var")
+LOG_DIR = _path_from_env("NEIA_LOG_DIR", BASE_DIR / "logs")
+RUN_DIR = _path_from_env("NEIA_RUN_DIR", BASE_DIR / "run")
+INSTALLED_FILE = _path_from_env("NEIA_INSTALLED_FILE", APPS_DIR / "installed.json")
 
 def _default_piper_model_path() -> str:
     models_dir = BASE_DIR / "models" / "piper"
@@ -69,6 +79,8 @@ def _default_piper_model_path() -> str:
 
 NEIA_DEV = os.getenv("NEIA_DEV", "0") == "1"
 NEIA_DEV_FALLBACK = os.getenv("NEIA_DEV_FALLBACK", "1") == "1"
+NEIA_HOST = os.getenv("NEIA_HOST", "127.0.0.1")
+NEIA_PORT = int(os.getenv("NEIA_PORT", "8080"))
 
 NEIA_VOICE_ENABLED = os.getenv("NEIA_VOICE_ENABLED", "0") == "1"
 NEIA_VOICE_WAKEWORD = os.getenv("NEIA_VOICE_WAKEWORD", "nexus")

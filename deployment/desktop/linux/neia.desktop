@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Nexus N3 NEIA
+Comment=Open the Nexus N3 NEIA App Framework
+Icon=neia
+Exec=@LAUNCHER_PATH@
+Terminal=false
+Categories=Utility;

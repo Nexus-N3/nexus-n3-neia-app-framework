@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SERVICE_NAME="nexus-n3-neia-app-framework.service"
+
+case "${1:-remove}" in
+  remove|upgrade|deconfigure)
+    if command -v systemctl >/dev/null 2>&1; then
+      systemctl stop "${SERVICE_NAME}" >/dev/null 2>&1 || true
+      systemctl disable "${SERVICE_NAME}" >/dev/null 2>&1 || true
+    fi
+    ;;
+esac
+
+exit 0

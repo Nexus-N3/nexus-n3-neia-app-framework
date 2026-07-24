@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nexus-n3-neia-api"
-version = "0.1.0"
+version = "0.1.1"
 description = "Nexus N3 NEIA API"
 requires-python = ">=3.10"
 dependencies = [
@@ -21,6 +21,9 @@ dependencies = [
   "pathvalidate>=3.2",
   "faster-whisper",
 ]
+
+[project.scripts]
+neia-daemon = "app.daemon:main"
 
 [tool.setuptools]
 include-package-data = false

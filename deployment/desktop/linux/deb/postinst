@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PACKAGE_NAME="nexus-n3-neia-app-framework"
+INSTALL_ROOT="/opt/nexus-n3-neia-app-framework"
+STATE_ROOT="/var/lib/nexus-n3-neia-app-framework"
+LOG_ROOT="/var/log/nexus-n3-neia-app-framework"
+CONFIG_ROOT="/etc/nexus-n3-neia-app-framework"
+SERVICE_NAME="nexus-n3-neia-app-framework.service"
+SERVICE_USER="neia"
+SERVICE_GROUP="neia"
+VENV_ROOT="${INSTALL_ROOT}/neia-api/.venv"
+VENV_PYTHON="${VENV_ROOT}/bin/python"
+ENV_FILE="${CONFIG_ROOT}/neia-desktop.env"
+
+case "${1:-configure}" in
+  configure|triggered)
+    if ! getent group "${SERVICE_GROUP}" >/dev/null 2>&1; then
+      addgroup --system "${SERVICE_GROUP}"
+    fi
+    if ! id -u "${SERVICE_USER}" >/dev/null 2>&1; then
+      adduser \
+        --system \
+        --ingroup "${SERVICE_GROUP}" \
+        --home "${STATE_ROOT}" \
+        --no-create-home \
+        --disabled-login \
+        --disabled-password \
+        --gecos "NEIA service user" \
+        "${SERVICE_USER}"
+    fi
+
+    install -d -o "${SERVICE_USER}" -g "${SERVICE_GROUP}" -m 0755 "${STATE_ROOT}" "${LOG_ROOT}" "${INSTALL_ROOT}"
+
+    if [[ ! -f "${STATE_ROOT}/installed.json" && -f "${INSTALL_ROOT}/apps/installed.json" ]]; then
+      install -o "${SERVICE_USER}" -g "${SERVICE_GROUP}" -m 0644 "${INSTALL_ROOT}/apps/installed.json" "${STATE_ROOT}/installed.json"
+    fi
+
+    if [[ ! -x "${VENV_PYTHON}" ]]; then
+      python3 -m venv "${VENV_ROOT}"
+    fi
+
+    "${VENV_PYTHON}" -m pip install --upgrade pip
+
+    wheel_path=""
+    if compgen -G "${INSTALL_ROOT}/neia-api/dist/*.whl" >/dev/null 2>&1; then
+      wheel_path="$(find "${INSTALL_ROOT}/neia-api/dist" -maxdepth 1 -type f -name '*.whl' | sort | tail -n 1)"
+    fi
+    if [[ -n "${wheel_path}" ]]; then
+      "${VENV_PYTHON}" -m pip install --force-reinstall "${wheel_path}"
+    else
+      "${VENV_PYTHON}" -m pip install --force-reinstall "${INSTALL_ROOT}/neia-api"
+    fi
+
+    if [[ -f "${ENV_FILE}" ]]; then
+      sed -i \
+        -e "s|^NEIA_CONTENT_ROOT=.*|NEIA_CONTENT_ROOT=${INSTALL_ROOT}|" \
+        -e "s|^NEIA_REGISTRY_DIR=.*|NEIA_REGISTRY_DIR=${INSTALL_ROOT}/apps/registry|" \
+        -e "s|^NEIA_INSTALLED_FILE=.*|NEIA_INSTALLED_FILE=${STATE_ROOT}/installed.json|" \
+        -e "s|^NEIA_STATE_DIR=.*|NEIA_STATE_DIR=${STATE_ROOT}|" \
+        -e "s|^NEIA_LOG_DIR=.*|NEIA_LOG_DIR=${LOG_ROOT}|" \
+        -e "s|^NEIA_RUN_DIR=.*|NEIA_RUN_DIR=/run/${PACKAGE_NAME}|" \
+        "${ENV_FILE}"
+      if ! grep -Eq '^NEIA_HOST=' "${ENV_FILE}"; then
+        printf 'NEIA_HOST=127.0.0.1\n' >> "${ENV_FILE}"
+      fi
+      if ! grep -Eq '^NEIA_PORT=' "${ENV_FILE}"; then
+        printf 'NEIA_PORT=8080\n' >> "${ENV_FILE}"
+      fi
+    fi
+
+    chown -R "${SERVICE_USER}:${SERVICE_GROUP}" "${INSTALL_ROOT}" "${STATE_ROOT}" "${LOG_ROOT}"
+
+    systemctl daemon-reload
+    systemctl enable "${SERVICE_NAME}" >/dev/null 2>&1 || true
+    systemctl restart "${SERVICE_NAME}" || true
+
+    if command -v update-desktop-database >/dev/null 2>&1; then
+      update-desktop-database /usr/share/applications >/dev/null 2>&1 || true
+    fi
+    if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+      gtk-update-icon-cache -q /usr/share/icons/hicolor >/dev/null 2>&1 || true
+    fi
+    ;;
+esac
+
+exit 0

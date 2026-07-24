@@ -34,7 +34,7 @@ async def lifespan(_: FastAPI):
     await gateway_manager.stop()
 
 
-app = FastAPI(title="NEIA API", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="NEIA API", version="0.1.1", lifespan=lifespan)
 
 api_v1 = FastAPI()
 
@@ -240,7 +240,7 @@ def get_app_asset(app_id: str, asset_path: str):
         info = registry.get_app_info(app_id)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="App not found")
-    app_dir = (BASE_DIR / "apps" / "registry" / app_id).resolve()
+    app_dir = registry.resolve_app_dir(app_id).resolve()
     candidate = (app_dir / asset_path).resolve()
     if app_dir not in candidate.parents and candidate != app_dir:
         raise HTTPException(status_code=400, detail="Invalid asset path")
@@ -252,6 +252,16 @@ def get_app_asset(app_id: str, asset_path: str):
             "Cache-Control": "public, max-age=300",
         },
     )
+
+
+@api_v1.get("/health")
+def api_health():
+    return {
+        "status": "ok",
+        "ui_dist_available": (BASE_DIR / "neia-ui" / "dist").exists(),
+        "registry_dir": str(registry.registry_dir),
+        "installed_file": str(registry.installed_file),
+    }
 
 
 app.mount("/api/v1", api_v1)

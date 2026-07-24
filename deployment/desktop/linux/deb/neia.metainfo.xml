@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>neia.desktop</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>Proprietary</project_license>
+  <name>Nexus N3 NEIA</name>
+  <summary>Browser-based local application framework for Nexus N3</summary>
+  <icon type="cached">neia</icon>
+  <description>
+    <p>
+      Nexus N3 NEIA installs a local service and opens the user interface in the
+      system web browser on localhost.
+    </p>
+    <p>
+      The package integrates with Ubuntu's desktop app model by installing a
+      launcher, icon, and local service that starts automatically.
+    </p>
+  </description>
+  <launchable type="desktop-id">neia.desktop</launchable>
+  <url type="homepage">https://nexus-n3.com</url>
+  <provides>
+    <binary>open-neia</binary>
+  </provides>
+  <categories>
+    <category>Utility</category>
+  </categories>
+</component>

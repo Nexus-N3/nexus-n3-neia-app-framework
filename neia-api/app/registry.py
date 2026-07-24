@@ -16,13 +16,16 @@ class AppRegistry:
         self.registry_dir = registry_dir
         self.installed_file = installed_file
 
+    def resolve_app_dir(self, app_id: str) -> Path:
+        return self.registry_dir / app_id
+
     def list_registry_app_ids(self) -> List[str]:
         if not self.registry_dir.exists():
             return []
         return sorted([p.name for p in self.registry_dir.iterdir() if p.is_dir()])
 
     def load_manifest(self, app_id: str) -> AppManifest:
-        manifest_path = self.registry_dir / app_id / "app.json"
+        manifest_path = self.resolve_app_dir(app_id) / "app.json"
         if not manifest_path.exists():
             raise FileNotFoundError(f"app.json not found for {app_id}")
         data = json.loads(manifest_path.read_text(encoding="utf-8"))

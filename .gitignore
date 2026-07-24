@@ -32,3 +32,8 @@ Thumbs.db
 
 # Local model artifacts (do not commit)
 models/ollama/
+
+# Desktop packaging/runtime artifacts
+deployment/desktop/.runtime/
+deployment/desktop/linux/.build/
+deployment/desktop/linux/dist/
