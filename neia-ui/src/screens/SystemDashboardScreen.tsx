@@ -32,10 +32,9 @@ export function SystemDashboardScreen({
       <div className="dashboard-grid-v2">
         <section className="session-hero-card">
           <div className="session-card-icon" aria-hidden="true">
-            N3
+            <img src="/NX_icon_all_white.png" alt="" />
           </div>
           <div>
-            <span className="eyebrow">Built-in application</span>
             <h2>Nexus N3 Session Management</h2>
             <p>
               Create a session, configure subjects and sensors, connect devices,
@@ -46,7 +45,6 @@ export function SystemDashboardScreen({
             <button className="primary-action-v2" onClick={onLaunchSession} type="button">
               Launch session management
             </button>
-            <span>Always available in NEIA</span>
           </div>
         </section>
 

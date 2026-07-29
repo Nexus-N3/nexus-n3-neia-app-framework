@@ -129,15 +129,15 @@ export const SensorSetupScreen: React.FC = () => {
         </div>
       }
       footer={
-        <div className="action-row">
-          <div className="configuration-status" aria-live="polite">
+        <div className="screen-footer">
+          {/*<div className="configuration-status" aria-live="polite">
             {!serverReady
               ? 'Core disconnected — your draft is preserved.'
               : validation.valid
                 ? 'Configuration complete'
                 : 'Complete every subject before continuing'}
           </div>
-          <div />
+          <div />*/}
           <button
             className="nexus-btn"
             onClick={handleCreateSession}
@@ -171,7 +171,6 @@ export const SensorSetupScreen: React.FC = () => {
         <section className="subject-config-panel">
           <div className="subject-config-heading">
             <div>
-              <span className="subject-config-eyebrow">Active subject</span>
               <h3>{activeSubject?.displayName ?? 'No subject selected'}</h3>
             </div>
             <button

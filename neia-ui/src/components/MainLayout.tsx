@@ -25,14 +25,15 @@ export function MainLayout({ children, connection, route, onNavigate }: MainLayo
   return (
     <div className="neia-shell-v2">
       <header className="neia-header-v2">
-        <button
+          <img className="neia-header-logo" src="/logo.svg" alt="" />
+        {/*<button
           className="neia-brand-v2"
           onClick={() => onNavigate("/dashboard")}
           type="button"
           aria-label="Open NEIA dashboard"
         >
-          <img src="/neia_logo.png" alt="" />
-        </button>
+          <img src="/logo.svg" alt="" />
+        </button>*/}
         <div className="neia-endpoint-v2">
           <div>
             <span className="eyebrow">Nexus N3 Core</span>

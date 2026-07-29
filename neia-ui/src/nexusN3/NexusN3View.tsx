@@ -159,7 +159,7 @@ const AppContent = () => {
       <div className="nexus-app">
         <header className="nexus-header">
           <div className="header-left">
-            <img src={logo} alt="Nexus Logo" className="logo-img" />
+            
           </div>
           <div className="header-center">
             <div className="header-app-meta">

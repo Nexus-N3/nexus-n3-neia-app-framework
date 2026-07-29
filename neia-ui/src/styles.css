@@ -1,8 +1,8 @@
 :root {
   color-scheme: light;
-  --bg: #f1f1f3;
+  --bg: #e7e5eb;
   --panel: #ffffff;
-  --accent: #6a4cff;
+  --accent: #9a85ff;
   --accent-2: #9a85ff;
   --text: #2c2555;
   --muted: #6c5fa8;
@@ -1842,18 +1842,24 @@ body.display-profile-1920x1080 .startup-status {
   color: #ffffff;
   background:
     radial-gradient(circle at 8% 0%, rgba(114, 82, 218, 0.2), transparent 30rem),
-    #050506;
+    #e7e5eb;
 }
 
 .neia-header-v2 {
-  min-height: 86px;
+  min-height: 70px;
   padding: 15px clamp(20px, 4vw, 64px);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  background: #08080b;
+  background: #26232b;
   border-bottom: 1px solid #282331;
+}
+
+.neia-header-logo {
+  height: 20px;
+  width: auto;
+  object-fit: contain;
 }
 
 .neia-brand-v2 {
@@ -1876,8 +1882,7 @@ body.display-profile-1920x1080 .startup-status {
 
 .neia-brand-v2 img {
   width: 80px;
-  height: 46px;
-  object-fit: contain;
+  height: 20px;
 }
 
 .neia-brand-v2 span,
@@ -2074,7 +2079,7 @@ body.display-profile-1920x1080 .startup-status {
 
 .view-heading-v2 h1 {
   margin: 5px 0 8px;
-  color: #ffffff;
+  color: #3b3742;
   font-size: clamp(31px, 4vw, 48px);
   line-height: 1.05;
   letter-spacing: -0.035em;
@@ -2111,10 +2116,12 @@ body.display-profile-1920x1080 .startup-status {
   flex-direction: column;
   justify-content: space-between;
   background:
-    radial-gradient(circle at 100% 0%, rgba(154, 126, 255, 0.22), transparent 48%),
-    linear-gradient(145deg, #27203f, #171424 70%);
-  border-color: #332b4d;
-  color: #fff;
+    /*radial-gradient(circle at 100% 0%, rgba(154, 126, 255, 0.22), transparent 48%),
+    linear-gradient(145deg, #27203f, #171424 70%);*/
+    #fff;
+
+  border-color: #fff;
+  color: #332b4d;
 }
 
 .session-card-icon {
@@ -2132,14 +2139,21 @@ body.display-profile-1920x1080 .startup-status {
   letter-spacing: 0.04em;
 }
 
+.session-card-icon img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  display: block;
+}
+
 .session-hero-card .eyebrow {
   color: #bcb0e3;
 }
 
 .session-hero-card h2 {
-  max-width: 570px;
+  max-width: 5600px;
   margin: 8px 0 13px;
-  color: #fff;
+  color: #3b3742;
   font-size: clamp(27px, 3.2vw, 42px);
   line-height: 1.08;
   letter-spacing: -0.03em;
@@ -2148,7 +2162,7 @@ body.display-profile-1920x1080 .startup-status {
 .session-hero-card p {
   max-width: 620px;
   margin: 0;
-  color: #cbc6d7;
+  color: #6f687a;
   line-height: 1.6;
 }
 
@@ -2184,16 +2198,7 @@ body.display-profile-1920x1080 .startup-status {
   background: var(--v2-purple-dark);
 }
 
-.session-hero-card .primary-action-v2 {
-  color: #251d42;
-  background: #fff;
-  box-shadow: none;
-}
 
-.session-hero-card .primary-action-v2:hover {
-  color: #fff;
-  background: #7b5ae5;
-}
 
 .secondary-action-v2 {
   padding: 12px 17px;

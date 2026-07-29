@@ -52,7 +52,6 @@ export const NewSessionScreen: React.FC = () => {
       header={
         <ScreenHeader
           left={<BackButton onClick={handleBack} />}
-          center={<h2 className="screen-title">{isCompactViewport ? 'SESSION' : 'SESSION NAME'}</h2>}
           right={<InfoButton />}
         />
       }
