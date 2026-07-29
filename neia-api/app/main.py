@@ -8,14 +8,18 @@ from fastapi.staticfiles import StaticFiles
 
 from .config import BASE_DIR
 from .control_center_store import ControlCenterStore
+from .core_state_store import CoreStateStore
 from .gateway.manager import create_gateway_manager
 from .registry import AppRegistry
 from .runtime_settings import save_gateway_runtime_settings
 from .voice import create_voice_manager
 
-registry = AppRegistry()
+BUILT_IN_APP_IDS = {"nexus"}
+
+registry = AppRegistry(excluded_app_ids=BUILT_IN_APP_IDS)
 gateway_manager = create_gateway_manager()
 control_center_store = ControlCenterStore()
+core_state_store = CoreStateStore()
 voice_manager = create_voice_manager(
     BASE_DIR,
     send_command=gateway_manager.send_command,
@@ -23,6 +27,7 @@ voice_manager = create_voice_manager(
 )
 gateway_manager.add_event_listener(voice_manager.handle_gateway_event)
 gateway_manager.add_event_listener(control_center_store.handle_gateway_event)
+gateway_manager.add_event_listener(core_state_store.handle_gateway_event)
 
 
 @asynccontextmanager
@@ -56,6 +61,8 @@ def get_apps_catalog():
 
 @api_v1.get("/apps/{app_id}")
 def get_app(app_id: str):
+    if app_id in BUILT_IN_APP_IDS:
+        raise HTTPException(status_code=404, detail="Built-in applications are part of NEIA")
     try:
         info = registry.get_app_info(app_id)
     except FileNotFoundError:
@@ -67,6 +74,8 @@ def get_app(app_id: str):
 
 @api_v1.post("/apps/install/{app_id}")
 def install_app(app_id: str):
+    if app_id in BUILT_IN_APP_IDS:
+        raise HTTPException(status_code=400, detail="Built-in applications cannot be installed")
     try:
         return registry.install(app_id)
     except FileNotFoundError:
@@ -75,6 +84,8 @@ def install_app(app_id: str):
 
 @api_v1.post("/apps/uninstall/{app_id}")
 def uninstall_app(app_id: str):
+    if app_id in BUILT_IN_APP_IDS:
+        raise HTTPException(status_code=400, detail="Built-in applications cannot be uninstalled")
     try:
         info = registry.uninstall(app_id)
     except FileNotFoundError:
@@ -95,6 +106,38 @@ def gateway_status():
     return {"gateway": gateway_manager.gateway_type}
 
 
+@api_v1.get("/core/connection")
+def core_connection():
+    return core_state_store.connection_snapshot(gateway_manager.gateway_settings())
+
+
+@api_v1.put("/core/connection")
+async def update_core_connection(payload: dict):
+    return await _update_gateway_target(payload)
+
+
+@api_v1.post("/core/connection/retry")
+def retry_core_connection():
+    core_state_store.begin_connection_attempt()
+    try:
+        gateway_manager.send_command({"type": "is_server_ready", "payload": {}})
+        gateway_manager.send_command({"type": "get_usb_status", "payload": {}})
+    except Exception as exc:
+        core_state_store.mark_connection_error(str(exc))
+        raise HTTPException(status_code=503, detail="Failed to contact Nexus N3 Core")
+    return core_state_store.connection_snapshot(gateway_manager.gateway_settings())
+
+
+@api_v1.get("/core/capabilities")
+def core_capabilities():
+    return core_state_store.capabilities_snapshot()
+
+
+@api_v1.get("/core/status")
+def core_status():
+    return core_state_store.status_snapshot(gateway_manager.gateway_settings())
+
+
 @api_v1.get("/settings/gateway")
 def get_gateway_settings():
     return gateway_manager.gateway_settings()
@@ -102,6 +145,10 @@ def get_gateway_settings():
 
 @api_v1.post("/settings/gateway")
 async def update_gateway_settings(payload: dict):
+    return await _update_gateway_target(payload)
+
+
+async def _update_gateway_target(payload: dict):
     if gateway_manager.gateway_type != "zeromq":
         raise HTTPException(status_code=400, detail="Gateway host switching is only supported for zeromq")
     if not isinstance(payload, dict):
@@ -121,11 +168,19 @@ async def update_gateway_settings(payload: dict):
         cmd_port=cmd_port,
         event_port=event_port,
     )
-    return await gateway_manager.reconfigure_zeromq_target(
+    core_state_store.begin_connection_attempt()
+    result = await gateway_manager.reconfigure_zeromq_target(
         target_host=settings.target_host,
         cmd_port=settings.cmd_port,
         event_port=settings.event_port,
     )
+    try:
+        gateway_manager.send_command({"type": "is_server_ready", "payload": {}})
+        gateway_manager.send_command({"type": "get_usb_status", "payload": {}})
+    except Exception as exc:
+        core_state_store.mark_connection_error(str(exc))
+        raise HTTPException(status_code=503, detail="Core target updated but retry failed")
+    return core_state_store.connection_snapshot(result)
 
 
 @api_v1.post("/control-center/messages")
@@ -236,6 +291,8 @@ async def gateway_events(ws: WebSocket):
 
 @api_v1.get("/apps/{app_id}/asset/{asset_path:path}")
 def get_app_asset(app_id: str, asset_path: str):
+    if app_id in BUILT_IN_APP_IDS:
+        raise HTTPException(status_code=404, detail="Built-in application assets are served by NEIA")
     try:
         info = registry.get_app_info(app_id)
     except FileNotFoundError:

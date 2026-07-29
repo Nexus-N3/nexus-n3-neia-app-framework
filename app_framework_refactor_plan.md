@@ -538,7 +538,7 @@ display missing status fields as unknown.
 
 ## 15. Phased Implementation Sequence
 
-### Phase 1: Contracts, Test Foundation, and Shared Core State
+### DONE Phase 1: Contracts, Test Foundation, and Shared Core State
 
 - Document observed Core commands and events.
 - Add backend Core state normalization.
@@ -556,7 +556,7 @@ Tests:
 - Existing FastAPI registry/settings tests.
 - Shell production build and Python test suite.
 
-### Phase 2: Main Shell, Routes, Dashboard, Connection, Status, and Capabilities
+### DONE Phase 2: Main Shell, Routes, Dashboard, Connection, Status, and Capabilities
 
 - Introduce shell-owned routing and persistent layout.
 - Add header endpoint/connection indicator.
@@ -608,17 +608,36 @@ Tests:
 - Style/script cleanup and repeated launch tests.
 - Incoming `app_id: nexus` maps to the built-in route.
 
-### Phase 4: Built-In Session Workflow Migration
+### IMPLEMENTED Phase 4: Built-In Session Workflow and Testable Results
 
-- Relocate existing Nexus workflow code into the shell.
-- Retain lifecycle hooks and components where appropriate.
+Implemented foundation:
+
+- Relocate the existing Nexus workflow source into `neia-ui` as a built-in
+  feature that renders below the persistent NEIA header and menu.
+
+Implemented scope:
+
+- Retain and adapt the existing lifecycle hooks and components where
+  appropriate; relocation alone does not complete this requirement.
 - Introduce explicit session stages and route guards.
 - Replace default setup state with an empty per-subject configuration.
 - Add subject-owned sensor rows.
-- Populate types, locations, and algorithms from normalized capabilities.
-- Clear incompatible selections when sensor type changes.
-- Block progression on incomplete or unsupported rows.
-- Preserve draft state across temporary Core disconnects.
+- Populate types, locations, and algorithms exclusively from normalized Core
+  capabilities.
+- Clear incompatible location and algorithm selections when sensor type
+  changes.
+- Block progression while any sensor row is incomplete, incompatible, or
+  unsupported.
+- Preserve the complete session draft across temporary Core disconnects.
+- Add normalized event ingestion and bounded event state.
+- Implement configurable presentation metadata for all required event
+  categories.
+- Add the active-session timeline, combined filters, latest-first event log,
+  expandable payloads, and pagination.
+- Transition the active-session view to a completed-session view without
+  clearing captured events.
+- Retain existing specialized computation views only as optional secondary
+  content.
 
 Tests:
 
@@ -631,6 +650,33 @@ Tests:
 - Correct `init_system` payload generation.
 - Discovery, connect, identify, start, stop, drain, disconnect, and reset tests.
 - Core disconnection does not erase the draft.
+- Mapping for all five event categories.
+- Unknown and malformed payload rendering.
+- Latest-first stable event ordering.
+- Combined type, subject, and sensor filters.
+- Timeline/list filter consistency.
+- Pagination page numbers at the top right.
+- Incoming events on the first page versus older pages.
+- Memory-bound trimming and timeline aggregation.
+- Accessible non-colour event identification.
+- Active-to-completed history retention.
+- End-to-end system test covering session creation, per-subject sensor
+  configuration, initialization, discovery, assignment, streaming, live
+  events, stop/drain, and completed results.
+
+Phase 4 exit criterion:
+
+- A user can complete and test the full built-in Nexus session lifecycle
+  against Core without relying on default sensor configuration, hard-coded
+  capability fallbacks, or a separate Nexus application build.
+
+Validation status:
+
+- Automated workflow, lifecycle-hook, event-normalization, filtering,
+  pagination, disconnect-preservation, backend, typecheck, and production-build
+  checks pass.
+- A live Nexus N3 Core hardware run remains the final environment-level
+  acceptance check; the implementation is ready for that system test.
 
 ### Phase 5: Workflow Persistence and Compatibility Validation
 
@@ -653,29 +699,7 @@ Tests:
 - Persistence across API restarts.
 - Concurrent-write and invalid-file recovery tests.
 
-### Phase 6: Event-Centred Active and Completed Results
-
-- Add normalized event ingestion and bounded event state.
-- Implement configurable category presentation metadata.
-- Add timeline, filters, latest-first log, expandable payloads, and pagination.
-- Transition active state to completed without resetting events.
-- Retain existing specialized computation views only as optional secondary
-  content.
-
-Tests:
-
-- Mapping for all five categories.
-- Unknown and malformed payload rendering.
-- Latest-first stable ordering.
-- Combined type/subject/sensor filters.
-- Timeline/list filter consistency.
-- Pagination page numbers at the top right.
-- Incoming events on first versus older pages.
-- Memory-bound trimming and timeline aggregation.
-- Accessible non-colour event identification.
-- Active-to-completed history retention.
-
-### Phase 7: Archive Download, Migration Cleanup, and Release Hardening
+### Phase 6: Archive Download, Migration Cleanup, and Release Hardening
 
 - Implement the archive state machine after the Core contract is confirmed.
 - Add download handling and error states.

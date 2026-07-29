@@ -12,9 +12,15 @@ from .models import AppInfo, AppManifest
 
 
 class AppRegistry:
-    def __init__(self, registry_dir: Path = REGISTRY_DIR, installed_file: Path = INSTALLED_FILE):
+    def __init__(
+        self,
+        registry_dir: Path = REGISTRY_DIR,
+        installed_file: Path = INSTALLED_FILE,
+        excluded_app_ids: set[str] | None = None,
+    ):
         self.registry_dir = registry_dir
         self.installed_file = installed_file
+        self.excluded_app_ids = excluded_app_ids or set()
 
     def resolve_app_dir(self, app_id: str) -> Path:
         return self.registry_dir / app_id
@@ -22,7 +28,13 @@ class AppRegistry:
     def list_registry_app_ids(self) -> List[str]:
         if not self.registry_dir.exists():
             return []
-        return sorted([p.name for p in self.registry_dir.iterdir() if p.is_dir()])
+        return sorted(
+            [
+                path.name
+                for path in self.registry_dir.iterdir()
+                if path.is_dir() and path.name not in self.excluded_app_ids
+            ]
+        )
 
     def load_manifest(self, app_id: str) -> AppManifest:
         manifest_path = self.resolve_app_dir(app_id) / "app.json"
