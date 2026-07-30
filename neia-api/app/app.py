@@ -16,7 +16,7 @@ from .gateway.manager import create_gateway_manager
 from .registry import AppRegistry
 from .voice import create_voice_manager
 
-# this should be redundant now
+
 BUILT_IN_APP_IDS = {"nexus"}
 
 
