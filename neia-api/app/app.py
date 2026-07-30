@@ -15,6 +15,7 @@ from .core_state_store import CoreStateStore
 from .gateway.manager import create_gateway_manager
 from .registry import AppRegistry
 from .voice import create_voice_manager
+from .help import HelpManager
 
 
 BUILT_IN_APP_IDS = {"nexus"}
@@ -28,6 +29,7 @@ class AppServices:
     control_center_store: ControlCenterStore
     core_state_store: CoreStateStore
     voice_manager: Any
+    help_manager: Any
 
 
 def create_services() -> AppServices:
@@ -51,6 +53,8 @@ def create_services() -> AppServices:
     gateway_manager.add_event_listener(
         core_state_store.handle_gateway_event
     )
+
+    help_manager = HelpManager(BASE_DIR)
 
     return AppServices(
         registry=registry,
