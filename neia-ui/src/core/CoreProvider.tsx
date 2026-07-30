@@ -120,16 +120,30 @@ export function CoreProvider({ children }: { children: ReactNode }) {
     async (input: UpdateConnectionInput) => {
       setSaving(true);
       setError(null);
+
       try {
-        const nextConnection = await readJson<CoreConnection>("/api/v1/core/connection", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(input),
-        });
+        const nextConnection = await readJson<CoreConnection>(
+          "/api/v1/core/connection",
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(input),
+          },
+        );
+
         setConnection(nextConnection);
+
         await refresh();
+
+        window.setTimeout(() => {
+          void refresh();
+        }, 8500);
       } catch (requestError) {
-        setError(requestError instanceof Error ? requestError.message : "Failed to update Core endpoint.");
+        setError(
+          requestError instanceof Error
+            ? requestError.message
+            : "Failed to update Core endpoint.",
+        );
         throw requestError;
       } finally {
         setSaving(false);
@@ -160,15 +174,19 @@ export function CoreProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     void refresh();
+
     const protocol = window.location.protocol === "https:" ? "wss" : "ws";
     const socketUrl = `${protocol}://${window.location.host}/api/v1/gateway/events`;
+
     let socket: WebSocket | null = null;
     let stopped = false;
+    let initialConnectTimer: number | null = null;
     let reconnectTimer: number | null = null;
     let refreshTimer: number | null = null;
 
     const scheduleRefresh = () => {
       if (refreshTimer !== null) return;
+
       refreshTimer = window.setTimeout(() => {
         refreshTimer = null;
         void refresh();
@@ -177,29 +195,46 @@ export function CoreProvider({ children }: { children: ReactNode }) {
 
     const connectSocket = () => {
       if (stopped) return;
-      socket = new WebSocket(socketUrl);
-      socket.onopen = () => {
+
+      const nextSocket = new WebSocket(socketUrl);
+      socket = nextSocket;
+
+      nextSocket.onopen = () => {
+        if (stopped || socket !== nextSocket) return;
+
         setEventConnected(true);
         setError(null);
-        void retry();
+        void refresh();
       };
-      socket.onclose = () => {
+
+      nextSocket.onclose = () => {
+        if (stopped || socket !== nextSocket) return;
+
         setEventConnected(false);
-        setConnection((current) =>
-          current ? { ...current, state: "disconnected", available: false } : current,
-        );
-        if (!stopped) {
-          reconnectTimer = window.setTimeout(connectSocket, 1500);
-        }
+
+        reconnectTimer = window.setTimeout(() => {
+          reconnectTimer = null;
+          connectSocket();
+        }, 1500);
       };
-      socket.onerror = () => {
+
+      nextSocket.onerror = () => {
+        if (stopped || socket !== nextSocket) return;
+
+        setEventConnected(false);
         setError("The NEIA event connection is unavailable. Reconnecting…");
       };
-      socket.onmessage = (message) => {
+
+      nextSocket.onmessage = (message) => {
+        if (stopped || socket !== nextSocket) return;
+
         try {
           const event = JSON.parse(message.data) as CoreEvent;
+
           listenersRef.current.forEach((listener) => listener(event));
+
           const type = typeof event.type === "string" ? event.type : "";
+
           if (
             type === "server_ready" ||
             type.startsWith("usb_") ||
@@ -217,15 +252,47 @@ export function CoreProvider({ children }: { children: ReactNode }) {
         }
       };
     };
-    connectSocket();
+
+    // Avoid opening a WebSocket during React Strict Mode's temporary
+    // development mount.
+    initialConnectTimer = window.setTimeout(connectSocket, 0);
 
     return () => {
       stopped = true;
-      socket?.close();
-      if (reconnectTimer !== null) window.clearTimeout(reconnectTimer);
-      if (refreshTimer !== null) window.clearTimeout(refreshTimer);
+
+      if (initialConnectTimer !== null) {
+        window.clearTimeout(initialConnectTimer);
+      }
+
+      if (reconnectTimer !== null) {
+        window.clearTimeout(reconnectTimer);
+      }
+
+      if (refreshTimer !== null) {
+        window.clearTimeout(refreshTimer);
+      }
+
+      const activeSocket = socket;
+      socket = null;
+
+      if (!activeSocket) return;
+
+      activeSocket.onopen = null;
+      activeSocket.onclose = null;
+      activeSocket.onerror = null;
+      activeSocket.onmessage = null;
+
+      if (activeSocket.readyState === WebSocket.OPEN) {
+        activeSocket.close(1000, "CoreProvider unmounted");
+      } else if (activeSocket.readyState === WebSocket.CONNECTING) {
+        activeSocket.addEventListener(
+          "open",
+          () => activeSocket.close(1000, "CoreProvider unmounted"),
+          { once: true },
+        );
+      }
     };
-  }, [refresh, retry]);
+  }, [refresh]);
 
   const value = useMemo<CoreContextValue>(
     () => ({

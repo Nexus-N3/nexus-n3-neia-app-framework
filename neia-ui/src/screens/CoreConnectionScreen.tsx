@@ -22,10 +22,12 @@ export function CoreConnectionScreen() {
     const nextHost = host.trim();
     const nextCmdPort = Number(cmdPort);
     const nextEventPort = Number(eventPort);
+
     if (!nextHost) {
       setFormError("Enter a Nexus N3 Core hostname or address.");
       return;
     }
+
     if (
       !Number.isInteger(nextCmdPort) ||
       !Number.isInteger(nextEventPort) ||
@@ -37,20 +39,22 @@ export function CoreConnectionScreen() {
       setFormError("Ports must be whole numbers between 1 and 65535.");
       return;
     }
+
     setFormError(null);
     setSaved(false);
+
     try {
       await updateConnection({
         target_host: nextHost,
         cmd_port: nextCmdPort,
         event_port: nextEventPort,
       });
+
       setSaved(true);
     } catch {
-      // Provider exposes the request error.
+      // CoreProvider exposes the request error.
     }
   };
-
   return (
     <div className="system-view-v2 narrow-view-v2">
       <div className="view-heading-v2">

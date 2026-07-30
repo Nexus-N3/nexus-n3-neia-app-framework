@@ -97,6 +97,7 @@ class CoreStateStore:
             )
 
     def handle_gateway_event(self, event: dict[str, Any]) -> None:
+        #print(f"gateway event", event)
         if not isinstance(event, dict):
             return
         event_type = _string(event.get("type"))
@@ -109,7 +110,11 @@ class CoreStateStore:
             self._connection["last_event_at"] = received_at
 
             if event_type == "server_ready":
+                #print(f"server ready payload", payload)
                 self._ingest_server_ready(payload, received_at)
+            if event_type == "device_info":
+                # should ingest the device info payload
+                self._ingest_device_info(payload, received_at)
             elif event_type in {"usb_status", "usb_disk_inserted", "usb_disk_removed"}:
                 self._ingest_usb(event_type, payload, received_at)
             elif event_type in {"ble_status", "ble_backend_status", "ble_gateway_status"}:
@@ -365,12 +370,9 @@ class CoreStateStore:
         ble = _record(_first(payload, "ble", "ble_status"))
         if ble:
             self._update_ble_from_payload(ble)
-        azure = _record(_first(payload, "azure_bridge", "azure"))
+        azure = _record(_first(payload, "azure_bridge", "azure", "active_bridge"))
         if azure:
-            self._status["azure_bridge"] = {
-                "state": _state(_first(azure, "state", "status", "connected"))
-                or "unknown"
-            }
+            self._update_azure_from_payload(azure)
         services = _first(payload, "services", "service_health")
         if isinstance(services, list):
             self._status["services"] = deepcopy(services)
@@ -425,11 +427,31 @@ class CoreStateStore:
             or "unknown",
         }
 
-    def _ingest_azure(self, payload: dict[str, Any], received_at: str) -> None:
+    def _update_azure_from_payload(self, payload: dict[str, Any]) -> None:
+        raw_state = _first(payload["device"], "active_bridge")
+        print("_update_azure_from_payload", raw_state)
+
         self._status["azure_bridge"] = {
-            "state": _state(_first(payload, "state", "status", "connected"))
-            or "unknown"
+            "state": (
+                "not_set"
+                if raw_state is False
+                else _state(raw_state) or "unknown"
+            )
         }
+
+    def _ingest_device_info(self, payload: dict[str, Any], recieved_at: str) -> None:
+        version = _first(payload["device"], "software_version")
+        ble_adater = payload["ble"]["backend_label"]
+
+        self._status["version"] = version
+        self._status["ble"]["adapter_state"] = ble_adater
+        
+        # ingest the azure piece
+        self._ingest_azure(payload, recieved_at)
+        
+
+    def _ingest_azure(self, payload: dict[str, Any], received_at: str) -> None:
+        self._update_azure_from_payload(payload)
         self._status["updated_at"] = received_at
 
     def _ingest_services(self, payload: dict[str, Any], received_at: str) -> None:
