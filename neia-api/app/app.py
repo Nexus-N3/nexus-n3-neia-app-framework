@@ -62,6 +62,7 @@ def create_services() -> AppServices:
         control_center_store=control_center_store,
         core_state_store=core_state_store,
         voice_manager=voice_manager,
+        help_manager=help_manager,
     )
 
 def get_services(request: Request) -> AppServices:
