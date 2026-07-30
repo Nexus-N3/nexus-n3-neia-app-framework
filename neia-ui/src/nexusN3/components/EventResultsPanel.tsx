@@ -13,6 +13,7 @@ import { sessionEventsAtom } from '../store/atoms';
 const EMPTY_FILTERS: SessionEventFilters = {
   category: 'all',
   subjectId: '',
+  placement: '',
   sensorId: '',
 };
 
@@ -30,6 +31,12 @@ export function EventResultsPanel({ completed }: { completed: boolean }) {
     () => Array.from(new Set(events.flatMap((event) => event.sensorId ? [event.sensorId] : []))).sort(),
     [events],
   );
+
+  const placements = useMemo(
+    () => Array.from(new Set(events.flatMap((event) => event.placement ? [event.placement] : []))).sort(),
+    [events],
+  );
+
   const filtered = useMemo(
     () => filterSessionEvents(events, filters),
     [events, filters],
@@ -78,7 +85,7 @@ export function EventResultsPanel({ completed }: { completed: boolean }) {
       <div className="event-results-heading">
         <div>
           <span className="event-results-eyebrow">{completed ? 'Completed session' : 'Active session'}</span>
-          <h2>Core event results</h2>
+          <h2>Timeline</h2>
         </div>
         <span className="event-count">{filtered.length} event{filtered.length === 1 ? '' : 's'}</span>
       </div>
@@ -123,6 +130,16 @@ export function EventResultsPanel({ completed }: { completed: boolean }) {
           >
             <option value="">All subjects</option>
             {subjects.map((subject) => <option key={subject} value={subject}>{subject}</option>)}
+          </select>
+        </label>
+        <label>
+          <span>Placement</span>
+          <select
+            value={filters.placement}
+            onChange={(event) => updateFilters({ ...filters, placement: event.target.value })}
+          >
+            <option value="">All placements</option>
+            {placements.map((p) => <option key={p} value={p}>{p}</option>)}
           </select>
         </label>
         <label>
@@ -171,20 +188,44 @@ export function EventResultsPanel({ completed }: { completed: boolean }) {
           return (
             <details className={`event-log-entry category-${event.category}`} key={event.id}>
               <summary>
-                <time dateTime={event.timestamp}>
-                  {new Date(event.timestamp).toLocaleTimeString()}
-                </time>
-                <span
-                  className="event-category"
-                  style={{ borderColor: presentation.color, color: presentation.color }}
-                >
-                  <b aria-hidden="true">{presentation.icon}</b>
-                  {presentation.label}
-                </span>
-                <strong>{event.eventType}</strong>
-                {event.subjectId ? <span>Subject: {event.subjectId}</span> : null}
-                {event.sensorId ? <span>Sensor: {event.sensorId}</span> : null}
-                <span className="event-summary">{event.summary}</span>
+                <div className="event-log-prefix">
+                  <time dateTime={event.timestamp}>
+                    {new Date(event.timestamp).toLocaleTimeString()}
+                  </time>
+
+                  <span
+                    className="event-category"
+                    style={{
+                      borderColor: presentation.color,
+                      color: presentation.color,
+                    }}
+                  >
+                    <b aria-hidden="true">{presentation.icon}</b>
+                    {presentation.label}
+                  </span>
+                </div>
+
+                <div className="event-log-details">
+                  <strong>{event.eventType}</strong>
+
+                  {event.subjectId ? (
+                    <span>Subject: {event.subjectId}</span>
+                  ) : (
+                    <span />
+                  )}
+
+                  {event.placement ? (
+                    <span>Placement: {event.placement}</span>
+                  ) : (
+                    <span />
+                  )}
+
+                  {event.sensorId ? (
+                    <span>Sensor: {event.sensorId}</span>
+                  ) : (
+                    <span />
+                  )}
+                </div>
               </summary>
               <pre>{safePayloadText(event.payload)}</pre>
             </details>

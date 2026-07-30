@@ -1,7 +1,7 @@
 {
   "gateway_type": "zeromq",
   "site": "my_house",
-  "target_host": "localhost",
+  "target_host": "nexus-n3-master.local",
   "cmd_port": 5555,
   "event_port": 5556,
   "amqp_url": ""

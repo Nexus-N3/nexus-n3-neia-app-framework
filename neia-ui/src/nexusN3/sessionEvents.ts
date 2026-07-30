@@ -13,6 +13,7 @@ export interface NormalizedSessionEvent {
   eventType: string;
   subjectId: string | null;
   sensorId: string | null;
+  placement: string | null;
   summary: string;
   payload: unknown;
 }
@@ -20,6 +21,7 @@ export interface NormalizedSessionEvent {
 export interface SessionEventFilters {
   category: SessionEventCategory | 'all';
   subjectId: string;
+  placement:string;
   sensorId: string;
 }
 
@@ -72,9 +74,26 @@ export function normalizeSessionEvent(
   sequence: number,
   receivedAt = new Date(),
 ): NormalizedSessionEvent {
+
+  
+
+  const rawEvent = raw;
   const payload = raw.payload;
+  const rawEventRecord = asRecord(rawEvent);
   const payloadRecord = asRecord(payload);
   const resultRecord = asRecord(payloadRecord.result);
+  const resultPayloadRecord = asRecord(resultRecord._payload);
+
+  console.log('[normalize raw]', raw);
+
+  console.log('[normalize locations]', {
+    rawLocation: raw.location,
+    payload: raw.payload,
+    payloadLocation: payloadRecord.location,
+    resultLocation: resultRecord.location,
+  });
+
+
   const eventType = firstString(raw.type, raw.event_type, raw.name) ?? 'unknown_event';
   const rawTimestamp = firstString(
     raw.timestamp,
@@ -97,7 +116,14 @@ export function normalizeSessionEvent(
     payloadRecord.sensor_id,
     payloadRecord.address,
     resultRecord.address,
+    //payloadRecord.location,
+  );
+  const placement = firstString(
+    raw.location,
     payloadRecord.location,
+    resultRecord.location,
+    resultPayloadRecord.location,
+    rawEventRecord.location,
   );
   const summary =
     firstString(
@@ -108,6 +134,12 @@ export function normalizeSessionEvent(
       payloadRecord.reason,
       payloadRecord.status,
     ) ?? eventType.replace(/_/g, ' ');
+  
+  console.log('[normalize result]', {
+    placement,
+    subjectId,
+    sensorId,
+  });  
 
   return {
     id: `${sequence}-${eventType}-${timestamp}`,
@@ -117,6 +149,7 @@ export function normalizeSessionEvent(
     eventType,
     subjectId,
     sensorId,
+    placement,
     summary,
     payload,
   };
@@ -138,6 +171,7 @@ export function filterSessionEvents(
     (event) =>
       (filters.category === 'all' || event.category === filters.category) &&
       (!filters.subjectId || event.subjectId === filters.subjectId) &&
+      (!filters.placement || event.placement === filters.placement) &&
       (!filters.sensorId || event.sensorId === filters.sensorId),
   );
 }

@@ -46,7 +46,7 @@ export const SubjectsRequiredScreen: React.FC = () => {
         <ScreenHeader
           left={<BackButton onClick={handleBack} />}
           center={<h2 className="screen-title">{isCompactViewport ? 'SUBJECTS' : 'SUBJECTS REQUIRED'}</h2>}
-          right={<InfoButton />}
+          right={""}
         />
       }
       footer={

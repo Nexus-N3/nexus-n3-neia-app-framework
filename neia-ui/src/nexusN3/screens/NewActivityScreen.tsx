@@ -58,7 +58,7 @@ export const NewActivityScreen: React.FC = () => {
         <ScreenHeader
           left={<BackButton onClick={handleBack} />}
           center={<h2 className="screen-title">{isCompactViewport ? 'ACTIVITY' : 'ACTIVITY NAME'}</h2>}
-          right={<InfoButton />}
+          right={""}
         />
       }
       footer={
@@ -94,7 +94,7 @@ export const NewActivityScreen: React.FC = () => {
 
         {/* Quick Selection */}
         <div className="quick-selection-section">
-          <h3 className="quick-selection-title">Quick selection</h3>
+          <h3 className="quick-selection-title">Quick select</h3>
           <div className="quick-selection-container">
             {quickSelections.map((selection) => (
               <div

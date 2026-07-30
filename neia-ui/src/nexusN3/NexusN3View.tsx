@@ -9,7 +9,6 @@ import { HomeScreen } from './screens/HomeScreen';
 import { NewSessionScreen } from './screens/NewSessionScreen';
 import { SubjectsRequiredScreen } from './screens/SubjectsRequiredScreen';
 import { SensorSetupScreen } from './screens/SensorSetupScreen';
-import { AddSensorScreen } from './screens/AddSensorScreen';
 import { SessionScreen } from './screens/SessionScreen';
 import { AssignSensorsScreen } from './screens/AssignSensorsScreen';
 import { ActiveSessionScreen } from './screens/ActiveSessionScreen';
@@ -180,7 +179,6 @@ const AppContent = () => {
             <Route path="/subjects" element={<StageGuard required="subject_selection"><SubjectsRequiredScreen /></StageGuard>} />
             <Route path="/config-bootstrap" element={<ConfigBootstrapScreen />} />
             <Route path="/sensor-setup" element={<StageGuard required="sensor_configuration"><SensorSetupScreen /></StageGuard>} />
-            <Route path="/add-sensor" element={<StageGuard required="sensor_configuration"><AddSensorScreen /></StageGuard>} />
             <Route path="/session" element={<StageGuard required="sensor_discovery"><SessionScreen /></StageGuard>} />
             <Route path="/assign-sensors" element={<StageGuard required="sensor_discovery"><AssignSensorsScreen /></StageGuard>} />
             <Route path="/active-session" element={<StageGuard required="active"><ActiveSessionScreen /></StageGuard>} />

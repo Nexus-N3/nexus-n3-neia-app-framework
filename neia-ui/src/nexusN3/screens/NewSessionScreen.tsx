@@ -52,7 +52,7 @@ export const NewSessionScreen: React.FC = () => {
       header={
         <ScreenHeader
           left={<BackButton onClick={handleBack} />}
-          right={<InfoButton />}
+          right={""}
         />
       }
       footer={

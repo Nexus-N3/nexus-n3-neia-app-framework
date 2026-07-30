@@ -123,7 +123,7 @@ export const SessionScreen: React.FC = () => {
           className="compact"
           left={<BackButton onClick={handleBack} />}
           center={<SubjectsCarousel currentPage={currentPage} totalPages={totalPages} onPrev={handlePrevPage} onNext={handleNextPage} />}
-          right={<InfoButton />}
+          right={""}
         />
       }
       footer={
@@ -175,7 +175,6 @@ export const SessionScreen: React.FC = () => {
 
                 <div className={`status-row ${isComplete ? 'complete' : 'incomplete'}`}>
                   <div className={`status-dot ${isComplete ? 'complete' : 'incomplete'}`}></div>
-                  <span className="status-text">Sensors</span>
                 </div>
 
                 {isComplete ? (
@@ -207,7 +206,7 @@ export const SessionScreen: React.FC = () => {
                 )}
               </div>
               <button
-                className={`panel-action-btn ${isComplete ? 'complete' : ''}`}
+                className={`panel-action-btn primary ${isComplete ? 'complete' : ''}`}
                 onClick={handleSubjectAction}
                 disabled={!serverReady || (isBusy && !isConnected)}
               >

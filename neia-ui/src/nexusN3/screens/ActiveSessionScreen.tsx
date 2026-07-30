@@ -88,10 +88,9 @@ export const ActiveSessionScreen: React.FC = () => {
         center={
           <div className="results-session-heading">
             <h2 className="screen-title">{completed ? 'COMPLETED RESULTS' : String(activeActivity || 'ACTIVE SESSION').toUpperCase()}</h2>
-            <span>{completed ? 'Event history retained' : 'Receiving Core events'}</span>
           </div>
         }
-        right={<InfoButton />}
+        right={""}
       />
 
       <div className="session-lifecycle-strip" aria-label="Subject stream lifecycle">
@@ -108,7 +107,7 @@ export const ActiveSessionScreen: React.FC = () => {
 
       <EventResultsPanel completed={completed} />
 
-      <details className="specialized-results">
+      {/*<details className="specialized-results">
         <summary>Specialized computation views</summary>
         <div className="specialized-results-grid">
           {subjects.map((subject) => {
@@ -123,7 +122,7 @@ export const ActiveSessionScreen: React.FC = () => {
             );
           })}
         </div>
-      </details>
+      </details>*/}
 
       <div className="action-row event-results-actions">
         {completed ? (

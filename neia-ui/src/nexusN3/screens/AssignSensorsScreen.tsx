@@ -89,7 +89,7 @@ export const AssignSensorsScreen: React.FC = () => {
               <h2 className="screen-title">{isCompactViewport ? 'SENSORS' : 'PLACE SENSORS'}</h2>
             )
           }
-          right={<InfoButton />}
+          right={""}
         />
       }
       footer={
@@ -110,9 +110,9 @@ export const AssignSensorsScreen: React.FC = () => {
           <div key={subject.id} className="subject-section">
             {/* Subject Header */}
             <div className="subject-header">
-              <h3 className="subject-header-title">
+              {/*<h3 className="subject-header-title">
                 {subject.displayName}: assigned sensors
-              </h3>
+              </h3>*/}
               <div className="subject-stats-row">
                 <div className={`status-dot-small ${subject.placedCount >= subject.requiredCount ? 'complete' : 'incomplete'}`} />
                 <span>{subject.requiredCount} required,</span>
