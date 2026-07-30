@@ -1,71 +1,50 @@
 from __future__ import annotations
 
-from contextlib import asynccontextmanager
 import asyncio
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import Depends, FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
 
+from .app import AppServices, BUILT_IN_APP_IDS, create_app, get_services
 from .config import BASE_DIR
-from .control_center_store import ControlCenterStore
-from .core_state_store import CoreStateStore
-from .gateway.manager import create_gateway_manager
-from .registry import AppRegistry
 from .runtime_settings import save_gateway_runtime_settings
-from .voice import create_voice_manager
 
 BUILT_IN_APP_IDS = {"nexus"}
-
-registry = AppRegistry(excluded_app_ids=BUILT_IN_APP_IDS)
-gateway_manager = create_gateway_manager()
-control_center_store = ControlCenterStore()
-core_state_store = CoreStateStore()
-voice_manager = create_voice_manager(
-    BASE_DIR,
-    send_command=gateway_manager.send_command,
-    broadcast_event=gateway_manager.broadcast_event,
-)
-gateway_manager.add_event_listener(voice_manager.handle_gateway_event)
-gateway_manager.add_event_listener(control_center_store.handle_gateway_event)
-gateway_manager.add_event_listener(core_state_store.handle_gateway_event)
-
-
-@asynccontextmanager
-async def lifespan(_: FastAPI):
-    await gateway_manager.start()
-    voice_manager.start_if_enabled()
-    yield
-    voice_manager.stop()
-    await gateway_manager.stop()
-
-
-app = FastAPI(title="NEIA API", version="0.1.1", lifespan=lifespan)
 
 api_v1 = FastAPI()
 
 
+# routes
 @api_v1.get("/apps/installed")
-def list_installed_apps():
-    return registry.list_installed()
+def list_installed_apps(
+    services: AppServices = Depends(get_services),
+):
+    return services.registry.list_installed()
 
 
 @api_v1.get("/apps/available")
-def list_available_apps():
-    return registry.list_available()
+def list_available_apps(
+    services: AppServices = Depends(get_services),
+):
+    return services.registry.list_available()
 
 
 @api_v1.get("/apps/catalog")
-def get_apps_catalog():
-    return control_center_store.build_app_catalog(registry)
+def get_apps_catalog(
+    services: AppServices = Depends(get_services),
+):
+    return services.control_center_store.build_app_catalog(services.registry)
 
 
 @api_v1.get("/apps/{app_id}")
-def get_app(app_id: str):
+def get_app(
+    app_id: str,
+    services: AppServices = Depends(get_services),
+):
     if app_id in BUILT_IN_APP_IDS:
         raise HTTPException(status_code=404, detail="Built-in applications are part of NEIA")
     try:
-        info = registry.get_app_info(app_id)
+        info = services.registry.get_app_info(app_id)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="App not found")
     if not info.installed:
@@ -74,21 +53,27 @@ def get_app(app_id: str):
 
 
 @api_v1.post("/apps/install/{app_id}")
-def install_app(app_id: str):
+def install_app(
+    app_id: str,
+    services: AppServices = Depends(get_services),
+):
     if app_id in BUILT_IN_APP_IDS:
         raise HTTPException(status_code=400, detail="Built-in applications cannot be installed")
     try:
-        return registry.install(app_id)
+        return services.registry.install(app_id)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="App not found")
 
 
 @api_v1.post("/apps/uninstall/{app_id}")
-def uninstall_app(app_id: str):
+def uninstall_app(
+    app_id: str,
+    services: AppServices = Depends(get_services)
+):
     if app_id in BUILT_IN_APP_IDS:
         raise HTTPException(status_code=400, detail="Built-in applications cannot be uninstalled")
     try:
-        info = registry.uninstall(app_id)
+        info = services.registry.uninstall(app_id)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="App not found")
     if info.installed:
@@ -97,19 +82,19 @@ def uninstall_app(app_id: str):
 
 
 @api_v1.post("/gateway/command")
-def send_gateway_command(command: dict):
-    gateway_manager.send_command(command)
+def send_gateway_command(command: dict, services: AppServices = Depends(get_services)):
+    services.gateway_manager.send_command(command)
     return {"status": "sent"}
 
 
 @api_v1.get("/gateway/status")
-def gateway_status():
-    return {"gateway": gateway_manager.gateway_type}
+def gateway_status(services: AppServices = Depends(get_services)):
+    return {"gateway": services.gateway_manager.gateway_type}
 
 
 @api_v1.get("/core/connection")
-def core_connection():
-    return core_state_store.connection_snapshot(gateway_manager.gateway_settings())
+def core_connection(services: AppServices = Depends(get_services)):
+    return services.core_state_store.connection_snapshot(services.gateway_manager.gateway_settings())
 
 
 @api_v1.put("/core/connection")
@@ -118,8 +103,12 @@ async def update_core_connection(payload: dict):
 
 
 @api_v1.post("/core/connection/retry")
-def retry_core_connection():
+def retry_core_connection(services: AppServices = Depends(get_services)):
+    gateway_manager = services.gateway_manager
+    core_state_store = services.core_state_store
+
     core_state_store.begin_connection_attempt()
+    
     try:
         gateway_manager.send_command({"type": "is_server_ready", "payload": {}})
         gateway_manager.send_command({"type": "get_usb_status", "payload": {}})
@@ -131,18 +120,18 @@ def retry_core_connection():
 
 
 @api_v1.get("/core/capabilities")
-def core_capabilities():
-    return core_state_store.capabilities_snapshot()
+def core_capabilities(services: AppServices = Depends(get_services)):
+    return services.core_state_store.capabilities_snapshot()
 
 
 @api_v1.get("/core/status")
-def core_status():
-    return core_state_store.status_snapshot(gateway_manager.gateway_settings())
+def core_status(services: AppServices = Depends(get_services)):
+    return services.core_state_store.status_snapshot(services.gateway_manager.gateway_settings())
 
 
 @api_v1.get("/settings/gateway")
-def get_gateway_settings():
-    return gateway_manager.gateway_settings()
+def get_gateway_settings(services: AppServices = Depends(get_services)):
+    return services.gateway_manager.gateway_settings()
 
 
 @api_v1.post("/settings/gateway")
@@ -150,7 +139,10 @@ async def update_gateway_settings(payload: dict):
     return await _update_gateway_target(payload)
 
 
-async def _update_gateway_target(payload: dict):
+async def _update_gateway_target(payload: dict, services: AppServices = Depends(get_services)):
+    gateway_manager = services.gateway_manager
+    core_state_store = services.core_state_store
+
     if gateway_manager.gateway_type != "zeromq":
         raise HTTPException(
             status_code=400,
@@ -212,13 +204,14 @@ async def _update_gateway_target(payload: dict):
 
 
 @api_v1.post("/control-center/messages")
-def ingest_control_center_message(message: dict):
-    result = control_center_store.ingest_message(message)
+def ingest_control_center_message(message: dict, services: AppServices = Depends(get_services)):
+
+    result = services.control_center_store.ingest_message(message)
     status = result.get("status")
     if status == "rejected":
         raise HTTPException(status_code=400, detail=result.get("reason", "invalid_message"))
     if status == "accepted":
-        gateway_manager.broadcast_event(
+        services.gateway_manager.broadcast_event(
             {
                 "type": "control_center_message",
                 "payload": message,
@@ -228,15 +221,15 @@ def ingest_control_center_message(message: dict):
 
 
 @api_v1.get("/control-center/catalog")
-def get_control_center_catalog():
-    return control_center_store.build_subject_catalog()
+def get_control_center_catalog(services: AppServices = Depends(get_services)):
+    return services.control_center_store.build_subject_catalog()
 
 
 @api_v1.post("/gateway/purge")
-def gateway_purge():
-    if gateway_manager.gateway_type != "lavinmq":
+def gateway_purge(services: AppServices = Depends(get_services)):
+    if services.gateway_manager.gateway_type != "lavinmq":
         raise HTTPException(status_code=400, detail="Purge only supported for LavinMQ")
-    gateway_manager.purge_queues()
+    services.gateway_manager.purge_queues()
     return {"status": "purged"}
 
 
@@ -247,55 +240,56 @@ def get_steps():
 
 
 @api_v1.get("/voice/status")
-def voice_status():
-    return voice_manager.status()
+def voice_status(services: AppServices = Depends(get_services)):
+    return services.voice_manager.status()
 
 
 @api_v1.get("/voice/last")
-def voice_last():
-    return voice_manager.last()
+def voice_last(services: AppServices = Depends(get_services)):
+    return services.voice_manager.last()
 
 @api_v1.post("/voice/reset")
-def voice_reset():
-    return voice_manager.reset()
+def voice_reset(services: AppServices = Depends(get_services)):
+    return services.voice_manager.reset()
 
 
 @api_v1.post("/voice/enable")
-def voice_enable():
-    return voice_manager.enable()
+def voice_enable(services: AppServices = Depends(get_services)):
+    return services.voice_manager.enable()
 
 @api_v1.post("/voice/activate")
-def voice_activate():
+def voice_activate(services: AppServices = Depends(get_services)):
+    voice_manager = services.voice_manager
     voice_manager.set_flow_active(True)
     return voice_manager.enable()
 
 @api_v1.post("/voice/deactivate")
-def voice_deactivate():
-    return voice_manager.set_flow_active(False)
+def voice_deactivate(services: AppServices = Depends(get_services)):
+    return services.voice_manager.set_flow_active(False)
 
 
 @api_v1.post("/voice/disable")
-def voice_disable():
-    return voice_manager.disable()
+def voice_disable(services: AppServices = Depends(get_services)):
+    return services.voice_manager.disable()
 
 
 @api_v1.post("/voice/tts")
-def voice_tts(payload: dict):
+def voice_tts(payload: dict, services: AppServices = Depends(get_services)):
     if not isinstance(payload, dict):
         raise HTTPException(status_code=400, detail="Invalid payload")
     enabled = payload.get("enabled")
     if enabled is None:
         raise HTTPException(status_code=400, detail="Missing enabled")
-    return voice_manager.set_tts_enabled(bool(enabled))
+    return services.voice_manager.set_tts_enabled(bool(enabled))
 
 
 @api_v1.post("/voice/speak")
-def voice_speak(payload: dict):
+def voice_speak(payload: dict, services: AppServices = Depends(get_services)):
     text = payload.get("text") if isinstance(payload, dict) else None
     if not text:
         raise HTTPException(status_code=400, detail="Missing text")
     wait = bool(payload.get("wait")) if isinstance(payload, dict) else False
-    ok, error = voice_manager._maybe_speak(text, wait=wait)
+    ok, error = services.voice_manager._maybe_speak(text, wait=wait)
     if not ok and error == "TTS disabled":
         raise HTTPException(status_code=400, detail=error)
     if error:
@@ -305,10 +299,21 @@ def voice_speak(payload: dict):
 
 @api_v1.websocket("/gateway/events")
 async def gateway_events(ws: WebSocket):
+    services: AppServices = ws.app.state.services
+    gateway_manager = services.gateway_manager
+    voice_manager = services.voice_manager
+
     await ws.accept()
     await gateway_manager.broadcaster.register(ws)
+
     try:
-        await ws.send_json({"type": "voice_status", "payload": voice_manager.status()})
+        await ws.send_json(
+            {
+                "type": "voice_status",
+                "payload": voice_manager.status(),
+            }
+        )
+
         while True:
             await ws.receive_text()
     except WebSocketDisconnect:
@@ -318,14 +323,14 @@ async def gateway_events(ws: WebSocket):
 
 
 @api_v1.get("/apps/{app_id}/asset/{asset_path:path}")
-def get_app_asset(app_id: str, asset_path: str):
+def get_app_asset(app_id: str, asset_path: str, services: AppServices = Depends(get_services)):
     if app_id in BUILT_IN_APP_IDS:
         raise HTTPException(status_code=404, detail="Built-in application assets are served by NEIA")
     try:
-        info = registry.get_app_info(app_id)
+        info = services.registry.get_app_info(app_id)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="App not found")
-    app_dir = registry.resolve_app_dir(app_id).resolve()
+    app_dir = services.registry.resolve_app_dir(app_id).resolve()
     candidate = (app_dir / asset_path).resolve()
     if app_dir not in candidate.parents and candidate != app_dir:
         raise HTTPException(status_code=400, detail="Invalid asset path")
@@ -340,18 +345,13 @@ def get_app_asset(app_id: str, asset_path: str):
 
 
 @api_v1.get("/health")
-def api_health():
+def api_health(services: AppServices = Depends(get_services)):
     return {
         "status": "ok",
         "ui_dist_available": (BASE_DIR / "neia-ui" / "dist").exists(),
-        "registry_dir": str(registry.registry_dir),
-        "installed_file": str(registry.installed_file),
+        "registry_dir": str(services.registry.registry_dir),
+        "installed_file": str(services.registry.installed_file),
     }
 
-
-app.mount("/api/v1", api_v1)
-
-# Serve the UI shell (built assets) from neia-ui/dist
-ui_dist = BASE_DIR / "neia-ui" / "dist"
-if ui_dist.exists():
-    app.mount("/", StaticFiles(directory=str(ui_dist), html=True), name="ui")
+# create the app 
+app = create_app(api_v1)
