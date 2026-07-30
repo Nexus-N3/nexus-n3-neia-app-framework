@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import Any
 
-from fastapi import FastAPI, Request
+from fastapi import APIRouter, FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 
 from .config import BASE_DIR
@@ -64,7 +64,7 @@ def get_services(request: Request) -> AppServices:
     return request.app.state.services
 
 # creates the application (the api)
-def create_app(api_v1: FastAPI) -> FastAPI:
+def create_app(api_v1: APIRouter) -> FastAPI:
     services = create_services()
 
     @asynccontextmanager
@@ -87,10 +87,7 @@ def create_app(api_v1: FastAPI) -> FastAPI:
     # Requests to normal app routes see this state.
     app.state.services = services
 
-    # Requests to the mounted /api/v1 application see this state.
-    api_v1.state.services = services
-
-    app.mount("/api/v1", api_v1)
+    app.include_router(api_v1, prefix="/api/v1")
 
     ui_dist = BASE_DIR / "neia-ui" / "dist"
     if ui_dist.exists():

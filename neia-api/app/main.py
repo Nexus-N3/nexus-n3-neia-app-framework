@@ -2,7 +2,13 @@ from __future__ import annotations
 
 import asyncio
 
-from fastapi import Depends, FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from fastapi.responses import FileResponse
 
 from .app import AppServices, BUILT_IN_APP_IDS, create_app, get_services
@@ -11,8 +17,7 @@ from .runtime_settings import save_gateway_runtime_settings
 
 BUILT_IN_APP_IDS = {"nexus"}
 
-api_v1 = FastAPI()
-
+api_v1 = APIRouter()
 
 # routes
 @api_v1.get("/apps/installed")
