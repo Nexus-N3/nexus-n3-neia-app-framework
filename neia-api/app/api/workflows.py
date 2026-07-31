@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated
 from uuid import UUID
+from collections import Counter
 
 from fastapi import (
     APIRouter,
@@ -43,6 +44,11 @@ ServicesDependency = Annotated[
 def _workflow_summary(
     workflow: StoredWorkflow,
 ) -> WorkflowSummary:
+    sensor_type_counts = Counter(
+        sensor.sensor_type
+        for sensor_configs in workflow.subjects.values()
+        for sensor in sensor_configs
+    )
     return WorkflowSummary(
         id=workflow.id,
         name=workflow.name,
@@ -51,11 +57,17 @@ def _workflow_summary(
             len(sensor_configs)
             for sensor_configs in workflow.subjects.values()
         ),
+        sensor_types=list(
+            workflow.requirements.sensors
+        ),
+        sensor_type_counts=dict(sensor_type_counts),
+        algorithms=list(
+            workflow.requirements.algorithms
+        ),
         created_at=workflow.created_at,
         modified_at=workflow.modified_at,
         derived_from=workflow.derived_from,
     )
-
 
 def _workflow_not_found(
     workflow_id: UUID,

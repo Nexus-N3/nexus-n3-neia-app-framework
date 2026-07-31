@@ -28,7 +28,7 @@ import { useSessionEventIngestion } from './hooks/useSessionEventIngestion';
 import { readSelectedSubjectContext } from './utils/subjectContext';
 import { readSelectedSessionConfig } from './utils/sessionConfigContext';
 import { fallbackRouteForStage, hasReachedStage, type SessionStage } from './sessionWorkflow';
-
+import { Toaster } from 'sonner';
 const StageGuard = ({
   required,
   children,
@@ -194,13 +194,20 @@ const AppContent = () => {
 
 export const NexusN3View = () => {
   return (
-    <div className="nexus-n3-built-in-view">
-      <MemoryRouter>
-      <GatewaySocketProvider>
-        <AppContent />
-      </GatewaySocketProvider>
-      </MemoryRouter>
-    </div>
+    <>
+      <div className="nexus-n3-built-in-view">
+        <MemoryRouter>
+        <GatewaySocketProvider>
+          <AppContent />
+        </GatewaySocketProvider>
+        </MemoryRouter>
+      </div>
+      <Toaster
+          position="top-right"
+          richColors
+          closeButton
+      />
+    </>
   );
 };
 

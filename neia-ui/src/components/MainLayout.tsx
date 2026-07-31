@@ -16,6 +16,7 @@ const MENU_ITEMS = [
   { route: "/capabilities", label: "Nexus N3 Capabilities" },
   { route: "/status", label: "Nexus N3 Status" },
   { route: "/catalog", label: "App Catalog" },
+  { route: "/workflows", label: "Workflows"}
 ];
 
 export function MainLayout({ children, connection, route, onNavigate }: MainLayoutProps) {

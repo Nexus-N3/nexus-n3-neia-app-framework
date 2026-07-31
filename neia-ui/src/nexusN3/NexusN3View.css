@@ -323,6 +323,7 @@
   cursor: pointer;
   font-weight: 700;
   transition: background-color 0.2s;
+  font-size: 16px;
 }
 
 
@@ -1999,6 +2000,18 @@ body[data-display-profile='1280x800-landscape'] .subject-card {
   font-size: 22px;
 }
 
+.workflow-action-btn {
+  background: transparent;
+  border: 1px solid #6c5fa8;
+  color: #6c5fa8;
+}
+.workflow-action-btn:hover {
+  background-color: #6c5fa8;
+  border: 1px solid #6c5fa8;
+  color: #fff;
+}
+
+
 /* Secondary (outlined) button */
 .secondary-btn {
   background: transparent;
@@ -2045,7 +2058,6 @@ body[data-display-profile='1280x800-landscape'] .subject-card {
 /* Disabled button states */
 
 .nexus-btn:disabled {
-  padding: 12px 17px;
   color: #4931a7;
   background: #f0ecff;
   border: 1px solid #ddd4ff;
@@ -2060,6 +2072,103 @@ body[data-display-profile='1280x800-landscape'] .subject-card {
 .icon-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.workflow-save-modal {
+  align-items: stretch;
+  justify-content: flex-start;
+  color: #fff;
+}
+
+.workflow-save-modal h2 {
+  color: #fff;
+  text-align: center;
+}
+
+.workflow-modal-description,
+.workflow-modal-note {
+  margin: 0;
+  color: #e7eef3;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  letter-spacing: 0.03em;
+  text-align: center;
+}
+
+.workflow-modal-note {
+  font-size: 0.7rem;
+  opacity: 0.85;
+}
+
+.workflow-modal-field {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: #e7eef3;
+  font-size: 0.75rem;
+  text-align: left;
+}
+
+.workflow-modal-input {
+  width: 100%;
+  min-height: 2.75rem;
+  box-sizing: border-box;
+  padding: 0.65rem 0.8rem;
+  color: #332b4d;
+  background: #fff;
+  border: 1px solid #ddd4ff;
+  border-radius: 0.46875rem;
+  outline: none;
+}
+
+.workflow-modal-input:focus {
+  border-color: #9a85ff;
+  box-shadow: 0 0 0 3px rgba(154, 133, 255, 0.25);
+}
+
+.workflow-modal-actions {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.workflow-modal-actions .nexus-btn {
+  min-width: 8rem;
+}
+
+.workflow-load-modal {
+  align-items: stretch;
+  justify-content: flex-start;
+  color: #fff;
+}
+
+.workflow-load-modal h2 {
+  color: #fff;
+  text-align: center;
+}
+
+.workflow-load-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: #e7eef3;
+  font-size: 0.8rem;
+}
+
+.workflow-modal-empty {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 1rem;
+  color: #4931a7;
+  background: #f0ecff;
+  border: 1px solid #ddd4ff;
+  border-radius: 0.5rem;
+  font-size: 0.8rem;
+  text-align: center;
 }
 
 @media (max-height: 1100px) {
@@ -2131,6 +2240,14 @@ body[data-display-profile='1280x800-landscape'] .subject-card {
   background: #fff;
   border: 1px solid #fff;
   border-radius: 12px;
+}
+
+.workflow-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .subject-config-heading,

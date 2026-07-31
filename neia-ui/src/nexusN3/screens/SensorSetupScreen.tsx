@@ -14,6 +14,7 @@ import {
   reconcileSubjectSensorRows,
   validateSensorRow,
   validateSessionDraft,
+  type SubjectSensorRows,
 } from '../sessionWorkflow';
 import {
   configuredSubjectsAtom,
@@ -26,6 +27,8 @@ import {
   subjectSensorRowsAtom,
 } from '../store/atoms';
 import { buildWorkflowSubjects } from '../utils/subjects';
+import { SaveWorkflowButton } from '../components/SaveWorkflowButton';
+import { LoadWorkflowButton } from '../components/LoadWorkflowButton';
 
 export const SensorSetupScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -128,6 +131,7 @@ export const SensorSetupScreen: React.FC = () => {
     });
   };
 
+
   return (
     <ScreenLayout
       className="screen-layout sensor-setup-screen"
@@ -179,6 +183,17 @@ export const SensorSetupScreen: React.FC = () => {
         </nav>
 
         <section className="subject-config-panel">
+          <div className="workflow-action-row">
+            <SaveWorkflowButton
+              subjects={subjects}
+              disabled={!validation.valid || isInitializing}
+            />
+            <LoadWorkflowButton
+              subjects={subjects}
+              disabled={isInitializing}
+            />
+          </div>
+          
           <div className="subject-config-heading">
             <div>
               <h3>{activeSubject?.displayName ?? 'No subject selected'}</h3>
@@ -310,6 +325,7 @@ export const SensorSetupScreen: React.FC = () => {
           Core is {connection?.state ?? 'disconnected'}. Editing remains available; initialization is disabled.
         </div>
       ) : null}
+
     </ScreenLayout>
   );
 };
