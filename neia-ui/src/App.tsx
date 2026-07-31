@@ -13,6 +13,7 @@ import { CoreCapabilitiesScreen } from "./screens/CoreCapabilitiesScreen";
 import { CoreConnectionScreen } from "./screens/CoreConnectionScreen";
 import { CoreStatusScreen } from "./screens/CoreStatusScreen";
 import { SystemDashboardScreen } from "./screens/SystemDashboardScreen";
+import { WorkflowsScreen } from "./screens/WorkflowsScreen";
 import "./styles.css";
 import type { AppInfo, RemoteOperationState, StartupStage } from "./types";
 import {
@@ -35,6 +36,7 @@ import {
   STARTUP_WAKING_MS,
   waitForApiSpeaking,
 } from "./utils/startup";
+
 
 function normalizeRoute(route: string) {
   if (!route || route === "/") return "/dashboard";
@@ -340,6 +342,9 @@ function AppContent() {
       break;
     case "/session":
       view = <NexusN3View />;
+      break;
+    case "/workflows":
+      view = <WorkflowsScreen />;
       break;
     case "/dashboard":
     default:

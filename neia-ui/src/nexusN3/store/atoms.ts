@@ -2,6 +2,9 @@ import { atom } from 'jotai';
 import type { LogicalSensorRow, SessionStage, SubjectSensorRows } from '../sessionWorkflow';
 import type { NormalizedSessionEvent } from '../sessionEvents';
 
+// new workflow id atom
+export const activeWorkflowIdAtom = atom<string | null>(null);
+
 export interface Computation {
   name: string;
   inputs?: Record<string, unknown>;

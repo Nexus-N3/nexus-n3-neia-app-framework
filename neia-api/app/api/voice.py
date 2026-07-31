@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException
 from ..app import AppServices, get_services
-from .models import VoiceSpeakRequest
+from ..models.requests import VoiceSpeakRequest
 
 router = APIRouter(
     prefix="/voice",

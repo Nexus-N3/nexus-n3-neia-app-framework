@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "id": "7935722a-d55e-441d-af78-c7761c0323bc",
+  "name": "DOT Head Loading",
+  "created_at": "2026-07-31T06:14:48.974285Z",
+  "modified_at": "2026-07-31T06:14:48.974285Z",
+  "derived_from": null,
+  "subject_count": 1,
+  "subjects": {
+    "s1": [
+      {
+        "sensor_type": "Movella DOT",
+        "location": "HEAD",
+        "algorithms": [
+          "standard_loading_intensity"
+        ]
+      }
+    ]
+  },
+  "requirements": {
+    "sensors": [
+      "Movella DOT"
+    ],
+    "algorithms": [
+      "standard_loading_intensity"
+    ]
+  }
+}

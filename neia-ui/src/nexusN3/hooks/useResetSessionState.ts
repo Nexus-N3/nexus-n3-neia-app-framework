@@ -22,6 +22,7 @@ import {
   subjectCountAtom,
   subjectPrefixAtom,
   subjectSensorRowsAtom,
+  activeWorkflowIdAtom,
 } from '../store/atoms';
 
 export const useResetSessionState = () => {
@@ -46,6 +47,7 @@ export const useResetSessionState = () => {
   const setComputeResultsHistory = useSetAtom(computeResultsHistoryAtom);
   const setStreamLifecycleBySubject = useSetAtom(streamLifecycleBySubjectAtom);
   const setStreamDrainState = useSetAtom(streamDrainStateAtom);
+  const setActiveWorkflowId = useSetAtom(activeWorkflowIdAtom);
 
   const resetSessionState = useCallback(() => {
     setSessionName('');
@@ -74,6 +76,7 @@ export const useResetSessionState = () => {
       status: null,
       sessionArchiveExists: null,
     });
+    setActiveWorkflowId(null);
   }, [
     setActiveActivity,
     setActiveStreamTargetSubjectIds,
@@ -96,6 +99,7 @@ export const useResetSessionState = () => {
     setSubjectCount,
     setSubjectPrefix,
     setSubjectSensorRows,
+    setActiveWorkflowId,
   ]);
 
   return { resetSessionState };

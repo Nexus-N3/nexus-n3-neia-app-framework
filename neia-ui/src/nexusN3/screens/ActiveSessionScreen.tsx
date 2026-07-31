@@ -24,6 +24,7 @@ import {
   subjectPrefixAtom,
 } from '../store/atoms';
 import { buildWorkflowSubjects } from '../utils/subjects';
+import { SaveWorkflowButton } from '../components/SaveWorkflowButton';
 
 export const ActiveSessionScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -93,17 +94,32 @@ export const ActiveSessionScreen: React.FC = () => {
         right={""}
       />
 
-      <div className="session-lifecycle-strip" aria-label="Subject stream lifecycle">
+      <div
+        className="session-lifecycle-strip"
+        aria-label="Subject stream lifecycle"
+      >
         {subjects.map((subject) => {
           const state = streamLifecycle[subject.name];
+
           return (
             <div key={subject.name}>
               <strong>{subject.displayName}</strong>
-              <span>{state?.statusMessage ?? (completed ? 'Session complete' : 'Waiting for stream status')}</span>
+              <span>
+                {state?.statusMessage ??
+                  (completed
+                    ? 'Session complete'
+                    : 'Waiting for stream status')}
+              </span>
             </div>
           );
         })}
-      </div>
+
+        {completed ? (
+          <div className="session-lifecycle-save">
+            <SaveWorkflowButton subjects={subjects} />
+          </div>
+        ) : null}
+</div>
 
       <EventResultsPanel completed={completed} />
 
