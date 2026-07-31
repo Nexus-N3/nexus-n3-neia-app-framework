@@ -678,7 +678,7 @@ Validation status:
 - A live Nexus N3 Core hardware run remains the final environment-level
   acceptance check; the implementation is ready for that system test.
 
-### Phase 5: Workflow Persistence and Compatibility Validation
+### DONE Phase 5: Workflow Persistence and Compatibility Validation
 
 - Add versioned backend workflow storage.
 - Add list/load/save APIs.
@@ -703,7 +703,6 @@ Tests:
 
 - Implement the archive state machine after the Core contract is confirmed.
 - Add download handling and error states.
-- Retire the registry Nexus application after parity.
 - Update documentation and deployment assets.
 - Complete responsive and accessibility regression work.
 
