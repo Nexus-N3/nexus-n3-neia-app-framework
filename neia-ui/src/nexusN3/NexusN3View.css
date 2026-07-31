@@ -2423,12 +2423,26 @@ body[data-display-profile='1280x800-landscape'] .subject-card {
   display: flex;
   /*justify-content: space-between;*/
   gap: 12px;
-  background: #9a85ff;
-  border: 1px solid #9a85ff;
+  /*background: #9a85ff;
+  border: 1px solid #9a85ff;*/
   border-radius: 7px;
   font-size: 12px;
   letter-spacing: 0.02em;
-  color:#fff;
+  color:#2c2555;
+}
+
+.session-lifecycle-strip > .session-lifecycle-save {
+  margin-left: auto;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  background: transparent;
+  border: none;
+}
+
+.session-lifecycle-save .nexus-btn {
+  white-space: nowrap;
 }
 
 .session-lifecycle-strip span {

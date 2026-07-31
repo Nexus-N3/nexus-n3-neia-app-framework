@@ -97,9 +97,7 @@ class WorkflowSummary(BaseModel):
     name: str
     subject_count: int
     sensor_count: int
-    sensor_types: list[str] = Field(default_factory=list)
-    sensor_type_counts: dict[str, int]
-    algorithms: list[str] = Field(default_factory=list)
+    subjects: dict[str, list[WorkflowSensorConfig]]
     created_at: datetime
     modified_at: datetime
     derived_from: UUID | None = None

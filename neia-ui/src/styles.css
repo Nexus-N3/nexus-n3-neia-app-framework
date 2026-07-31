@@ -2539,16 +2539,24 @@ body.display-profile-1920x1080 .startup-status {
 }
 
 .tag-list-v2 span {
-  padding: 5px 8px;
+  padding: 6px 10px;
   color: #fff;
   background: #9a85ff;
   border-radius: 7px;
-  font-size: 10px;
+  font-size: 14px;
 }
 
 .tag-list-v2 em {
   color: #8b8792;
   font-size: 11px;
+}
+
+.workflow-configuration-tags-v2 span {
+  padding: 6px 10px;
+  color: #4931a7;
+  background: #e4ddff;
+  border: 1px solid #c8bbff;
+  font-size: 14px;
 }
 
 .empty-state-v2 {

@@ -22,13 +22,12 @@ export interface WorkflowSummary {
   name: string;
   subject_count: number;
   sensor_count: number;
-  sensor_types: string[];
-  sensor_type_counts: Record<string, number>;
-  algorithms: string[];
+  subjects: Record<string, WorkflowSensorConfig[]>;
   created_at: string;
   modified_at: string;
   derived_from: string | null;
 }
+
 export interface WorkflowListResponse {
   workflows: WorkflowSummary[];
 }
@@ -50,6 +49,18 @@ type ApiErrorBody = {
 
 let cachedWorkflows: WorkflowSummary[] | null = null;
 let workflowsInFlight: Promise<WorkflowSummary[]> | null = null;
+
+const workflowListeners = new Set<
+  (workflows: WorkflowSummary[]) => void
+>();
+
+function updateWorkflowCache(workflows: WorkflowSummary[]) {
+  cachedWorkflows = workflows;
+
+  workflowListeners.forEach((listener) => {
+    listener(workflows);
+  });
+}
 
 async function readJson<T>(
   url: string,
@@ -104,7 +115,7 @@ export function useWorkflows() {
             '/api/v1/workflows',
           )
             .then((response) => {
-              cachedWorkflows = response.workflows;
+              updateWorkflowCache(response.workflows);
               return response.workflows;
             })
             .finally(() => {
@@ -203,24 +214,37 @@ export function useWorkflows() {
     },
     [],
   );
-  const deleteWorkflow = async (workflowId: string) => {
-    setError(null);
+  
+  const deleteWorkflow = useCallback(
+    async (workflowId: string) => {
+      setError(null);
 
-    const response = await fetch(
-      `/api/v1/workflows/${encodeURIComponent(workflowId)}`,
-      {
-        method: "DELETE",
-      },
-    );
+      try {
+        const response = await fetch(
+          `/api/v1/workflows/${encodeURIComponent(workflowId)}`,
+          {
+            method: 'DELETE',
+          },
+        );
 
-    if (!response.ok) {
-      throw new Error("Failed to delete workflow.");
-    }
+        if (!response.ok) {
+          throw new Error('Failed to delete workflow.');
+        }
 
-    setWorkflows((current) =>
-      current.filter((workflow) => workflow.id !== workflowId),
-    );
-  };
+        cachedWorkflows = null;
+        await refresh({ force: true });
+      } catch (requestError) {
+        setError(
+          requestError instanceof Error
+            ? requestError.message
+            : 'Failed to delete workflow.',
+        );
+
+        throw requestError;
+      }
+    },
+    [refresh],
+  );
 
   const exportWorkflow = async (
     workflowId: string,
@@ -265,7 +289,19 @@ export function useWorkflows() {
   };
 
   useEffect(() => {
+    const handleWorkflowUpdate = (
+      nextWorkflows: WorkflowSummary[],
+    ) => {
+      setWorkflows(nextWorkflows);
+    };
+
+    workflowListeners.add(handleWorkflowUpdate);
+
     void refresh();
+
+    return () => {
+      workflowListeners.delete(handleWorkflowUpdate);
+    };
   }, [refresh]);
 
   return {

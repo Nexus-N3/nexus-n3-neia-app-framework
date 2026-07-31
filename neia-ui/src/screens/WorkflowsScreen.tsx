@@ -1,6 +1,127 @@
 import { useState } from "react";
 
-import { useWorkflows } from "../hooks/useWorkflows";
+import {
+  useWorkflows,
+  type WorkflowSummary,
+} from "../hooks/useWorkflows";
+
+type WorkflowCardProps = {
+  workflow: WorkflowSummary;
+  deleting: boolean;
+  exporting: boolean;
+  onDelete: (
+    workflowId: string,
+    workflowName: string,
+  ) => void;
+  onExport: (
+    workflowId: string,
+    workflowName: string,
+  ) => void;
+};
+
+function formatLocation(location: string) {
+  return location.replace(/_/g, " ");
+}
+
+function WorkflowCard({
+  workflow,
+  deleting,
+  exporting,
+  onDelete,
+  onExport,
+}: WorkflowCardProps) {
+  const subjects = Object.entries(workflow.subjects);
+
+  return (
+    <article className="capability-card-v2">
+      <div className="capability-title-v2">
+        <div>
+          <h3>{workflow.name}</h3>
+          <code>{workflow.id}</code>
+        </div>
+
+        <div className="workflow-card-actions-v2">
+          <button
+            type="button"
+            className="secondary-action-v2"
+            disabled={exporting}
+            onClick={() => {
+              onExport(workflow.id, workflow.name);
+            }}
+          >
+            {exporting ? "Exporting…" : "Export"}
+          </button>
+
+          <button
+            type="button"
+            className="danger-action-v2"
+            disabled={deleting}
+            onClick={() => {
+              onDelete(workflow.id, workflow.name);
+            }}
+          >
+            {deleting ? "Deleting…" : "Delete"}
+          </button>
+        </div>
+      </div>
+
+      <div className="metadata-group-v2">
+        <span>Configuration</span>
+
+        <div className="tag-list-v2 workflow-configuration-tags-v2">
+          <span>
+            Subjects ({workflow.subject_count})
+          </span>
+
+          <span>
+            Sensors ({workflow.sensor_count})
+          </span>
+        </div>
+      </div>
+
+      {subjects.map(([subjectId, sensors], subjectIndex) => (
+        <div
+          className="metadata-group-v2"
+          key={subjectId}
+        >
+          <span>Subject {subjectIndex + 1}</span>
+
+          <div className="tag-list-v2">
+            {sensors.length === 0 ? (
+              <em>No sensors configured</em>
+            ) : (
+              sensors.map((sensor, sensorIndex) => (
+                <span
+                  key={`${subjectId}-${sensorIndex}`}
+                >
+                  {sensor.sensor_type}
+                  {" · "}
+                  {formatLocation(sensor.location)}
+                  {sensor.algorithms.length > 0
+                    ? ` · ${sensor.algorithms.join(", ")}`
+                    : ""}
+                </span>
+              ))
+            )}
+          </div>
+        </div>
+      ))}
+    </article>
+  );
+}
+
+function EmptyWorkflows() {
+  return (
+    <div className="empty-state-v2">
+      <strong>No workflows saved</strong>
+
+      <p>
+        Workflows saved from a Nexus N3 session will
+        appear here.
+      </p>
+    </div>
+  );
+}
 
 export function WorkflowsScreen() {
   const {
@@ -11,11 +132,11 @@ export function WorkflowsScreen() {
     exportWorkflow,
   } = useWorkflows();
 
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] =
+    useState<string | null>(null);
 
-  const [exportingId, setExportingId] = useState<string | null>(
-  null,
-);
+  const [exportingId, setExportingId] =
+    useState<string | null>(null);
 
   const handleExport = async (
     workflowId: string,
@@ -24,7 +145,10 @@ export function WorkflowsScreen() {
     setExportingId(workflowId);
 
     try {
-      await exportWorkflow(workflowId, workflowName);
+      await exportWorkflow(
+        workflowId,
+        workflowName,
+      );
     } finally {
       setExportingId(null);
     }
@@ -74,108 +198,56 @@ export function WorkflowsScreen() {
 
         <span className="count-chip-v2">
           {workflows.length}{" "}
-          {workflows.length === 1 ? "workflow" : "workflows"}
+          {workflows.length === 1
+            ? "workflow"
+            : "workflows"}
         </span>
       </div>
 
       {error ? (
-        <div className="error-banner" role="alert">
+        <div
+          className="error-banner"
+          role="alert"
+        >
           {error}
         </div>
       ) : null}
 
       {workflows.length === 0 ? (
-        <div className="empty-state-v2">
-          <strong>No workflows saved</strong>
-          <p>
-            Workflows saved from a Nexus N3 session will appear here.
-          </p>
-        </div>
+        <EmptyWorkflows />
       ) : (
         <div className="capability-list-v2">
-        {workflows.map((workflow) => {
-          const sensorTypes = workflow.sensor_types ?? [];
-          const algorithms = workflow.algorithms ?? [];
-          const sensorCount = workflow.sensor_count ?? 0;
-
-          return (
-            <article
-              className="capability-card-v2 workflow-card-v2"
+          {workflows.map((workflow) => (
+            <WorkflowCard
               key={workflow.id}
-            >
-              <div className="capability-title-v2">
-                <div className="workflow-card-content-v2">
-                  <h3>{workflow.name}</h3>
-                  <code>{workflow.id}</code>
-
-                  <div className="workflow-summary-v2">
-                    <div className="workflow-summary-group-v2">
-
-                      <div className="tag-list-v2">
-                        <span>
-                            Subjects ({workflow.subject_count})
-                        </span>
-                      </div>
-                      <div className="tag-list-v2">
-                          {sensorTypes.map((sensorType) => (
-                            <span key={sensorType}>
-                              {sensorType} ({workflow.sensor_type_counts[sensorType] ?? 0})
-                            </span>
-                          ))}
-                      </div>
-                      <div className="tag-list-v2">
-                        {workflow.algorithms.length > 0 ? (
-                          workflow.algorithms.map((algorithm) => (
-                            <span key={algorithm}>
-                              {algorithm}
-                            </span>
-                          ))
-                        ) : (
-                          <em>None</em>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="workflow-card-actions-v2">
-                  <button
-                    type="button"
-                    className="secondary-action-v2"
-                    disabled={exportingId === workflow.id}
-                    onClick={() =>
-                      void handleExport(
-                        workflow.id,
-                        workflow.name,
-                      )
-                    }
-                  >
-                    {exportingId === workflow.id
-                      ? "Exporting…"
-                      : "Export"}
-                  </button>
-
-                  <button
-                    type="button"
-                    className="danger-action-v2"
-                    disabled={deletingId === workflow.id}
-                    onClick={() =>
-                      void handleDelete(
-                        workflow.id,
-                        workflow.name,
-                      )
-                    }
-                  >
-                    {deletingId === workflow.id
-                      ? "Deleting…"
-                      : "Delete"}
-                  </button>
-                </div>
-              </div>
-            </article>
-          );
-        })}
-      </div>
+              workflow={workflow}
+              deleting={
+                deletingId === workflow.id
+              }
+              exporting={
+                exportingId === workflow.id
+              }
+              onDelete={(
+                workflowId,
+                workflowName,
+              ) => {
+                void handleDelete(
+                  workflowId,
+                  workflowName,
+                );
+              }}
+              onExport={(
+                workflowId,
+                workflowName,
+              ) => {
+                void handleExport(
+                  workflowId,
+                  workflowName,
+                );
+              }}
+            />
+          ))}
+        </div>
       )}
     </div>
   );

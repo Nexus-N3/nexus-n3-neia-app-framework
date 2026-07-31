@@ -44,11 +44,6 @@ ServicesDependency = Annotated[
 def _workflow_summary(
     workflow: StoredWorkflow,
 ) -> WorkflowSummary:
-    sensor_type_counts = Counter(
-        sensor.sensor_type
-        for sensor_configs in workflow.subjects.values()
-        for sensor in sensor_configs
-    )
     return WorkflowSummary(
         id=workflow.id,
         name=workflow.name,
@@ -57,13 +52,14 @@ def _workflow_summary(
             len(sensor_configs)
             for sensor_configs in workflow.subjects.values()
         ),
-        sensor_types=list(
-            workflow.requirements.sensors
-        ),
-        sensor_type_counts=dict(sensor_type_counts),
-        algorithms=list(
-            workflow.requirements.algorithms
-        ),
+        subjects={
+            subject_id: [
+                sensor.model_copy(deep=True)
+                for sensor in sensor_configs
+            ]
+            for subject_id, sensor_configs
+            in workflow.subjects.items()
+        },
         created_at=workflow.created_at,
         modified_at=workflow.modified_at,
         derived_from=workflow.derived_from,
