@@ -55,7 +55,7 @@ export function CoreCapabilitiesScreen() {
                   </div>
                   <div className="metadata-group-v2">
                     <span>Supported locations</span>
-                    <div className="tag-list-v2">
+                    <div className="tag-list-v2 capabilities-location-tags-v2">
                       {sensor.supported_locations.length > 0
                         ? sensor.supported_locations.map((location) => <span key={location}>{location.replace(/_/g, " ")}</span>)
                         : <em>Unknown</em>}
@@ -63,7 +63,7 @@ export function CoreCapabilitiesScreen() {
                   </div>
                   <div className="metadata-group-v2">
                     <span>Algorithms</span>
-                    <div className="tag-list-v2">
+                    <div className="tag-list-v2 capabilities-algorithm-tags-v2">
                       {sensor.supported_algorithms.length > 0
                         ? sensor.supported_algorithms.map((algorithm) => <span key={algorithm}>{algorithm}</span>)
                         : <em>Unknown</em>}

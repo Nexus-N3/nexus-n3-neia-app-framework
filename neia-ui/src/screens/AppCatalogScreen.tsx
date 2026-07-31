@@ -75,7 +75,7 @@ export function AppCatalogScreen({
                         onClick={() => onLaunch(app)}
                         type="button"
                       >
-                        Open
+                        Launch
                       </button>
                       <button
                         className="secondary square-btn"

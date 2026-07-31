@@ -2460,7 +2460,8 @@ body.display-profile-1920x1080 .startup-status {
 
 .capabilities-layout-v2 > section > .section-heading-v2 h2,
 .catalog-sections-v2 > section > .section-heading-v2 h2 {
-  color: #ffffff;
+  /*color: #ffffff;*/
+  color: var(--v2-ink);
 }
 
 .capabilities-layout-v2 {
@@ -2555,6 +2556,22 @@ body.display-profile-1920x1080 .startup-status {
   padding: 6px 10px;
   color: #4931a7;
   background: #e4ddff;
+  border: 1px solid #c8bbff;
+  font-size: 14px;
+}
+
+.capabilities-location-tags-v2 span {
+  padding: 6px 10px;
+  color: #4931a7;
+  background: #e4ddff;
+  border: 1px solid #c8bbff;
+  font-size: 14px;
+}
+
+.capabilities-algorithm-tags-v2 span {
+  padding: 6px 10px;
+  color: #4931a7;
+  background: #fff;
   border: 1px solid #c8bbff;
   font-size: 14px;
 }
