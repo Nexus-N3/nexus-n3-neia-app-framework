@@ -10,10 +10,10 @@ from fastapi import APIRouter, FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 
 from .config import BASE_DIR
-from .control_center_store import ControlCenterStore
-from .core_state_store import CoreStateStore
+from .repositories.control_center_store import ControlCenterStore
+from .repositories.core_state_store import CoreStateStore
 from .gateway.manager import create_gateway_manager
-from .registry import AppRegistry
+from .repositories.registry import AppRegistry
 from .voice import create_voice_manager
 from .help import HelpManager
 

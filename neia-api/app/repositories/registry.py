@@ -7,8 +7,8 @@ from urllib.request import Request, urlopen
 from pathlib import Path
 from typing import Dict, List
 
-from .config import INSTALLED_FILE, NEIA_DEV, NEIA_DEV_FALLBACK, REGISTRY_DIR
-from .models import AppInfo, AppManifest
+from ..config import INSTALLED_FILE, NEIA_DEV, NEIA_DEV_FALLBACK, REGISTRY_DIR
+from ..models.app import AppInfo, AppManifest
 
 
 class AppRegistry:

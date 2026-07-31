@@ -62,6 +62,16 @@ export const SensorSetupScreen: React.FC = () => {
     [capabilities, rowsBySubject, subjects],
   );
   const activeSubject = subjects.find((subject) => subject.name === activeSubjectId);
+
+  // temp logging of sensor / alogrithm shape for a subject
+  useEffect(() => {
+    console.log(
+      '[SensorSetup] rowsBySubject:',
+      JSON.stringify(rowsBySubject, null, 2),
+    );
+  }, [rowsBySubject]);
+
+
   const activeRows = activeSubject ? rowsBySubject[activeSubject.name] ?? [] : [];
   const availableSensors = capabilities?.sensors.filter((sensor) => sensor.available) ?? [];
 
