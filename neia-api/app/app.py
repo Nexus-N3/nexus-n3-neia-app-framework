@@ -9,12 +9,14 @@ from typing import Any
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 
-from .config import BASE_DIR
+from .config import BASE_DIR, WORKFLOWS_DIR
 from .repositories.control_center_store import ControlCenterStore
 from .repositories.core_state_store import CoreStateStore
 from .gateway.manager import create_gateway_manager
 from .repositories.registry import AppRegistry
 from .voice import create_voice_manager
+from .repositories.workflow_store import WorkflowStore
+from .services.workflow_service import WorkflowService
 from .help import HelpManager
 
 
@@ -29,6 +31,8 @@ class AppServices:
     control_center_store: ControlCenterStore
     core_state_store: CoreStateStore
     voice_manager: Any
+    workflow_store: WorkflowStore
+    workflow_service: WorkflowService
     help_manager: Any
 
 
@@ -54,6 +58,11 @@ def create_services() -> AppServices:
         core_state_store.handle_gateway_event
     )
 
+    workflow_store = WorkflowStore(WORKFLOWS_DIR)
+    workflow_service = WorkflowService(
+        store=workflow_store,
+        core_state_store=core_state_store,
+    )
     help_manager = HelpManager(BASE_DIR)
 
     return AppServices(
@@ -62,6 +71,8 @@ def create_services() -> AppServices:
         control_center_store=control_center_store,
         core_state_store=core_state_store,
         voice_manager=voice_manager,
+        workflow_store=workflow_store,
+        workflow_service=workflow_service,
         help_manager=help_manager,
     )
 

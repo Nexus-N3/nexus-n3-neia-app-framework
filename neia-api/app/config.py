@@ -64,6 +64,10 @@ STATE_DIR = _path_from_env("NEIA_STATE_DIR", BASE_DIR / "var")
 LOG_DIR = _path_from_env("NEIA_LOG_DIR", BASE_DIR / "logs")
 RUN_DIR = _path_from_env("NEIA_RUN_DIR", BASE_DIR / "run")
 INSTALLED_FILE = _path_from_env("NEIA_INSTALLED_FILE", APPS_DIR / "installed.json")
+WORKFLOWS_DIR = _path_from_env(
+    "NEIA_WORKFLOWS_DIR",
+    BASE_DIR / "workflows",
+)
 
 def _default_piper_model_path() -> str:
     models_dir = BASE_DIR / "models" / "piper"
