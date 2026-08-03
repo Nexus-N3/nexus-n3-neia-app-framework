@@ -22,12 +22,14 @@ describe('session event normalization', () => {
       payload: {
         subject_id: 'subject-1',
         location: 'LEFT_ANKLE',
+        algorithm_name: 'standard_loading_intensity',
         result: { address: 'AA:BB' },
       },
     }, 4, new Date('2026-01-01T12:00:00Z'));
 
     expect(event.subjectId).toBe('subject-1');
     expect(event.sensorId).toBe('AA:BB');
+    expect(event.algorithmName).toBe('standard_loading_intensity');
     expect(event.sequence).toBe(4);
     expect(safePayloadText('not-json')).toBe('not-json');
   });

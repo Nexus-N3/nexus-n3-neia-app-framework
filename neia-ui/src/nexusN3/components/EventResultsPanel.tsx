@@ -206,7 +206,12 @@ export function EventResultsPanel({ completed }: { completed: boolean }) {
                 </div>
 
                 <div className="event-log-details">
-                  <strong>{event.eventType}</strong>
+                  <div className="event-log-type">
+                    <strong>{event.eventType}</strong>
+                    {event.algorithmName ? (
+                      <span className="event-algorithm">Algorithm: {event.algorithmName}</span>
+                    ) : null}
+                  </div>
 
                   {event.subjectId ? (
                     <span>Subject: {event.subjectId}</span>

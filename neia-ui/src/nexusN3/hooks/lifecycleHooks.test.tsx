@@ -153,6 +153,7 @@ describe('retained Core lifecycle hooks', () => {
       subjectId: null,
       sensorId: null,
       placement: null,
+      algorithmName: null,
       summary: 'test',
       payload: {},
     }]);

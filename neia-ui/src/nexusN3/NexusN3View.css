@@ -2601,6 +2601,18 @@ body[data-display-profile='1280x800-landscape'] .subject-card {
   margin-left: 100px;
 }
 
+.event-log-type {
+  display: grid;
+  gap: 3px;
+}
+
+.event-algorithm {
+  color: #6547d9;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 
 .event-log-entry summary::marker {
   color: #8f82c5;

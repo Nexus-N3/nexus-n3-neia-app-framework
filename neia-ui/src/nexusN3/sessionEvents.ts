@@ -14,6 +14,7 @@ export interface NormalizedSessionEvent {
   subjectId: string | null;
   sensorId: string | null;
   placement: string | null;
+  algorithmName: string | null;
   summary: string;
   payload: unknown;
 }
@@ -125,6 +126,12 @@ export function normalizeSessionEvent(
     resultPayloadRecord.location,
     rawEventRecord.location,
   );
+  const algorithmName = firstString(
+    raw.algorithm_name,
+    payloadRecord.algorithm_name,
+    resultRecord.algorithm_name,
+    resultPayloadRecord.algorithm_name,
+  );
   const summary =
     firstString(
       raw.summary,
@@ -150,6 +157,7 @@ export function normalizeSessionEvent(
     subjectId,
     sensorId,
     placement,
+    algorithmName,
     summary,
     payload,
   };

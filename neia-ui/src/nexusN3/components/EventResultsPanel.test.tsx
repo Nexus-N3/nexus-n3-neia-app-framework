@@ -12,12 +12,25 @@ const buildEvents = (count: number) =>
       payload: {
         subject_id: 'subject-1',
         address: `sensor-${index}`,
+        algorithm_name: index % 2 === 0 ? 'standard_loading_intensity' : undefined,
         value: index,
       },
     }, index + 1, new Date(2026, 0, 1, 0, 0, index)),
   );
 
 describe('EventResultsPanel', () => {
+  it('shows the producing algorithm in the collapsed compute-result event', () => {
+    const store = createStore();
+    store.set(sessionEventsAtom, buildEvents(1));
+    render(
+      <Provider store={store}>
+        <EventResultsPanel completed={false} />
+      </Provider>,
+    );
+
+    expect(screen.getByText('Algorithm: standard_loading_intensity')).toBeVisible();
+  });
+
   it('renders latest-first pages, combined filters, and expandable payloads', () => {
     const store = createStore();
     store.set(sessionEventsAtom, buildEvents(25));
