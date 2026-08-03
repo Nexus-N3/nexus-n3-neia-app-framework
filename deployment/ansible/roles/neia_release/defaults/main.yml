@@ -18,8 +18,6 @@ neia_master_discovery_timeout: 5
 neia_master_host: nexus-n3-master.local
 neia_master_cmd_port: 5555
 neia_master_event_port: 5556
-neia_master_amqp_url: ""
-neia_amqp_url: ""
 neia_sync_delete: false
 neia_sync_models: false
 neia_local_ui_dist: "{{ neia_repo_local_path }}/neia-ui/dist"
@@ -89,8 +87,6 @@ neia_service_env:
   NEIA_MASTER_HOST: "{{ neia_master_host }}"
   NEIA_MASTER_CMD_PORT: "{{ neia_master_cmd_port }}"
   NEIA_MASTER_EVENT_PORT: "{{ neia_master_event_port }}"
-  NEIA_MASTER_AMQP_URL: "{{ neia_master_amqp_url }}"
-  AMQP_URL: "{{ neia_amqp_url }}"
   NEIA_SITE: "{{ neia_site }}"
   NEIA_CONTENT_ROOT: "{{ neia_install_root }}"
   NEIA_VOICE_ENABLED: "{{ 1 if neia_voice_enabled | bool else 0 }}"

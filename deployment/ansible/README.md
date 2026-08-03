@@ -92,13 +92,8 @@ The Ansible role now exposes the full runtime env surface used by the API,
 including:
 
 - gateway selection and master-discovery settings
-- LavinMQ connection settings
 - voice/STT/TTS parameters
 - packaged content-root selection
-
-Optional values such as `AMQP_URL` are only emitted into the systemd unit when
-they are non-empty, so the default ZeroMQ deployment does not get polluted with
-blank overrides.
 
 If you do want voice on a target, set host or group vars explicitly, for
 example:
