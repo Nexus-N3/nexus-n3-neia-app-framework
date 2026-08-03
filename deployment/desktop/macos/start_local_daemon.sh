@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DESKTOP_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 FRAMEWORK_ROOT="$(cd "${DESKTOP_DIR}/../.." && pwd)"
-RUNTIME_ROOT="${NEIA_DESKTOP_RUNTIME_ROOT:-${DESKTOP_DIR}/.runtime/linux-local}"
+RUNTIME_ROOT="${NEIA_DESKTOP_RUNTIME_ROOT:-${DESKTOP_DIR}/.runtime/macos-local}"
 STATE_DIR="${NEIA_STATE_DIR:-${RUNTIME_ROOT}/state}"
 LOG_DIR="${NEIA_LOG_DIR:-${RUNTIME_ROOT}/logs}"
 RUN_DIR="${NEIA_RUN_DIR:-${RUNTIME_ROOT}/run}"
@@ -21,19 +21,19 @@ if [[ "${SKIP_UI_BUILD}" != "1" ]]; then
     echo "Missing required command: npm (or set NEIA_SKIP_UI_BUILD=1 to use the existing build)" >&2
     exit 1
   fi
-  (
-    cd "${FRAMEWORK_ROOT}/neia-ui"
-    npm run build
-  )
+  npm --prefix "${FRAMEWORK_ROOT}/neia-ui" run build
 fi
 
 if [[ ! -f "${FRAMEWORK_ROOT}/neia-ui/dist/index.html" ]]; then
   echo "Missing neia-ui/dist/index.html; build the refactored NEIA UI first." >&2
   exit 1
 fi
+if [[ ! -x "${PYTHON_BIN}" ]]; then
+  echo "Missing Python executable at ${PYTHON_BIN}" >&2
+  exit 1
+fi
 
 mkdir -p "${STATE_DIR}" "${LOG_DIR}" "${RUN_DIR}"
-
 if [[ ! -f "${INSTALLED_FILE}" && -f "${FRAMEWORK_ROOT}/apps/installed.json" ]]; then
   cp "${FRAMEWORK_ROOT}/apps/installed.json" "${INSTALLED_FILE}"
 fi
@@ -48,31 +48,22 @@ if [[ -f "${PID_FILE}" ]]; then
   rm -f "${PID_FILE}"
 fi
 
-if [[ ! -x "${PYTHON_BIN}" ]]; then
-  echo "Missing python executable at ${PYTHON_BIN}" >&2
-  exit 1
-fi
-
-# Nexus N3 is compiled into neia-ui after the refactor and must not remain in
-# the mutable optional-app list created by older desktop runs.
 "${PYTHON_BIN}" - "${INSTALLED_FILE}" <<'PY'
 import json
 from pathlib import Path
 import sys
 
 path = Path(sys.argv[1])
-if not path.is_file():
-    raise SystemExit(0)
-try:
-    installed = json.loads(path.read_text(encoding="utf-8"))
-except (OSError, json.JSONDecodeError):
-    raise SystemExit(0)
-if not isinstance(installed, list) or "nexus" not in installed:
-    raise SystemExit(0)
-path.write_text(
-    json.dumps([app_id for app_id in installed if app_id != "nexus"], indent=2) + "\n",
-    encoding="utf-8",
-)
+if path.is_file():
+    try:
+        installed = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        installed = None
+    if isinstance(installed, list) and "nexus" in installed:
+        path.write_text(
+            json.dumps([app_id for app_id in installed if app_id != "nexus"], indent=2) + "\n",
+            encoding="utf-8",
+        )
 PY
 
 if "${PYTHON_BIN}" - "${HOST}" "${PORT}" 2>/dev/null <<'PY'
@@ -86,7 +77,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
 PY
 then
   echo "Cannot start the refactored NEIA daemon: http://${HOST}:${PORT} is already in use." >&2
-  echo "Stop the older NEIA process/service, or choose another port with NEIA_PORT." >&2
   exit 1
 fi
 
@@ -101,14 +91,9 @@ export NEIA_HOST="${HOST}"
 export NEIA_PORT="${PORT}"
 
 cd "${FRAMEWORK_ROOT}/neia-api"
-if command -v setsid >/dev/null 2>&1; then
-  nohup setsid "${PYTHON_BIN}" -m app.daemon --host "${HOST}" --port "${PORT}" >>"${LOG_FILE}" 2>&1 </dev/null &
-else
-  nohup "${PYTHON_BIN}" -m app.daemon --host "${HOST}" --port "${PORT}" >>"${LOG_FILE}" 2>&1 </dev/null &
-fi
+nohup "${PYTHON_BIN}" -m app.daemon --host "${HOST}" --port "${PORT}" >>"${LOG_FILE}" 2>&1 </dev/null &
 daemon_pid=$!
 echo "${daemon_pid}" > "${PID_FILE}"
-
 sleep 1
 if ! kill -0 "${daemon_pid}" 2>/dev/null; then
   rm -f "${PID_FILE}"
