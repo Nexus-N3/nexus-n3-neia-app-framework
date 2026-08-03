@@ -57,6 +57,7 @@ describe('session event normalization', () => {
       category: 'realtime',
       subjectId: 'one',
       sensorId: 'A',
+      placement: '',
     }).map((event) => event.sequence)).toEqual([1]);
   });
 });

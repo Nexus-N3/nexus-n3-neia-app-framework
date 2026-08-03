@@ -3,8 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from app.control_center_store import ControlCenterStore
-from app.registry import AppRegistry
+from app.repositories.control_center_store import ControlCenterStore
+from app.repositories.registry import AppRegistry
 
 
 def _write_app_manifest(registry_dir: Path, app_id: str, name: str, *, app_type: str = "workflow") -> None:

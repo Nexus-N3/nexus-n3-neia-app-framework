@@ -71,6 +71,19 @@ vi.mock('../hooks/useSystemInitialization', () => ({
   }),
 }));
 
+vi.mock('../../hooks/useWorkflows', () => ({
+  useWorkflows: () => ({
+    workflows: [],
+    loading: false,
+    saving: false,
+    loadingWorkflow: false,
+    error: null,
+    refresh: vi.fn(),
+    save: vi.fn(),
+    load: vi.fn(),
+  }),
+}));
+
 const renderScreen = (store = createStore()) =>
   render(
     <Provider store={store}>
@@ -134,7 +147,7 @@ describe('SensorSetupScreen', () => {
     expect(screen.getByLabelText('Sensor type')).toHaveValue('movella');
     expect(screen.getByLabelText('Location')).toHaveValue('LEFT_ANKLE');
     expect(screen.getByLabelText('Algorithm')).toHaveValue('loading');
-    expect(screen.getByText(/Core disconnected — your draft is preserved/)).toBeVisible();
+    expect(screen.getByText(/Core is disconnected.*Editing remains available/)).toBeVisible();
     expect(screen.getByRole('button', { name: 'Create session' })).toBeDisabled();
   });
 });

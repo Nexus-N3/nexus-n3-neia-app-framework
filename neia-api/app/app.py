@@ -17,6 +17,7 @@ from .repositories.registry import AppRegistry
 from .voice import create_voice_manager
 from .repositories.workflow_store import WorkflowStore
 from .services.workflow_service import WorkflowService
+from .services.archive_proxy import ArchiveProxyService
 from .help import HelpManager
 
 
@@ -34,6 +35,7 @@ class AppServices:
     workflow_store: WorkflowStore
     workflow_service: WorkflowService
     help_manager: Any
+    archive_proxy: ArchiveProxyService
 
 
 def create_services() -> AppServices:
@@ -64,6 +66,7 @@ def create_services() -> AppServices:
         core_state_store=core_state_store,
     )
     help_manager = HelpManager(BASE_DIR)
+    archive_proxy = ArchiveProxyService(core_state_store, gateway_manager.gateway_settings)
 
     return AppServices(
         registry=registry,
@@ -74,6 +77,7 @@ def create_services() -> AppServices:
         workflow_store=workflow_store,
         workflow_service=workflow_service,
         help_manager=help_manager,
+        archive_proxy=archive_proxy,
     )
 
 def get_services(request: Request) -> AppServices:
@@ -92,6 +96,7 @@ def create_app(api_v1: APIRouter) -> FastAPI:
             yield
         finally:
             services.voice_manager.stop()
+            await services.archive_proxy.close()
             await services.gateway_manager.stop()
 
     app = FastAPI(

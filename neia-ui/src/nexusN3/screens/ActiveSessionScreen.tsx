@@ -150,7 +150,9 @@ export const ActiveSessionScreen: React.FC = () => {
             >
               {isDisconnecting ? 'Disconnecting...' : 'Disconnect sensors'}
             </button>
-            <div />
+            <button className="nexus-btn secondary-btn" onClick={() => { window.location.hash = '/archives'; }}>
+              View archives
+            </button>
             <button className="nexus-btn" onClick={handleReset}>
               Start another session
             </button>

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
-from app.core_state_store import CoreStateStore
+from app.repositories.core_state_store import CoreStateStore
 
 
 SETTINGS = {
@@ -58,6 +58,13 @@ def test_server_ready_normalizes_capabilities_and_status() -> None:
                     "gateway_state": "available",
                 },
                 "azure_bridge": {"connected": False},
+                "archive_service": {
+                    "available": True,
+                    "scheme": "http",
+                    "port": 9000,
+                    "list_path": "/api/outputs",
+                    "download_path": "/api/outputs/download",
+                },
             },
         }
     )
@@ -89,6 +96,32 @@ def test_server_ready_normalizes_capabilities_and_status() -> None:
     assert status["readiness"] == "ready"
     assert status["ble"]["backend"] == "gateway"
     assert status["azure_bridge"]["state"] == "unavailable"
+    assert store.archive_service_snapshot() == {
+        "available": True,
+        "site": "lab",
+        "scheme": "http",
+        "port": 9000,
+        "list_path": "/api/outputs",
+        "download_path": "/api/outputs/download",
+    }
+
+
+def test_archive_service_rejects_untrusted_discovery_metadata() -> None:
+    store = CoreStateStore()
+    store.handle_gateway_event({
+        "type": "server_ready",
+        "payload": {
+            "archive_service": {
+                "available": True,
+                "scheme": "file",
+                "port": 9000,
+                "list_path": "http://attacker/outputs",
+                "download_path": "/../secret",
+            }
+        },
+    })
+
+    assert store.archive_service_snapshot() == {"available": False}
 
 
 def test_missing_capabilities_are_safe_empty_lists() -> None:

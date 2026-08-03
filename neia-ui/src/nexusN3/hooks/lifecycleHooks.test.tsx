@@ -152,6 +152,7 @@ describe('retained Core lifecycle hooks', () => {
       eventType: 'test',
       subjectId: null,
       sensorId: null,
+      placement: null,
       summary: 'test',
       payload: {},
     }]);

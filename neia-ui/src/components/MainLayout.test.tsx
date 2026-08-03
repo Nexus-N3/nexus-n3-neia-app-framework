@@ -30,6 +30,7 @@ describe("MainLayout", () => {
     expect(screen.getByRole("button", { name: "Nexus N3 Capabilities" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "Nexus N3 Status" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "App Catalog" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Archives" })).toBeEnabled();
     expect(screen.getByRole("button", { name: /NEIA AI/ })).toBeDisabled();
     expect(screen.getByText("nexus-n3-master.local")).toBeVisible();
     expect(screen.getByText("Connected")).toBeVisible();

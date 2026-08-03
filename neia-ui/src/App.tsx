@@ -14,6 +14,7 @@ import { CoreConnectionScreen } from "./screens/CoreConnectionScreen";
 import { CoreStatusScreen } from "./screens/CoreStatusScreen";
 import { SystemDashboardScreen } from "./screens/SystemDashboardScreen";
 import { WorkflowsScreen } from "./screens/WorkflowsScreen";
+import { ArchivesScreen } from "./screens/ArchivesScreen";
 import "./styles.css";
 import type { AppInfo, RemoteOperationState, StartupStage } from "./types";
 import {
@@ -345,6 +346,9 @@ function AppContent() {
       break;
     case "/workflows":
       view = <WorkflowsScreen />;
+      break;
+    case "/archives":
+      view = <ArchivesScreen />;
       break;
     case "/dashboard":
     default:

@@ -699,23 +699,239 @@ Tests:
 - Persistence across API restarts.
 - Concurrent-write and invalid-file recovery tests.
 
-### Phase 6: Archive Download, Migration Cleanup, and Release Hardening
+### Phase 6: Edge Archive API, NEIA Proxy, Archive UI, and Release Hardening
 
-- Implement the archive state machine after the Core contract is confirmed.
-- Add download handling and error states.
-- Update documentation and deployment assets.
-- Complete responsive and accessibility regression work.
+Objective:
 
-Tests:
+- Let a user list and download completed Nexus N3 session archives from the
+  configured Core host without exposing the Core filesystem or its admin HTML
+  application to the browser.
+- Support the active internal output directory and an attached USB output
+  directory through one stable HTTP contract.
 
-- Pending, available, failed, and unavailable archive states.
-- Filename, size, and download reference handling.
-- Download success, Core error, network error, and retry.
-- Full acceptance-criteria end-to-end flow.
-- Voice Demo and Osteosense regression suite.
-- Clean install/upgrade with an existing `installed.json`.
-- Production builds for the shell and optional applications.
-- FastAPI packaging and static-asset serving smoke tests.
+Implementation order:
+
+1. Extract and test Core archive/root-resolution logic, then add the JSON list,
+   HEAD, and streamed download endpoints.
+2. Advertise the configured archive service in Core readiness for standalone
+   and master deployments.
+3. Normalize that metadata in NEIA and implement the server-side list/download
+   proxy with streaming and error mapping.
+4. Add the Archives menu, route, hook, view, and completed-session handoff.
+5. Run internal-storage, USB-source-switch, tablet, desktop, deployment, and
+   cross-version acceptance tests before marking Phase 6 done.
+
+#### 6.1 Contract and Storage-Source Rules
+
+- The Core HTTP paths remain stable regardless of storage medium. The active
+  filesystem root may change between internal storage and USB, but that path is
+  resolved inside Core and is never returned to NEIA.
+- Archive access is scoped to the `site` reported by Core readiness. Core
+  resolves only `<active-output-root>/<site>/sessions`; directories belonging
+  to an Edge's previous site assignment remain hidden.
+- Refactor the existing admin `/outputs` root-resolution and safe-path logic
+  into a reusable archive/output service. Keep the server-rendered admin route
+  working, but do not parse or proxy its HTML.
+- The archive API lists completed root-level session ZIP files only. It does
+  not expose incomplete session directories, arbitrary output files, absolute
+  paths, delete operations, or USB mount controls.
+- List responses identify the active `storage_source` as `internal` or `usb`.
+  They also return the readiness site. Download requests include the source and
+  site returned by the list operation. If USB is removed, the active source
+  changes, or the readiness site changes before download, Core returns a
+  conflict instead of silently serving a same-named file from another root.
+- Archive identifiers are safe, opaque-to-NEIA values derived by Core. Core
+  remains responsible for resolving and validating them beneath the selected
+  archive root, including traversal and symlink-escape protection.
+- List results are sorted newest first and use `Cache-Control: no-store` so a
+  USB insertion/removal is visible immediately.
+
+Proposed Core readiness metadata:
+
+```json
+{
+  "archive_service": {
+    "available": true,
+    "scheme": "http",
+    "port": 9000,
+    "list_path": "/api/outputs",
+    "download_path": "/api/outputs/download"
+  }
+}
+```
+
+- `available` is `true` only when the admin/archive HTTP service is enabled for
+  the standalone or master Core role.
+- The advertised port is the configured `--admin-port`, not an assumed fixed
+  value. The bind host is not advertised; NEIA combines this metadata with its
+  configured Core `target_host`.
+- When unavailable, Core still returns `archive_service` with
+  `available: false`, allowing NEIA to render a clear unsupported state.
+- Paths are validated as absolute local HTTP paths. They are not full URLs and
+  cannot redirect NEIA to a different host.
+
+#### 6.2 Nexus N3 Core Archive API
+
+Implement in `nexus-n3-core`:
+
+- Add a reusable archive repository/service alongside the admin application.
+  It owns active-root selection, source pinning, archive filtering, metadata,
+  identifier resolution, and safe download resolution.
+- Refactor `/outputs` and `/outputs/download` to use the reusable resolution
+  service where their behavior overlaps, preserving the existing HTML admin
+  experience.
+- Add `GET /api/outputs` returning JSON similar to:
+
+```json
+{
+  "site": "lunar",
+  "storage_source": "usb",
+  "archives": [
+    {
+      "id": "core-generated-id",
+      "filename": "session-20260803T120000Z.zip",
+      "size_bytes": 123456,
+      "modified_at": "2026-08-03T12:05:10Z"
+    }
+  ]
+}
+```
+
+- Add `GET /api/outputs/download` accepting `archive_id`, `storage_source`, and
+  the readiness `site`. Return a streaming/file response with a sanitized
+  `Content-Disposition`, `Content-Type: application/zip`, `Content-Length`, and
+  `Cache-Control: no-store`.
+- Add `HEAD /api/outputs/download` with the same validation and response
+  metadata so NEIA can report an error before starting a browser download.
+- Return structured errors for archive not found, source changed/USB removed,
+  unreadable storage, invalid identifier, and service unavailable.
+- Add archive-service configuration to `MessageHandler` before readiness
+  commands can be served. Include it in `server_ready` for both standalone and
+  master roles. Worker nodes do not advertise an archive service.
+- Keep the current archive creation location unchanged: the API reads the same
+  active output root used by `FileManager` and `USBDiskManager`.
+
+#### 6.3 NEIA Server-Side Proxy
+
+Implement in `nexus-n3-neia-app-framework/neia-api`:
+
+- Normalize and retain `archive_service` from Core readiness in
+  `CoreStateStore`. Malformed or missing metadata becomes unavailable rather
+  than falling back to port or path guesses.
+- Retain the outer readiness `site`, use it for every Core archive request, and
+  reject a download with `409` if the site differs from the list operation.
+- Add an `ArchiveProxyService` using an async streaming HTTP client. The service
+  builds the upstream origin from the current gateway `target_host` plus the
+  readiness-advertised scheme, port, and validated path.
+- Add `GET /api/v1/archives` to proxy and normalize the Core list response.
+- Add `HEAD` and `GET /api/v1/archives/{archive_id}/download`, forwarding the
+  listed `storage_source`. The GET response streams chunks from Core through
+  NEIA and preserves safe length, type, and disposition headers; it must not
+  buffer the archive in NEIA memory or write a temporary copy.
+- Do not accept an upstream URL, host, port, or path from the browser. Do not
+  follow upstream redirects. Re-read the configured Core host for every
+  request so connection-setting changes take effect immediately.
+- Map upstream conditions into stable NEIA errors: unavailable service `503`,
+  source change `409`, missing archive `404`, Core connection failure `502`,
+  and timeout `504`.
+- Use short connect/list timeouts and a streaming-appropriate download timeout.
+  Close the upstream response and HTTP client when the browser disconnects.
+- Add the async HTTP dependency explicitly and create/close the proxy client in
+  the FastAPI application lifespan.
+
+#### 6.4 NEIA Archives Menu and View
+
+Implement in `nexus-n3-neia-app-framework/neia-ui`:
+
+- Add an `Archives` main-menu item and `/archives` shell route. Keep it visible
+  even when Core is disconnected so the view can explain why data is
+  unavailable.
+- Add `useArchives` and an `ArchivesScreen` separated from session event state.
+- Show archive filename, formatted size, modified time, readiness site, and an
+  Internal Storage or USB badge. Do not show Core host URLs or filesystem paths.
+- Provide loading, empty, Core disconnected, archive service unavailable,
+  list error, source changed, download error, and retry states.
+- Refresh on route entry, explicit user refresh, reconnect, and USB
+  inserted/removed/status events.
+- For download, first call the same-origin NEIA HEAD endpoint. On success,
+  trigger a normal anchor download from the NEIA GET endpoint so the browser
+  streams directly to disk instead of building a large JavaScript `Blob`.
+- Disable only the affected row while its preflight is running and expose
+  progress/error text through an ARIA live region.
+- Add a `View Archives` action to the completed-session screen. The main
+  Archives view remains the authoritative archive browser.
+
+#### 6.5 Deployment and Security
+
+- Update Core service/systemd/Ansible documentation so the admin/archive
+  service is enabled on the configured port and reachable from the NEIA host.
+  The standard deployment is `--admin --admin-host 0.0.0.0 --admin-port 9000`.
+- Restrict the Core admin port to the trusted edge network or NEIA host with
+  host firewall rules. Browsers access archives only through the same-origin
+  NEIA proxy.
+- Document the required Core-to-NEIA version pairing and the unavailable UI
+  shown when an older Core omits `archive_service`.
+- Preserve the existing internal and USB archive creation/offload behavior.
+  Archive deletion and local-to-USB transfer remain admin-only and out of scope
+  for the NEIA Archives view.
+
+#### 6.6 Test Plan
+
+Core tests:
+
+- Internal-root and USB-root archive listing, newest-first order, size, and
+  timestamp metadata.
+- Only completed archive file types are returned; directories and unrelated
+  files are excluded.
+- Download byte integrity and response headers.
+- Source pinning when USB is inserted or removed between list and download.
+- Missing, unreadable, invalid-ID, traversal, and symlink-escape cases.
+- Readiness metadata for custom admin ports, enabled/disabled service,
+  standalone, master, and worker roles.
+- Existing server-rendered `/outputs` behavior after service extraction.
+
+NEIA API tests:
+
+- Readiness normalization for complete, missing, unavailable, and malformed
+  archive metadata.
+- Upstream URL construction from the configured Core host and advertised port
+  and paths, including host reconfiguration.
+- List normalization and no filesystem-path leakage.
+- HEAD/GET proxy behavior, streamed byte integrity, safe forwarded headers,
+  upstream response cleanup, and client disconnect cleanup.
+- Core `404`/`409`, connection failure, timeout, malformed response, redirect,
+  and retry behavior.
+- Browser input cannot select an arbitrary upstream host, port, or path.
+
+NEIA UI tests:
+
+- Archives menu selection and route rendering without reload.
+- Loading, empty, internal, USB, disconnected, unsupported, and error states.
+- Filename, size, time, newest-first ordering, source badges, and accessible
+  labels.
+- Refresh and retry, including automatic refresh on reconnect and USB events.
+- Download preflight success/failure and same-origin anchor generation.
+- Responsive layout and keyboard/screen-reader behavior at 10-inch tablet
+  profiles (including 1280x800 and 1024x768) and desktop (1920x1080).
+
+End-to-end acceptance:
+
+- Create a session archive on internal storage, list it through NEIA, download
+  it, and verify its checksum against the Core file.
+- Repeat with an attached USB disk and verify the view reports USB storage.
+- Remove USB after listing and confirm download fails with the source-changed
+  state rather than serving a different file.
+- Verify a non-default Core admin port discovered through readiness.
+- Verify older Core versions without archive metadata leave the rest of NEIA
+  usable and show Archives as unavailable.
+
+Phase 6 exit criterion:
+
+- A user can browse and download intact completed session archives from the
+  currently configured Nexus N3 Core through NEIA on tablet and desktop, for
+  both internal and USB storage, without filesystem disclosure, browser access
+  to the Core admin origin, or whole-file buffering in NEIA.
+
 
 ## 16. Implementation Assumptions
 
@@ -734,6 +950,3 @@ Tests:
   but `app_id: nexus` will launch and populate the built-in session workflow.
 - No remote catalogue, object-store bundles, MCP, OpenWeb, or NEIA AI
   implementation will be included.
-
-No implementation work should begin until this plan is approved and the
-unresolved Core API dependencies needed by the relevant phase are confirmed.

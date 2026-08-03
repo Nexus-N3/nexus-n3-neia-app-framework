@@ -4,6 +4,7 @@ from copy import deepcopy
 from datetime import datetime, timezone
 from threading import RLock
 from typing import Any
+from urllib.parse import urlsplit
 
 
 def _utc_now_iso() -> str:
@@ -52,6 +53,7 @@ class CoreStateStore:
             "algorithms": [],
             "updated_at": None,
         }
+        self._archive_service: dict[str, Any] = {"available": False}
         self._status: dict[str, Any] = {
             "version": None,
             "readiness": "unknown",
@@ -172,6 +174,11 @@ class CoreStateStore:
                 **deepcopy(self._status),
             }
 
+    def archive_service_snapshot(self) -> dict[str, Any]:
+        """Return only validated archive-service discovery metadata."""
+        with self._lock:
+            return deepcopy(self._archive_service)
+
     def _ingest_server_ready(self, payload: dict[str, Any], received_at: str) -> None:
         self._attempt_started_at = None
         self._connection.update(
@@ -203,7 +210,48 @@ class CoreStateStore:
                 "updated_at": received_at,
             }
         )
+        self._archive_service = self._normalize_archive_service(
+            payload.get("archive_service"),
+            payload.get("site"),
+        )
         self._ingest_embedded_status(payload)
+
+    @staticmethod
+    def _normalize_archive_service(value: Any, site_value: Any) -> dict[str, Any]:
+        service = _record(value)
+        site = _string(site_value)
+        unavailable = {"available": False, **({"site": site} if site else {})}
+        if service.get("available") is not True:
+            return unavailable
+        scheme = _string(service.get("scheme"))
+        port = service.get("port")
+        list_path = _string(service.get("list_path"))
+        download_path = _string(service.get("download_path"))
+        if not site or scheme not in {"http", "https"}:
+            return unavailable
+        if isinstance(port, bool) or not isinstance(port, int) or not 1 <= port <= 65535:
+            return unavailable
+        if not CoreStateStore._safe_service_path(list_path):
+            return unavailable
+        if not CoreStateStore._safe_service_path(download_path):
+            return unavailable
+        return {
+            "available": True,
+            "site": site,
+            "scheme": scheme,
+            "port": port,
+            "list_path": list_path,
+            "download_path": download_path,
+        }
+
+    @staticmethod
+    def _safe_service_path(path: str | None) -> bool:
+        if not path or not path.startswith("/") or "\\" in path:
+            return False
+        parts = urlsplit(path)
+        if parts.scheme or parts.netloc or parts.query or parts.fragment:
+            return False
+        return all(segment not in {".", ".."} for segment in parts.path.split("/"))
 
     def _expire_connection_attempt(self) -> None:
         if self._connection["state"] != "connecting" or not self._attempt_started_at:
@@ -428,13 +476,17 @@ class CoreStateStore:
         }
 
     def _update_azure_from_payload(self, payload: dict[str, Any]) -> None:
-        raw_state = _first(payload["device"], "active_bridge")
-        print("_update_azure_from_payload", raw_state)
+        device = _record(payload.get("device"))
+        raw_state = (
+            _first(device, "active_bridge")
+            if device
+            else _first(payload, "active_bridge", "connected", "state", "status")
+        )
 
         self._status["azure_bridge"] = {
             "state": (
                 "not_set"
-                if raw_state is False
+                if device and raw_state is False
                 else _state(raw_state) or "unknown"
             )
         }

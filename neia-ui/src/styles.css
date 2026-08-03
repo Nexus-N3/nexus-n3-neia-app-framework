@@ -2488,6 +2488,53 @@ body.display-profile-1920x1080 .startup-status {
   border-radius: 16px;
 }
 
+.archives-heading-actions-v2,
+.archive-card-actions-v2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.archive-card-v2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.archive-card-v2 h3 {
+  margin: 0 0 7px;
+  color: var(--v2-ink);
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
+.archive-card-v2 > div > span,
+.archive-card-actions-v2 > span {
+  color: var(--v2-muted);
+  font-size: 12px;
+}
+
+.archive-live-status-v2 {
+  min-height: 18px;
+  margin: -16px 0 10px;
+  color: var(--v2-muted);
+  font-size: 12px;
+}
+
+@media (max-width: 680px) {
+  .archives-heading-v2,
+  .archive-card-v2 {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .archives-heading-actions-v2,
+  .archive-card-actions-v2 {
+    justify-content: space-between;
+  }
+}
+
 .capability-title-v2 {
   margin-bottom: 18px;
   display: flex;

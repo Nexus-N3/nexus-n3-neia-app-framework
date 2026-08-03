@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from app.registry import AppRegistry
+from app.repositories.registry import AppRegistry
 
 
 def test_registry_reads_manifests_from_custom_registry_dir(tmp_path: Path) -> None:

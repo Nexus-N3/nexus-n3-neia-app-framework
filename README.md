@@ -39,6 +39,17 @@ results view with category/subject/sensor filters, a filtered timeline,
 latest-first pagination, and expandable raw payloads. Completed sessions retain
 their captured event history until the user explicitly resets the session.
 
+The shell also includes an Archives view. It discovers the archive HTTP
+service from Core readiness, combines that contract with the configured Core
+host, pins requests to the site reported by Core readiness, and proxies archive
+lists and streamed downloads through NEIA. Only archives under the active
+`<site>/sessions` directory are displayed, so historical data from an Edge's
+previous site assignment remains hidden. Core must
+be started with its admin service enabled and reachable (normally
+`--admin --admin-host 0.0.0.0 --admin-port 9000`). Older Core versions that do
+not advertise `archive_service` remain usable; the Archives view reports that
+downloads are unavailable.
+
 Embedded compact rule:
 - when running inside the NEIA shell, treat `800x480` devices as a compact embedded app stage and size layouts to the actual mount surface rather than assuming the full raw viewport
 
