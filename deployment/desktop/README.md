@@ -16,10 +16,101 @@ application:
 
 ## Current scope
 
-Both platforms have two paths:
+All three platforms have two paths:
 
 - local developer daemon scripts for testing from the repo checkout
 - an installed desktop daemon and browser launcher
+
+## Package build quick reference
+
+Build packages on the matching target operating system from the framework
+repository root. Node.js/npm is required only on the build machine; users
+installing the resulting package do not need Node.js.
+
+### Build the Linux `.deb`
+
+Build the API wheel first, then run the Debian builder:
+
+```bash
+cd neia-api
+python3 -m build --wheel
+cd ..
+./deployment/desktop/linux/deb/build_deb.sh
+```
+
+Expected output:
+
+```text
+deployment/desktop/linux/dist/nexus-n3-neia-app-framework_<version>_all.deb
+```
+
+Build prerequisites are Python 3.10+, the Python `build` and Pillow packages,
+Node/npm, `dpkg-deb`, and `fakeroot`. On Ubuntu, the system packaging tools can
+be installed with:
+
+```bash
+sudo apt install dpkg-dev fakeroot python3-venv python3-pil
+```
+
+Useful builder options:
+
+```bash
+./deployment/desktop/linux/deb/build_deb.sh --version 0.1.1
+./deployment/desktop/linux/deb/build_deb.sh --output /path/to/output
+./deployment/desktop/linux/deb/build_deb.sh --skip-ui-build
+```
+
+### Build the Windows `.exe`
+
+Run from PowerShell on Windows:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+& .\deployment\desktop\windows\installer\build_windows_installer.ps1
+```
+
+Expected output:
+
+```text
+deployment\desktop\windows\dist\Nexus-N3-NEIA-Setup-<version>.exe
+```
+
+Build prerequisites are Python 3.10+, the Python `build` package, Node/npm, and
+Inno Setup 6. Useful options:
+
+```powershell
+& .\deployment\desktop\windows\installer\build_windows_installer.ps1 -Version 0.1.1
+& .\deployment\desktop\windows\installer\build_windows_installer.ps1 -OutputDir C:\packages
+& .\deployment\desktop\windows\installer\build_windows_installer.ps1 -IsccPath "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+& .\deployment\desktop\windows\installer\build_windows_installer.ps1 -SkipUiBuild -SkipApiBuild
+```
+
+### Build the macOS `.pkg`
+
+Run on macOS:
+
+```bash
+./deployment/desktop/macos/pkg/build_pkg.sh
+```
+
+Expected output:
+
+```text
+deployment/desktop/macos/dist/Nexus-N3-NEIA-<version>.pkg
+```
+
+Build prerequisites are macOS 12+, Python 3.10+, the Python `build` package,
+Node/npm, and `pkgbuild`, `productbuild`, `plutil`, and `rsync`. Useful options:
+
+```bash
+./deployment/desktop/macos/pkg/build_pkg.sh --version 0.1.1
+./deployment/desktop/macos/pkg/build_pkg.sh --output /path/to/output
+./deployment/desktop/macos/pkg/build_pkg.sh --skip-ui-build --skip-api-build
+./deployment/desktop/macos/pkg/build_pkg.sh --sign "Developer ID Installer: Your Name (TEAMID)"
+```
+
+The skip-build options are intended only when `neia-ui/dist` and the API wheel
+are already current.
 
 ## Local Linux run
 
