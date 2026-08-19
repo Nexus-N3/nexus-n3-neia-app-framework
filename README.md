@@ -1,13 +1,12 @@
 # Nexus N3 NEIA App Framework
 
 NEIA is a Python-based application framework that interfaces with rs-nexus-os via ZeroMQ or LavinMQ.
-It hosts installable apps (plugins) built on a fixed step model, and exposes a UI dashboard for
-selecting, installing, and running apps.
+It includes built-in Nexus N3 session management and hosts optional installable applications.
 
 This repo contains:
 - neia-api: FastAPI service (API + static UI + plugin assets)
-- neia-ui: UI shell (React + Vite)
-- apps: app registry and installed app list
+- neia-ui: UI shell and built-in Nexus N3 session management (React + Vite)
+- apps: optional application registry and installed app list
 - shared: shared schemas and step definitions
 - docs: authoring and integration docs
 
@@ -24,6 +23,32 @@ Release artifact build:
 cd neia-api
 python3 -m build --wheel
 ```
+
+The built-in Nexus N3 source is located in `neia-ui/src/nexusN3` and is compiled
+as part of the single `neia-ui` build. It does not use the optional application
+registry, installation state, dynamic asset loader, or a separate frontend
+build.
+
+The built-in workflow uses explicit session stages and subject-owned logical
+sensor rows. New sessions start with no sensors. Sensor types, locations, and
+algorithms come only from normalized Core capabilities; invalid drafts cannot
+be initialized, and temporary Core disconnections do not clear draft state.
+
+Active and completed sessions share a bounded event store and an event-centred
+results view with category/subject/sensor filters, a filtered timeline,
+latest-first pagination, and expandable raw payloads. Completed sessions retain
+their captured event history until the user explicitly resets the session.
+
+The shell also includes an Archives view. It discovers the archive HTTP
+service from Core readiness, combines that contract with the configured Core
+host, pins requests to the site reported by Core readiness, and proxies archive
+lists and streamed downloads through NEIA. Only archives under the active
+`<site>/sessions` directory are displayed, so historical data from an Edge's
+previous site assignment remains hidden. Core must
+be started with its admin service enabled and reachable (normally
+`--admin --admin-host 0.0.0.0 --admin-port 9000`). Older Core versions that do
+not advertise `archive_service` remain usable; the Archives view reports that
+downloads are unavailable.
 
 Embedded compact rule:
 - when running inside the NEIA shell, treat `800x480` devices as a compact embedded app stage and size layouts to the actual mount surface rather than assuming the full raw viewport
@@ -50,6 +75,18 @@ UI (Vite dev server):
 cd neia-ui
 npm install
 npm run dev
+```
+
+Phase 4 automated verification:
+
+```bash
+cd neia-ui
+npm run typecheck
+npm run test:run
+npm run build
+
+cd ../neia-api
+pytest -q
 ```
 
 ### UI display profiles (explicit, non-media-query)

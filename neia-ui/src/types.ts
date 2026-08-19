@@ -83,3 +83,76 @@ export type AppsSnapshot = {
 };
 
 export type StartupSpeechMode = "api" | "browser" | "none";
+
+export type CoreConnectionState = "connected" | "connecting" | "disconnected" | "error";
+
+export type CoreConnection = GatewayTargetSettings & {
+  state: CoreConnectionState;
+  available: boolean;
+  error?: string | null;
+  last_event_at?: string | null;
+  last_ready_at?: string | null;
+};
+
+export type CoreSensorCapability = {
+  id: string;
+  display_name: string;
+  supported_locations: string[];
+  supported_algorithms: string[];
+  available: boolean;
+};
+
+export type CoreAlgorithmCapability = {
+  id: string;
+  display_name: string;
+  compatible_sensor_types: string[];
+  result_stages: string[];
+  output_types: string[];
+  inputs?: Record<string, unknown>;
+  available: boolean;
+};
+
+export type CoreCapabilities = {
+  sensors: CoreSensorCapability[];
+  algorithms: CoreAlgorithmCapability[];
+  updated_at?: string | null;
+  connection_state: CoreConnectionState;
+  available: boolean;
+};
+
+export type CoreStatusValue = string | number | boolean | null;
+
+export type CoreStatus = {
+  endpoint: string | null;
+  cmd_port: number | null;
+  event_port: number | null;
+  gateway: string | null;
+  connection: Pick<
+    CoreConnection,
+    "state" | "available" | "error" | "last_event_at" | "last_ready_at"
+  >;
+  version: string | null;
+  readiness: string;
+  usb: {
+    state: string;
+    present: boolean | null;
+    mounted: boolean | null;
+    capacity_bytes: number | null;
+    available_bytes: number | null;
+    error: string | null;
+  };
+  ble: {
+    backend: string | null;
+    adapter_state: string;
+    gateway_state: string;
+  };
+  azure_bridge: {
+    state: string;
+  };
+  active_session: {
+    state: string;
+    session_id: string | null;
+  };
+  services: Array<Record<string, CoreStatusValue>>;
+  updated_at?: string | null;
+};
