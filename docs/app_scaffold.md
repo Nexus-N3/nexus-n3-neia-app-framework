@@ -67,7 +67,7 @@ Access directly:
 - `http://localhost:5173`
 
 During dev, your app should call the NEIA API for gateway commands/events.
-Set the API base to the running NEIA API URL (e.g., `http://localhost:8050`).
+Set the API base to the running NEIA API URL (e.g., `http://localhost:8080`).
 
 ## 4) Call Gateway API
 Send commands:

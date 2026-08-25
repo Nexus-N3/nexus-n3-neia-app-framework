@@ -1,0 +1,23 @@
+neia_kiosk_enabled: false
+neia_kiosk_user: "{{ ansible_user }}"
+neia_kiosk_url: "http://localhost:8080"
+neia_kiosk_browser_cmd: chromium-browser
+neia_kiosk_browser_args:
+  - "--ozone-platform=wayland"
+  - "--kiosk"
+  - "--incognito"
+  - "--user-data-dir=/tmp/nexusn3-kiosk-profile"
+  - "--disk-cache-dir=/tmp/nexusn3-kiosk-cache"
+  - "--disable-application-cache"
+  - "--noerrdialogs"
+  - "--disable-infobars"
+neia_kiosk_autologin: true
+neia_kiosk_disable_sleep: true
+neia_kiosk_remove_legacy_autostart: true
+neia_kiosk_packages:
+  - chromium-browser
+  - curl
+  - xdg-desktop-portal
+  - xdg-desktop-portal-gnome
+  - xdg-desktop-portal-gtk
+  - dbus-x11

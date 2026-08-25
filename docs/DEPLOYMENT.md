@@ -67,12 +67,12 @@ pip install -r requirements.txt
 ## 7) Run the API in offline mode
 Ensure dev mode is off so the API uses built assets:
 ```bash
-NEIA_DEV=0 uvicorn app.main:app --host 0.0.0.0 --port 8050
+NEIA_DEV=0 python -m app.daemon --host 0.0.0.0 --port 8080
 ```
 
 Open:
 ```
-http://<edge-device-ip>:8050
+http://<edge-device-ip>:8080
 ```
 
 ## Installing apps after deployment

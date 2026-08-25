@@ -178,6 +178,9 @@ class VoiceManager:
     def _is_speaking(self) -> bool:
         return self._tts_active
 
+    def speak(self, text: str, *, wait: bool = False):
+        return self._maybe_speak(text, wait=wait)
+
     def _emit_status_event(self, force: bool = False) -> None:
         payload = self.status()
         marker = json.dumps(payload, sort_keys=True)

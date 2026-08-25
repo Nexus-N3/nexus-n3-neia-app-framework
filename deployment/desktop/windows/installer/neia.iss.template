@@ -1,0 +1,63 @@
+#define AppName "Nexus N3 NEIA"
+#define AppPublisher "RS Nexus"
+#define AppURL "https://nexus-n3.com"
+
+[Setup]
+AppId={{A732CB27-D619-43C7-9ADC-848377478E21}
+AppName={#AppName}
+AppVersion=@APP_VERSION@
+AppPublisher={#AppPublisher}
+AppPublisherURL={#AppURL}
+AppSupportURL={#AppURL}
+AppUpdatesURL={#AppURL}
+DefaultDirName={autopf}\Nexus N3 NEIA
+DefaultGroupName={#AppName}
+DisableProgramGroupPage=yes
+PrivilegesRequired=admin
+OutputDir=@OUTPUT_DIR@
+OutputBaseFilename=Nexus-N3-NEIA-Setup-@APP_VERSION@
+Compression=lzma2/ultra64
+SolidCompression=yes
+WizardStyle=modern
+UninstallDisplayName={#AppName}
+
+[Files]
+Source: "@STAGE_ROOT@\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "@STAGE_ROOT@\deployment\desktop\windows\open-neia.ps1"; DestDir: "{app}"; Flags: ignoreversion
+Source: "@STAGE_ROOT@\deployment\desktop\windows\run_installed_daemon.ps1"; DestDir: "{app}"; Flags: ignoreversion
+Source: "@STAGE_ROOT@\deployment\desktop\windows\uninstall_windows_desktop.ps1"; DestDir: "{app}"; Flags: ignoreversion
+
+[UninstallRun]
+Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\uninstall_windows_desktop.ps1"" -InstallRoot ""{app}"" -DataRoot ""{commonappdata}\Nexus N3 NEIA"" -KeepData -KeepInstallRoot"; Flags: runhidden waituntilterminated; RunOnceId: "RemoveNeiaDesktopTask"
+
+[UninstallDelete]
+Type: filesandordirs; Name: "{app}\.venv"
+Type: files; Name: "{app}\.env"
+
+[Code]
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  ResultCode: Integer;
+  PowerShellPath: String;
+  InstallArguments: String;
+begin
+  if CurStep <> ssPostInstall then
+    exit;
+
+  WizardForm.StatusLabel.Caption := 'Configuring the NEIA desktop daemon...';
+  PowerShellPath := ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe');
+  InstallArguments :=
+    '-NoProfile -ExecutionPolicy Bypass -File "' +
+    ExpandConstant('{app}\deployment\desktop\windows\install_windows_desktop.ps1') +
+    '" -InstallRoot "' + ExpandConstant('{app}') +
+    '" -DataRoot "' + ExpandConstant('{commonappdata}\Nexus N3 NEIA') +
+    '" -SkipPayloadCopy -SkipUiBuild';
+
+  if not Exec(PowerShellPath, InstallArguments, '', SW_HIDE,
+      ewWaitUntilTerminated, ResultCode) then
+    RaiseException('Could not start the NEIA desktop configuration process.');
+  if ResultCode <> 0 then
+    RaiseException(
+      'NEIA desktop configuration failed. Verify that Python 3.10 or newer is installed and available on PATH.'
+    );
+end;

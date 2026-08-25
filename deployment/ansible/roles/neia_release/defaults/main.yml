@@ -1,14 +1,25 @@
 neia_repo_local_path: "{{ inventory_dir }}/../../.."
-neia_release_local_path: "{{ inventory_dir }}/../../../neia-api/dist/nexus_n3_neia_api-0.1.0-py3-none-any.whl"
-neia_release_remote_path: "/tmp/{{ neia_release_local_path | basename }}"
+neia_release_local_path: ""
+neia_release_local_dir: "{{ neia_repo_local_path }}/neia-api/dist"
+neia_release_local_pattern: "nexus_n3_neia_api-*-py3-none-any.whl"
+neia_release_remote_dir: /tmp
 neia_install_root: /opt/nexus-n3-neia-app-framework
 neia_api_dir: "{{ neia_install_root }}/neia-api"
 neia_venv_path: "{{ neia_api_dir }}/.venv"
+neia_config_root: /etc/nexus-n3-neia-app-framework
+neia_config_file: "{{ neia_config_root }}/neia.env"
+neia_state_root: /var/lib/nexus-n3-neia-app-framework
+neia_log_root: /var/log/nexus-n3-neia-app-framework
+neia_runtime_directory: nexus-n3-neia-app-framework
+neia_run_root: "/run/{{ neia_runtime_directory }}"
+neia_installed_file: "{{ neia_state_root }}/installed.json"
+neia_workflows_dir: "{{ neia_state_root }}/workflows"
+neia_gateway_settings_file: "{{ neia_state_root }}/.neia_gateway_settings.json"
 neia_service_name: nexus-n3-neia-app-framework
 neia_service_user: "{{ ansible_user }}"
 neia_service_group: "{{ ansible_user }}"
 neia_host: 0.0.0.0
-neia_port: 8050
+neia_port: 8080
 neia_dev: 0
 neia_dev_fallback: true
 neia_gateway: zeromq
@@ -18,8 +29,6 @@ neia_master_discovery_timeout: 5
 neia_master_host: nexus-n3-master.local
 neia_master_cmd_port: 5555
 neia_master_event_port: 5556
-neia_master_amqp_url: ""
-neia_amqp_url: ""
 neia_sync_delete: false
 neia_sync_models: false
 neia_local_ui_dist: "{{ neia_repo_local_path }}/neia-ui/dist"
@@ -27,6 +36,7 @@ neia_local_apps_path: "{{ neia_repo_local_path }}/apps"
 neia_local_docs_path: "{{ neia_repo_local_path }}/docs"
 neia_local_models_path: "{{ neia_repo_local_path }}/models"
 neia_local_shared_steps_path: "{{ neia_repo_local_path }}/shared/steps.json"
+neia_local_workflows_path: "{{ neia_repo_local_path }}/workflows"
 neia_runtime_app_sync_excludes:
   - "*/package-lock.json"
   - "*/todo.txt"
@@ -80,6 +90,8 @@ neia_xdg_runtime_dir: "/run/user/{{ neia_service_uid }}"
 neia_pulse_server: "unix:/run/user/{{ neia_service_uid }}/pulse/native"
 neia_service_path: "{{ neia_venv_path }}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 neia_service_env:
+  NEIA_HOST: "{{ neia_host }}"
+  NEIA_PORT: "{{ neia_port }}"
   NEIA_DEV: "{{ neia_dev }}"
   NEIA_DEV_FALLBACK: "{{ 1 if neia_dev_fallback | bool else 0 }}"
   NEIA_GATEWAY: "{{ neia_gateway }}"
@@ -89,10 +101,14 @@ neia_service_env:
   NEIA_MASTER_HOST: "{{ neia_master_host }}"
   NEIA_MASTER_CMD_PORT: "{{ neia_master_cmd_port }}"
   NEIA_MASTER_EVENT_PORT: "{{ neia_master_event_port }}"
-  NEIA_MASTER_AMQP_URL: "{{ neia_master_amqp_url }}"
-  AMQP_URL: "{{ neia_amqp_url }}"
   NEIA_SITE: "{{ neia_site }}"
   NEIA_CONTENT_ROOT: "{{ neia_install_root }}"
+  NEIA_REGISTRY_DIR: "{{ neia_install_root }}/apps/registry"
+  NEIA_INSTALLED_FILE: "{{ neia_installed_file }}"
+  NEIA_STATE_DIR: "{{ neia_state_root }}"
+  NEIA_LOG_DIR: "{{ neia_log_root }}"
+  NEIA_RUN_DIR: "{{ neia_run_root }}"
+  NEIA_WORKFLOWS_DIR: "{{ neia_workflows_dir }}"
   NEIA_VOICE_ENABLED: "{{ 1 if neia_voice_enabled | bool else 0 }}"
   NEIA_VOICE_WAKEWORD: "{{ neia_voice_wakeword }}"
   NEIA_VOICE_WAKEWORD_ALIASES: "{{ neia_voice_wakeword_aliases }}"

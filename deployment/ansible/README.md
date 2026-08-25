@@ -1,6 +1,6 @@
 # Nexus N3 NEIA App Framework Ansible Deployment
 
-This deploys the NEIA API + static UI assets to the standalone/master device and runs the API as a systemd service on port `8050`.
+This deploys the NEIA API + static UI assets to the standalone/master device and runs the packaged NEIA daemon as a systemd service on port `8080`.
 
 The deployment model now matches `nexus-n3-core`:
 
@@ -8,6 +8,8 @@ The deployment model now matches `nexus-n3-core`:
 - build the dashboard UI locally first
 - build each app UI into `apps/registry/*/ui/assets`
 - deploy the wheel artifact plus synced runtime content
+- keep mutable state under `/var/lib/nexus-n3-neia-app-framework`
+- keep service configuration under `/etc/nexus-n3-neia-app-framework`
 
 ## Prereqs (local)
 
@@ -44,7 +46,7 @@ ansible-playbook site.yml
 
 This playbook now:
 
-- checks that the local wheel artifact exists
+- discovers the newest locally built wheel artifact unless `neia_release_local_path` is explicitly set
 - syncs only the runtime artifacts needed on the target:
   - `neia-ui/dist`
   - `apps/installed.json`
@@ -54,7 +56,8 @@ This playbook now:
 - skips `models/` during normal release syncs
 - uploads the wheel to `/tmp/`
 - force-reinstalls the wheel into the target virtualenv
-- refreshes the systemd unit when needed
+- refreshes the systemd environment and daemon-style service unit when needed
+- preserves installed-app, workflow, and gateway state across release updates
 
 ## Runtime Configuration
 
@@ -92,13 +95,8 @@ The Ansible role now exposes the full runtime env surface used by the API,
 including:
 
 - gateway selection and master-discovery settings
-- LavinMQ connection settings
 - voice/STT/TTS parameters
 - packaged content-root selection
-
-Optional values such as `AMQP_URL` are only emitted into the systemd unit when
-they are non-empty, so the default ZeroMQ deployment does not get polluted with
-blank overrides.
 
 If you do want voice on a target, set host or group vars explicitly, for
 example:
@@ -117,16 +115,28 @@ sudo systemctl status nexus-n3-neia-app-framework
 sudo systemctl restart nexus-n3-neia-app-framework
 ```
 
-For standalone deployments that also use the `rs-nexus-os` kiosk role, point the
-kiosk at NEIA:
+## Optional Kiosk Mode
 
-```yaml
-nexus_kiosk_url: http://localhost:8050
+Kiosk provisioning belongs to this NEIA deployment. It is disabled by default
+because it configures GDM autologin, disables desktop sleep/locking, and starts
+Chromium automatically. Enable it for an appliance with a local display:
+
+```bash
+ansible-playbook -i inventory/hosts.ini site.yml \
+  --limit nexus-n3-master.local \
+  -e neia_kiosk_enabled=true
 ```
+
+The kiosk defaults to the SSH/Ansible account and opens
+`http://localhost:8080`. Override `neia_kiosk_user` or `neia_kiosk_url` when
+needed. The user service and launcher retain their existing
+`nexusn3-kiosk.service` and `nexusn3-kiosk.sh` names so devices previously
+provisioned by the Core role are upgraded in place rather than running two
+browsers.
 
 ## Common Overrides
 
 ```
 ansible-playbook site.yml --limit master \
-  --extra-vars "neia_install_root=/home/rsnexus/nexus-n3-neia-app-framework neia_port=8050 neia_dev=0"
+  --extra-vars "neia_install_root=/home/rsnexus/nexus-n3-neia-app-framework neia_port=8080 neia_dev=0"
 ```
