@@ -6,7 +6,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from urllib.parse import urlparse
 
-from .config import AMQP_URL, BASE_DIR, NEIA_GATEWAY, NEIA_SITE
+from .config import AMQP_URL, NEIA_GATEWAY, NEIA_SITE, STATE_DIR
 
 
 @dataclass
@@ -29,7 +29,7 @@ class GatewayRuntimeSettings:
         }
 
 
-def _settings_path(base_dir: Path = BASE_DIR) -> Path:
+def _settings_path(base_dir: Path = STATE_DIR) -> Path:
     return base_dir / ".neia_gateway_settings.json"
 
 
@@ -63,7 +63,7 @@ def _default_gateway_settings() -> GatewayRuntimeSettings:
     )
 
 
-def load_gateway_runtime_settings(base_dir: Path = BASE_DIR) -> GatewayRuntimeSettings:
+def load_gateway_runtime_settings(base_dir: Path = STATE_DIR) -> GatewayRuntimeSettings:
     settings = _default_gateway_settings()
     path = _settings_path(base_dir)
     if not path.exists():
@@ -100,12 +100,13 @@ def save_gateway_runtime_settings(
     target_host: str,
     cmd_port: int,
     event_port: int,
-    base_dir: Path = BASE_DIR,
+    base_dir: Path = STATE_DIR,
 ) -> GatewayRuntimeSettings:
     settings = load_gateway_runtime_settings(base_dir=base_dir)
     settings.target_host = target_host.strip()
     settings.cmd_port = cmd_port
     settings.event_port = event_port
     path = _settings_path(base_dir)
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(asdict(settings), indent=2), encoding="utf-8")
     return settings

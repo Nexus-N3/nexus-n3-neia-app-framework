@@ -1,15 +1,49 @@
-- name: Check local NEIA release artifact
+- name: Check explicitly configured local NEIA release artifact
   ansible.builtin.stat:
     path: "{{ neia_release_local_path }}"
   delegate_to: localhost
   run_once: true
   become: false
   register: neia_release_local_stat
+  when: neia_release_local_path | length > 0
 
-- name: Fail if local NEIA release artifact is missing
+- name: Find locally built NEIA release artifacts
+  ansible.builtin.find:
+    paths: "{{ neia_release_local_dir }}"
+    patterns: "{{ neia_release_local_pattern }}"
+    file_type: file
+    recurse: false
+  delegate_to: localhost
+  run_once: true
+  become: false
+  register: neia_release_candidates
+  when: neia_release_local_path | length == 0
+
+- name: Fail if explicitly configured NEIA release artifact is missing
   ansible.builtin.fail:
     msg: "Missing NEIA release artifact at {{ neia_release_local_path }}"
-  when: not neia_release_local_stat.stat.exists
+  when:
+    - neia_release_local_path | length > 0
+    - not neia_release_local_stat.stat.exists
+
+- name: Fail if no locally built NEIA release artifact was found
+  ansible.builtin.fail:
+    msg: >-
+      Missing NEIA release artifact matching
+      {{ neia_release_local_dir }}/{{ neia_release_local_pattern }}
+  when:
+    - neia_release_local_path | length == 0
+    - neia_release_candidates.matched == 0
+
+- name: Resolve NEIA release artifact paths
+  ansible.builtin.set_fact:
+    neia_release_resolved_local_path: >-
+      {{ neia_release_local_path if neia_release_local_path | length > 0
+         else (neia_release_candidates.files | sort(attribute='mtime') | last).path }}
+    neia_release_resolved_remote_path: >-
+      {{ neia_release_remote_dir }}/{{
+         (neia_release_local_path if neia_release_local_path | length > 0
+          else (neia_release_candidates.files | sort(attribute='mtime') | last).path) | basename }}
 
 - name: Check local NEIA repo content root
   ansible.builtin.stat:
@@ -71,6 +105,14 @@
   become: false
   register: neia_docs_stat
 
+- name: Check local NEIA workflows tree
+  ansible.builtin.stat:
+    path: "{{ neia_local_workflows_path }}"
+  delegate_to: localhost
+  run_once: true
+  become: false
+  register: neia_workflows_stat
+
 - name: Check local NEIA models directory when model sync is enabled
   ansible.builtin.stat:
     path: "{{ neia_local_models_path }}"
@@ -95,6 +137,26 @@
     group: "{{ neia_service_group }}"
     mode: "0755"
 
+- name: Ensure NEIA configuration root exists
+  ansible.builtin.file:
+    path: "{{ neia_config_root }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Ensure NEIA persistent directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ neia_service_user }}"
+    group: "{{ neia_service_group }}"
+    mode: "0755"
+  loop:
+    - "{{ neia_state_root }}"
+    - "{{ neia_workflows_dir }}"
+    - "{{ neia_log_root }}"
+
 - name: Ensure NEIA runtime directories exist
   ansible.builtin.file:
     path: "{{ item }}"
@@ -108,6 +170,97 @@
     - "{{ neia_install_root }}/shared"
     - "{{ neia_install_root }}/neia-ui"
     - "{{ neia_install_root }}/docs"
+
+- name: Check for persistent installed-app state
+  ansible.builtin.stat:
+    path: "{{ neia_installed_file }}"
+  register: neia_installed_state_stat
+
+- name: Check for legacy installed-app state
+  ansible.builtin.stat:
+    path: "{{ neia_install_root }}/apps/installed.json"
+  register: neia_legacy_installed_state_stat
+
+- name: Migrate legacy installed-app state
+  ansible.builtin.copy:
+    src: "{{ neia_install_root }}/apps/installed.json"
+    dest: "{{ neia_installed_file }}"
+    remote_src: true
+    owner: "{{ neia_service_user }}"
+    group: "{{ neia_service_group }}"
+    mode: "0644"
+  when:
+    - not neia_installed_state_stat.stat.exists
+    - neia_legacy_installed_state_stat.stat.exists
+
+- name: Seed installed-app state from the release
+  ansible.builtin.copy:
+    src: "{{ neia_local_apps_path }}/installed.json"
+    dest: "{{ neia_installed_file }}"
+    owner: "{{ neia_service_user }}"
+    group: "{{ neia_service_group }}"
+    mode: "0644"
+    force: false
+  when: not neia_legacy_installed_state_stat.stat.exists
+
+- name: Check persistent workflow state
+  ansible.builtin.find:
+    paths: "{{ neia_workflows_dir }}"
+    file_type: any
+    hidden: true
+    recurse: true
+  register: neia_persistent_workflows
+
+- name: Check legacy workflow state
+  ansible.builtin.stat:
+    path: "{{ neia_install_root }}/workflows"
+  register: neia_legacy_workflows_stat
+
+- name: Migrate legacy workflow state
+  ansible.builtin.copy:
+    src: "{{ neia_install_root }}/workflows/"
+    dest: "{{ neia_workflows_dir }}/"
+    remote_src: true
+    owner: "{{ neia_service_user }}"
+    group: "{{ neia_service_group }}"
+    mode: preserve
+  when:
+    - neia_persistent_workflows.matched == 0
+    - neia_legacy_workflows_stat.stat.isdir | default(false)
+
+- name: Seed workflow state from the release
+  ansible.builtin.copy:
+    src: "{{ neia_local_workflows_path }}/"
+    dest: "{{ neia_workflows_dir }}/"
+    owner: "{{ neia_service_user }}"
+    group: "{{ neia_service_group }}"
+    mode: preserve
+  when:
+    - neia_persistent_workflows.matched == 0
+    - not (neia_legacy_workflows_stat.stat.isdir | default(false))
+    - neia_workflows_stat.stat.isdir | default(false)
+
+- name: Check persistent gateway settings
+  ansible.builtin.stat:
+    path: "{{ neia_gateway_settings_file }}"
+  register: neia_gateway_settings_stat
+
+- name: Check legacy gateway settings
+  ansible.builtin.stat:
+    path: "{{ neia_install_root }}/.neia_gateway_settings.json"
+  register: neia_legacy_gateway_settings_stat
+
+- name: Migrate legacy gateway settings
+  ansible.builtin.copy:
+    src: "{{ neia_install_root }}/.neia_gateway_settings.json"
+    dest: "{{ neia_gateway_settings_file }}"
+    remote_src: true
+    owner: "{{ neia_service_user }}"
+    group: "{{ neia_service_group }}"
+    mode: "0644"
+  when:
+    - not neia_gateway_settings_stat.stat.exists
+    - neia_legacy_gateway_settings_stat.stat.exists
 
 - name: Sync NEIA shell UI build to target
   ansible.builtin.synchronize:
@@ -174,18 +327,27 @@
 
 - name: Upload NEIA release artifact
   ansible.builtin.copy:
-    src: "{{ neia_release_local_path }}"
-    dest: "{{ neia_release_remote_path }}"
+    src: "{{ neia_release_resolved_local_path }}"
+    dest: "{{ neia_release_resolved_remote_path }}"
     mode: "0644"
   notify: Restart neia service
 
 - name: Install NEIA API wheel
   ansible.builtin.pip:
-    name: "{{ neia_release_remote_path }}"
+    name: "{{ neia_release_resolved_remote_path }}"
     virtualenv: "{{ neia_venv_path }}"
     virtualenv_command: "python3 -m venv"
     state: present
     extra_args: "--force-reinstall"
+  notify: Restart neia service
+
+- name: Install NEIA service environment
+  ansible.builtin.template:
+    src: neia.env.j2
+    dest: "{{ neia_config_file }}"
+    owner: root
+    group: root
+    mode: "0644"
   notify: Restart neia service
 
 - name: Install NEIA systemd service

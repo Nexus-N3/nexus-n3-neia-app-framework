@@ -3,3 +3,7 @@
   become: true
   roles:
     - neia_release
+    - role: neia_kiosk
+      when: neia_kiosk_enabled | bool
+      tags:
+        - neia_kiosk

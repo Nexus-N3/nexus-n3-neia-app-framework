@@ -62,12 +62,12 @@ python -m venv .venv
 
 
 pip install -r requirements.txt
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8050
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
 ```
 
 Enable dev mode (loads `dev_entry_ui` when present):
 ```bash
-NEIA_DEV=0 uvicorn app.main:app --reload --host 0.0.0.0 --port 8050
+NEIA_DEV=0 uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
 ```
 
 UI (Vite dev server):
@@ -123,7 +123,7 @@ http://localhost:3000/?display_profile=1920x1080
 Terminal 1 (API):
 ```bash
 cd nexus-n3-neia-app-framework/neia-api
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8050
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
 ```
 
 Terminal 2 (Dashboard shell):
@@ -241,7 +241,7 @@ NEIA_VOICE_TTS_ENABLED=1 \
 NEIA_VOICE_TTS_ENGINE=piper \
 NEIA_VOICE_TTS_PIPER_MODEL="/home/mike/Desktop/apps/dev/rs-nexus-project/nexus-n3-neia-app-framework/models/piper/en_GB-southern_english_female-low.onnx" \
 NEIA_DEV=1 \
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8050 --log-level info
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8080 --log-level info
 ```
 
 Piper setup (download a model + binary):

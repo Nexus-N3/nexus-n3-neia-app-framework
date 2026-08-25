@@ -100,7 +100,7 @@ def _expand_query(query: str) -> str:
     normalized = (query or "").lower()
     expansions: list[str] = []
     if "api" in normalized:
-        expansions.extend(["uvicorn", "app.main:app", "port 8050", "neia-api", "dev"])
+        expansions.extend(["uvicorn", "app.main:app", "port 8080", "neia-api", "dev"])
     if "ui" in normalized:
         expansions.extend(["npm run dev", "vite", "port 3000", "port 3002", "neia-ui"])
     if "sensor plugin" in normalized or "plugin" in normalized:
