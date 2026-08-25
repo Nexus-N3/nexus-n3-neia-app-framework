@@ -31,6 +31,17 @@
     create: true
   when: neia_kiosk_autologin
 
+- name: Enable GNOME on-screen keyboard for kiosk user
+  ansible.builtin.command: >-
+    dbus-launch gsettings set
+    org.gnome.desktop.a11y.applications
+    screen-keyboard-enabled true
+  become: true
+  become_user: "{{ neia_kiosk_user }}"
+  environment:
+    HOME: "/home/{{ neia_kiosk_user }}"
+  changed_when: false
+
 - name: Disable GNOME idle and lock settings for kiosk user
   ansible.builtin.command: "dbus-launch gsettings set {{ item.schema }} {{ item.key }} {{ item.value }}"
   become: true
@@ -65,6 +76,35 @@
     state: absent
   when: neia_kiosk_remove_legacy_autostart
 
+- name: Enable automatic maximization for kiosk user
+  ansible.builtin.command: >-
+    dbus-launch gsettings set
+    org.gnome.mutter
+    auto-maximize true
+  become: true
+  become_user: "{{ neia_kiosk_user }}"
+  environment:
+    HOME: "/home/{{ neia_kiosk_user }}"
+  changed_when: false
+
+- name: Ensure Firefox kiosk profile directory exists
+  ansible.builtin.file:
+    path: "{{ neia_kiosk_firefox_profile }}"
+    state: directory
+    owner: "{{ neia_kiosk_user }}"
+    group: "{{ neia_kiosk_user }}"
+    mode: "0755"
+
+- name: Seed Firefox kiosk profile with a maximized window
+  ansible.builtin.copy:
+    dest: "{{ neia_kiosk_firefox_profile }}/xulstore.json"
+    owner: "{{ neia_kiosk_user }}"
+    group: "{{ neia_kiosk_user }}"
+    mode: "0600"
+    force: false
+    content: |
+      {"chrome://browser/content/browser.xhtml":{"main-window":{"sizemode":"maximized"}}}
+
 - name: Ensure NEIA kiosk script directory exists
   ansible.builtin.file:
     path: "/home/{{ neia_kiosk_user }}/.local/bin"
@@ -82,6 +122,8 @@
     content: |
       #!/bin/bash
       set -euo pipefail
+
+      export MOZ_ENABLE_WAYLAND="{{ neia_kiosk_moz_enable_wayland }}"
 
       # Wait briefly for the portal to be ready, then let systemd restart if needed.
       for i in {1..5}; do
@@ -113,7 +155,7 @@
     mode: "0644"
     content: |
       [Unit]
-      Description=Nexus N3 NEIA kiosk (Chromium)
+      Description=Nexus N3 NEIA kiosk ({{ neia_kiosk_browser_name }})
       After=graphical-session.target xdg-desktop-portal-gnome.service
       Wants=xdg-desktop-portal-gnome.service
       PartOf=graphical-session.target
