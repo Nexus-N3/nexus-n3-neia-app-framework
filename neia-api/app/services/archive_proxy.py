@@ -131,7 +131,7 @@ class ArchiveProxyService:
             or not isinstance(host, str)
             or not host
         ):
-            raise ArchiveProxyError(503, "Archive downloads are not available from this Core.")
+            raise ArchiveProxyError(503, "Archive service is unavailable. Ensure the Core Admin API is running.")
         if requested_site is not None and requested_site != site:
             raise ArchiveProxyError(409, "The Core site changed; refresh the archive list.")
         return (

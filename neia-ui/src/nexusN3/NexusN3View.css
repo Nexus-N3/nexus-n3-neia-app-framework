@@ -2185,6 +2185,260 @@ body[data-display-profile='1280x800-landscape'] .subject-card {
   }
 }
 
+/* A 1280x800 tablet browser exposes less than the full screen height once its
+   browser chrome is visible. Scale shared controls before applying the more
+   compact short-landscape layout below. */
+@media (min-width: 801px) and (max-width: 1300px) and (max-height: 700px) {
+  .new-activity-screen .quick-selection-container {
+    gap: 0.75rem;
+  }
+
+  .new-activity-screen .quick-selection-container .setup-item {
+    min-height: 4rem;
+  }
+
+  .home-screen-actions .nexus-btn,
+  .screen-footer .nexus-btn,
+  .action-row .nexus-btn,
+  .subject-footer-grid .nexus-btn {
+    min-height: 72px;
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+}
+
+/* Shared short-landscape treatment for the complete Nexus N3 application. */
+@media (min-width: 801px) and (max-width: 1300px) and (max-height: 600px) {
+  .nexus-shell {
+    padding: 0.75rem;
+  }
+
+  .nexus-app {
+    padding: 0.375rem 1rem;
+  }
+
+  .nexus-header {
+    margin-bottom: 0.25rem;
+  }
+
+  .header-center .facility-name {
+    font-size: 1rem;
+    line-height: 1.1;
+  }
+
+  .header-line {
+    margin-bottom: 0.375rem;
+  }
+
+  .sub-header-row,
+  .sub-header-row.compact,
+  .subject-activity-header {
+    margin-bottom: 0.25rem;
+  }
+
+  .icon-btn svg {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+
+  .welcome-text,
+  .nexus-n3-built-in-view h2,
+  .screen-title,
+  .carousel-title,
+  .performance-header,
+  .subject-stats-row,
+  .status-text {
+    font-size: 1.125rem;
+  }
+
+  .nexus-n3-built-in-view h3,
+  .metric-value-large,
+  .battery-level-text,
+  .subject-title,
+  .subject-card-title {
+    font-size: 0.875rem;
+  }
+
+  .form-container {
+    gap: 0.375rem;
+  }
+
+  .form-group {
+    gap: 0.375rem;
+  }
+
+  .form-group label,
+  .metric-label,
+  .metric-subtitle,
+  .performance-subtitle,
+  .input-hint,
+  .subject-intensity-title,
+  .subject-intensity-location,
+  .column-subtext,
+  .sensor-info-comp,
+  .sensor-row-error {
+    font-size: 1rem;
+  }
+
+  .nexus-input {
+    padding: 0.625rem 0.75rem;
+    font-size: 1rem;
+  }
+
+  .separator-line {
+    margin: 0.125rem 0;
+  }
+
+  .nexus-btn,
+  .panel-action-btn,
+  .sensor-action-btn-large,
+  .segmented-control-btn,
+  .placement-btn,
+  .setup-item,
+  .sensor-card,
+  .metric-title,
+  .metric-value-medium,
+  .metric-unit-medium,
+  .time-control-label {
+    font-size: 1rem;
+  }
+
+  .nexus-btn {
+    padding: 0.625rem 1rem;
+  }
+
+  .subjects-grid,
+  .subject-content-grid,
+  .three-col-grid,
+  .split-panel-grid,
+  .metric-grid,
+  .quick-selection-container,
+  .placement-grid,
+  .subject-intensity-grid,
+  .periodic-axes-row {
+    gap: 0.5rem;
+  }
+
+  .setup-item,
+  .add-sensor-btn,
+  .placement-btn {
+    padding: 0.625rem;
+    line-height: 1.2;
+  }
+
+  .sensor-card,
+  .sensor-row,
+  .metric-panel,
+  .graph-panel,
+  .subject-info,
+  .subject-card-content,
+  .column-header,
+  .setup-panel-header {
+    padding: 0.625rem;
+  }
+
+  .screen-footer,
+  .action-row,
+  .subject-footer-grid {
+    margin-top: auto;
+    margin-bottom: 0.25rem;
+    padding-top: 0.25rem;
+    flex-shrink: 0;
+  }
+
+  .screen-footer {
+    padding-bottom: 0.5rem;
+  }
+
+  .home-screen-actions .nexus-btn,
+  .screen-footer button,
+  .screen-footer .nexus-btn,
+  .action-row .nexus-btn,
+  .subject-footer-grid .nexus-btn {
+    min-height: 3.5rem;
+    padding: 0.625rem 1rem;
+    font-size: 1rem;
+  }
+
+  .assign-sensors-screen .subject-section {
+    padding: 0.25rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .assign-sensors-screen .subject-header {
+    margin-bottom: 0.25rem;
+  }
+
+  .assign-sensors-screen .subject-stats-row {
+    font-size: 0.75rem;
+  }
+
+  .assign-sensors-screen .sensor-row {
+    display: grid;
+    grid-template-columns: minmax(5rem, 1fr) minmax(4rem, 5.5rem) minmax(7rem, 1fr) auto;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.625rem;
+  }
+
+  .assign-sensors-screen .sensor-name,
+  .assign-sensors-screen .sensor-location,
+  .assign-sensors-screen .battery-level-text {
+    min-width: 0;
+    font-size: 0.75rem;
+  }
+
+  .assign-sensors-screen .battery-container {
+    min-width: 0;
+    gap: 0.25rem;
+  }
+
+  .assign-sensors-screen .battery-container svg {
+    width: 1.875rem;
+    height: 1.875rem;
+  }
+
+  .assign-sensors-screen .sensor-actions {
+    gap: 0.375rem;
+  }
+
+  .assign-sensors-screen .sensor-action-btn-large {
+    min-width: 4.5rem;
+    height: 1.875rem;
+    padding: 0 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .assign-sensors-screen .sensor-row-error {
+    grid-column: 1 / -1;
+    margin-left: 0;
+    padding-top: 0.125rem;
+    font-size: 0.6875rem;
+  }
+
+  .new-activity-screen .quick-selection-section {
+    top: 0;
+    margin-bottom: 0;
+  }
+
+  .new-activity-screen .quick-selection-title {
+    padding: 0.25rem;
+    font-size: 0.875rem;
+  }
+
+  .new-activity-screen .quick-selection-container {
+    gap: 0.5rem;
+  }
+
+  .new-activity-screen .quick-selection-container .setup-item {
+    min-height: 3rem;
+  }
+
+  .new-activity-screen .screen-footer {
+    padding: 0.25rem 0 0.5rem;
+  }
+}
+
 /* Phase 4 subject-owned workflow configuration */
 .subject-configuration-layout {
   min-height: 0;
