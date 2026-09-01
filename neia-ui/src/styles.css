@@ -2116,6 +2116,15 @@ body.display-profile-1920x1080 .startup-status {
   background: #000000;
 }
 
+body.display-profile-800x480 .neia-view-v2 {
+  min-height: calc(100dvh - 145px);
+}
+
+body.display-profile-800x480 .nexus-n3-built-in-view {
+  height: calc(100dvh - 145px);
+  min-height: 0;
+}
+
 .system-view-v2 {
   width: min(100%, 1400px);
   margin: 0 auto;
@@ -2878,4 +2887,188 @@ body.display-profile-1920x1080 .startup-status {
   .core-state-badge.state-connecting .core-state-dot {
     animation: none;
   }
+}
+
+/* Phase 2 - 800x480 display profile */
+
+body.display-profile-800x480 .system-view-v2 {
+  padding: 12px 14px 24px;
+}
+
+body.display-profile-800x480 .view-heading-v2 {
+  margin-bottom: 12px;
+  gap: 12px;
+}
+
+body.display-profile-800x480 .view-heading-v2 h1 {
+  margin: 2px 0 4px;
+  font-size: 27px;
+}
+
+body.display-profile-800x480 .view-heading-v2 p {
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+body.display-profile-800x480 .neia-header-v2 {
+  min-height: 44px;
+  padding: 6px 14px;
+  gap: 12px;
+}
+
+body.display-profile-800x480 .neia-brand-v2 {
+  gap: 8px;
+}
+
+body.display-profile-800x480 .neia-brand-v2 img {
+  width: 64px;
+  height: 16px;
+}
+
+body.display-profile-800x480 .neia-brand-v2 strong {
+  font-size: 15px;
+}
+
+
+body.display-profile-800x480 .neia-endpoint-v2 {
+  gap: 8px;
+}
+
+body.display-profile-800x480 .neia-brand-v2 small {
+  display: block;
+  font-size: 9px;
+  line-height: 1;
+}
+
+body.display-profile-800x480 .neia-endpoint-v2 > div {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+body.display-profile-800x480 .neia-endpoint-v2 .eyebrow {
+  font-size: 8px;
+  line-height: 1;
+}
+
+body.display-profile-800x480 .neia-endpoint-v2 strong {
+  max-width: 180px;
+  font-size: 10px;
+  line-height: 1.1;
+}
+
+body.display-profile-800x480 .core-state-badge.compact {
+  min-height: 24px;
+  padding: 3px 8px;
+  gap: 6px;
+  font-size: 10px;
+}
+
+body.display-profile-800x480 .core-state-dot {
+  width: 6px;
+  height: 6px;
+}
+
+
+/* Dashboard */
+
+body.display-profile-800x480 .session-hero-card {
+  min-height: 260px;
+  padding: 16px 18px;
+}
+
+body.display-profile-800x480 .core-summary-card {
+  padding: 16px 18px;
+}
+
+body.display-profile-800x480 .card-heading-v2 {
+  margin-bottom: 12px;
+}
+
+body.display-profile-800x480 .status-value-v2 {
+  padding: 10px;
+}
+
+body.display-profile-800x480
+  .core-summary-card > .secondary-action-v2 {
+  margin-top: 12px;
+}
+
+
+/* Connection / settings */
+
+body.display-profile-800x480 .settings-card-v2 {
+  padding: 16px 18px;
+}
+
+body.display-profile-800x480 .connection-callout-v2 {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  gap: 12px;
+}
+
+body.display-profile-800x480 .connection-form-v2 {
+  gap: 14px;
+}
+
+body.display-profile-800x480 .connection-form-v2 input {
+  padding: 10px 12px;
+}
+
+body.display-profile-800x480 .port-grid-v2 {
+  gap: 12px;
+}
+
+body.display-profile-800x480 .settings-actions-v2 {
+  margin-top: 14px;
+}
+
+
+/* Capabilities */
+
+body.display-profile-800x480 .capabilities-layout-v2 {
+  gap: 16px;
+}
+
+body.display-profile-800x480 .section-heading-v2 {
+  margin-bottom: 8px;
+}
+
+body.display-profile-800x480 .capability-list-v2 {
+  gap: 10px;
+}
+
+body.display-profile-800x480 .capability-card-v2 {
+  padding: 14px;
+  border-radius: 14px;
+}
+
+body.display-profile-800x480 .capability-title-v2 {
+  margin-bottom: 10px;
+}
+
+
+/* Status */
+
+body.display-profile-800x480 .status-sections-v2 {
+  gap: 10px;
+}
+
+body.display-profile-800x480 .status-panel-v2 {
+  padding: 16px 18px;
+}
+
+body.display-profile-800x480 .status-panel-v2 h2 {
+  margin-bottom: 10px;
+}
+
+
+/* Catalog / applications */
+
+body.display-profile-800x480 .catalog-sections-v2 {
+  gap: 16px;
+}
+
+body.display-profile-800x480 .catalog-sections-v2 .app-grid {
+  gap: 10px;
 }

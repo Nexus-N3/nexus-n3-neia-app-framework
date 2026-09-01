@@ -12,9 +12,9 @@ type MainLayoutProps = {
 
 const MENU_ITEMS = [
   { route: "/dashboard", label: "Dashboard" },
-  { route: "/connection", label: "Nexus N3 Connection" },
-  { route: "/capabilities", label: "Nexus N3 Capabilities" },
-  { route: "/status", label: "Nexus N3 Status" },
+  { route: "/connection", label: "Connection" },
+  { route: "/capabilities", label: "Capabilities" },
+  { route: "/status", label: "Status" },
   { route: "/catalog", label: "App Catalog" },
   { route: "/workflows", label: "Workflows" },
   { route: "/archives", label: "Archives" },
@@ -65,7 +65,7 @@ export function MainLayout({ children, connection, route, onNavigate }: MainLayo
             {item.label}
           </button>
         ))}
-        <button
+        {/*<button
           className="planned"
           type="button"
           disabled
@@ -73,7 +73,7 @@ export function MainLayout({ children, connection, route, onNavigate }: MainLayo
         >
           <span>NEIA AI</span>
           <small>Planned</small>
-        </button>
+        </button>*/}
       </nav>
 
       <main className="neia-view-v2">{children}</main>

@@ -1,20 +1,43 @@
+/*
+ * App.compact.css
+ * Nexus N3 built-in application - 800x480 layout
+ *
+ * App.css remains authoritative for colours, surfaces, borders and
+ * component styling. This file only adapts geometry for 800x480.
+ *
+ * The outer NexusViewStyles.css should provide:
+ *
+ * body.display-profile-800x480 .neia-view-v2 {
+ *   min-height: calc(100dvh - 145px);
+ * }
+ *
+ * body.display-profile-800x480 .nexus-n3-built-in-view {
+ *   height: calc(100dvh - 145px);
+ *   min-height: 0;
+ * }
+ */
+
 @media (max-width: 800px) and (max-height: 480px) {
+
+  /* Application frame */
+
   .nexus-shell {
-    min-height: 100%;
+    width: 100%;
     height: 100%;
-    padding: 0;
-    background-color: #000000;
+    min-height: 100%;
+    padding: 8px;
+    box-sizing: border-box;
   }
 
   .nexus-app {
     width: 100%;
     max-width: none;
     height: 100%;
+    max-height: 100%;
     min-height: 0;
-    border-radius: 0;
     padding: 6px 12px;
+    box-sizing: border-box;
     overflow: hidden;
-    background-color: #000000;
   }
 
   .route-stage,
@@ -27,45 +50,97 @@
     width: 100%;
     height: 100%;
     min-height: 0;
-    background-color: #000000;
-    align-items: stretch;
-  }
-
-  .home-screen {
-    overflow: hidden;
   }
 
   .screen-layout,
-  .screen-layout.stretch {
-    overflow: auto;
+  .screen-layout.stretch,
+  .screen-layout-shell {
+    min-height: 0;
   }
 
+  /*
+   * Keep the standard ScreenLayout model unchanged:
+   * auto header / flexible body / auto footer.
+   * The footer therefore remains pinned to the bottom.
+   */
+
+
+  /* Header */
+
   .nexus-header {
-    margin-bottom: 4px;
+    min-height: 0;
+    margin-bottom: 2px;
+    line-height: 1;
   }
 
   .header-left .logo-img {
-    height: 14px;
+    height: 12px;
   }
 
   .header-center .facility-name {
-    font-size: 14px;
-    line-height: 1.1;
+    font-size: 12px;
+    line-height: 1;
     white-space: nowrap;
   }
 
   .header-site-name {
-    font-size: 0.6rem;
+    font-size: 8px;
     line-height: 1;
   }
 
-  .reset-header-btn {
-    padding: 6px 12px;
-    font-size: 11px;
+  .header-right {
+    gap: 2px;
+  }
+
+  .nexus-header .server-status-container {
+    margin-right: 2px;
+  }
+
+  .nexus-header .status-indicator {
+    width: 6px;
+    height: 6px;
+  }
+
+  .reset-header-btn,
+  .retry-server-btn {
+    padding: 3px 7px;
+    font-size: 9px;
+    line-height: 1;
+  }
+
+  .retry-server-btn {
+    min-width: 78px;
+    white-space: nowrap;
   }
 
   .header-line {
+    height: 1px;
     margin-bottom: 4px;
+  }
+
+  /* Shared screen headings */
+
+  .sub-header-row,
+  .sub-header-row.compact,
+  .subject-activity-header {
+    margin-bottom: 4px;
+  }
+
+  .sub-header-row {
+    gap: 8px;
+  }
+
+  .sub-header-row.relative {
+    min-height: 36px;
+  }
+
+  .absolute-center {
+    max-width: calc(100% - 120px);
+  }
+
+  .icon-btn svg {
+    width: 26px;
+    height: 26px;
   }
 
   .welcome-text,
@@ -86,39 +161,24 @@
     font-size: 14px;
   }
 
-  .reset-header-btn,
-  .retry-server-btn {
-    padding: 5px 10px;
-    font-size: 10px;
-  }
 
-  .header-right {
-    gap: 4px;
-  }
+  /* Forms - mirror tablet layout */
 
-  .retry-server-btn {
-    min-width: 96px;
-    white-space: nowrap;
-  }
-
-  .sub-header-row,
-  .sub-header-row.compact,
-  .subject-activity-header {
-    margin-bottom: 6px;
-  }
-
-  .sub-header-row .info-btn {
-    visibility: hidden;
-    pointer-events: none;
+  .new-session-screen .screen-layout-body,
+  .subjects-required-screen .screen-layout-body,
+  .new-activity-screen .screen-layout-body {
+    align-items: center;
   }
 
   .form-container {
-    gap: 10px;
-    max-width: 100%;
+    width: 100%;
+    max-width: 75%;
+    margin-inline: auto;
+    gap: 6px;
   }
 
   .form-group {
-    gap: 8px;
+    gap: 6px;
   }
 
   .form-group label,
@@ -128,18 +188,23 @@
   .input-hint,
   .subject-intensity-title,
   .subject-intensity-location,
-  .bar-graph-empty,
-  .bar-graph-legend,
   .column-subtext,
   .sensor-info-comp,
   .sensor-row-error {
-    font-size: 11px;
+    font-size: 12px;
   }
 
   .nexus-input {
-    padding: 10px 12px;
+    padding: 8px 10px;
     font-size: 13px;
   }
+
+  .separator-line {
+    margin: 2px 0;
+  }
+
+
+  /* Common controls */
 
   .nexus-btn,
   .panel-action-btn,
@@ -151,95 +216,27 @@
   .metric-title,
   .metric-value-medium,
   .metric-unit-medium,
-  .subject-stats-list,
-  .stats-summary,
   .time-control-label {
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .nexus-btn {
-    padding: 10px 16px;
-    border-radius: 14px;
-
+    padding: 8px 12px;
   }
 
   .home-screen-actions .nexus-btn,
-  .screen-footer button,
-  .subject-counter-container,
   .screen-footer .nexus-btn,
   .action-row .nexus-btn,
   .subject-footer-grid .nexus-btn {
-    min-width: 0;
-    width: auto;
-    max-width: 100%;
-    font-size: 14px;
+    min-height: 52px;
+    padding: 8px 10px;
+    line-height: 1.2;
+    text-align: center;
+    white-space: normal;
   }
 
-  .home-screen-actions,
-  .screen-footer {
-    width: 100%;
-  }
 
-  .screen-footer,
-  .action-row,
-  .subject-footer-grid {
-    margin-top: auto;
-    margin-bottom: 6px;
-    padding-top: 6px;
-    flex-shrink: 0;
-  }
-
-  .screen-footer {
-    justify-content: center;
-  }
-
-  .screen-footer .nexus-btn,
-  .home-screen-actions .nexus-btn {
-    width: min(100%, 600px);
-  }
-
-  .action-row,
-  .subject-footer-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
-  }
-
-  .action-row {
-    width: 100%;
-    align-items: stretch;
-  }
-
-  .subject-counter-container {
-    margin-bottom: 8px;
-    gap:5rem;
-    justify-content: center;
-  }
-
-  .counter-btn {
-    width: 80px;
-    height: 80px;
-  }
-
-  .counter-btn svg {
-    width: 50px;
-    height: 50px;
-  }
-
-  .counter-value {
-    font-size: 56px;
-  }
-
-  .subject-counter-container + .form-container {
-    display: none;
-  }
-
-  .subject-counter-container {
-    min-width: min(100%, 400px);
-  }
-
-  .subject-counter-container .counter-value {
-    font-size: 72px;
-  }
+  /* Shared spacing */
 
   .subjects-grid,
   .subject-content-grid,
@@ -253,70 +250,11 @@
     gap: 8px;
   }
 
-  .subjects-grid,
-  .split-panel-grid,
-  .three-col-grid,
-  .subject-content-grid,
-  .screen-layout {
-    min-height: 0;
-  }
-
-  .screen-layout {
-    overflow: auto;
-  }
-
-  .sensor-setup-screen {
-    overflow: hidden;
-  }
-
-  .split-panel-grid,
-  .three-col-grid,
-  .subject-content-grid {
-    overflow: visible;
-  }
-
-  .split-panel-grid {
-    overflow: hidden;
-    flex: 1;
-  }
-
-  .sensor-setup-screen .split-panel-grid {
-    flex: 1 1 auto;
-  }
-
-  .setup-list-panel,
-  .sensor-list-panel,
-  .setup-list,
-  .sensor-list-container {
-    min-height: 0;
-  }
-
-  .sensor-list-panel {
-    overflow: hidden;
-  }
-
-  .sensor-list-container {
-    overflow-y: auto;
-  }
-
-  .setup-list,
-  .list-content,
-  .sensor-list-container,
-  .sensors-scroll-container {
-    padding-bottom: 8px;
-  }
-
   .setup-item,
   .add-sensor-btn,
   .placement-btn {
-    padding: 12px;
-    border-width: 2px;
+    padding: 8px 10px;
     line-height: 1.2;
-  }
-
-  .setup-item.selected,
-  .placement-btn.selected {
-    border-width: 2px;
   }
 
   .sensor-card,
@@ -327,45 +265,83 @@
   .subject-card-content,
   .column-header,
   .setup-panel-header {
-    padding: 10px;
-  }
-}
-
-@media (max-width: 800px) and (max-height: 480px) {
-  .subject-stats-list,
-  .stats-summary,
-  .stat-row,
-  .subject-header-title,
-  .subject-stats-row,
-  .quick-selection-title,
-  .fixed-width-counter,
-  .carousel-title,
-  .screen-title,
-  .overlay-status,
-  .overlay-error {
-    font-size: 12px;
+    padding: 8px 10px;
   }
 
-  .status-text {
-    font-size: 14px;
+
+  /* Footer - remains pinned by ScreenLayout */
+
+  .screen-footer,
+  .action-row,
+  .subject-footer-grid {
+    margin-top: auto;
+    margin-bottom: 4px;
+    padding-top: 4px;
+    flex-shrink: 0;
   }
 
-  .sub-header-row {
-    gap: 8px;
+  .screen-footer {
+    width: 100%;
+    padding-bottom: 4px;
   }
 
-  .sub-header-row > div {
-    display: flex;
-    align-items: center;
+  .screen-footer .nexus-btn,
+  .home-screen-actions .nexus-btn {
+    width: min(75%, 600px);
   }
 
-  .sub-header-row.relative {
-    min-height: 40px;
+  .action-row,
+  .subject-footer-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
   }
 
-  .absolute-center {
-    max-width: calc(100% - 120px);
+
+  /* Home */
+
+  .home-screen {
+    overflow: hidden;
   }
+
+  .home-screen-header {
+    margin-top: 12px;
+  }
+
+  .home-screen-actions {
+    width: 100%;
+  }
+
+
+  /* Subject count */
+
+  .subject-counter-container {
+    min-width: min(100%, 400px);
+    margin-bottom: 8px;
+    gap: 48px;
+    justify-content: center;
+  }
+
+  .counter-btn {
+    width: 64px;
+    height: 64px;
+  }
+
+  .counter-btn svg {
+    width: 40px;
+    height: 40px;
+  }
+
+  .counter-value,
+  .subject-counter-container .counter-value {
+    font-size: 54px;
+  }
+
+  .subject-counter-container + .form-container {
+    display: none;
+  }
+
+
+  /* Carousel / segmented controls */
 
   .carousel {
     gap: 14px;
@@ -385,14 +361,11 @@
     width: 18px;
     height: 18px;
     margin: 0;
-    display: block;
   }
 
   .carousel-title {
     font-size: 18px;
     line-height: 1;
-    display: flex;
-    align-items: center;
   }
 
   .segmented-control {
@@ -404,6 +377,9 @@
     padding: 6px 10px;
     font-size: 11px;
   }
+
+
+  /* Subject cards */
 
   .subjects-grid {
     grid-template-columns: 1fr;
@@ -421,11 +397,12 @@
     min-height: 0;
   }
 
-  .subject-title,
-  .subject-card-title,
-  .subject-header-title,
-  .performance-header {
-    font-size: 14px;
+  .subject-section {
+    margin-bottom: 8px;
+  }
+
+  .subject-header {
+    margin-bottom: 6px;
   }
 
   .status-dot,
@@ -435,31 +412,41 @@
     margin-right: 4px;
   }
 
-  .subject-stats-list {
-    gap: 4px;
+    /* Session subject cards */
+
+  .session-screen .subjects-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: none;
+    grid-auto-rows: max-content;
+    align-content: start;
+    gap: 8px;
+    margin-bottom: 8px;
   }
 
-  .subject-card {
-    display: grid;
-    grid-template-columns: 1fr 126px;
-    grid-template-rows: auto auto 1fr;
-    align-items: stretch;
-    column-gap: 8px;
+  .session-screen .subject-card {
+  display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto auto;
+    align-items: start;
+
+    min-height: 0;
+    height: auto;
+    max-height: none;
   }
 
-  .subject-info {
+  .session-screen .subject-info {
     display: contents;
   }
 
-  .subject-title {
+  .session-screen .subject-title {
     grid-column: 1 / -1;
     grid-row: 1;
-    text-align: center;
     margin: 0;
-    padding: 10px 8px 0;
+    padding: 8px 8px 0;
+    text-align: center;
   }
 
-  .status-row {
+  .session-screen .status-row {
     grid-column: 1;
     grid-row: 2;
     margin-bottom: 0;
@@ -470,104 +457,49 @@
     gap: 4px;
   }
 
-  .subject-card .panel-action-btn {
+  .session-screen .subject-stats-list {
+    grid-column: 1;
+    grid-row: 3;
+    align-self: start;
+    justify-self: stretch;
+    width: 100%;
+    gap: 4px;
+    padding: 4px 8px 8px 10px;
+  }
+
+  .session-screen .subject-card .panel-action-btn {
     display: block;
-    flex-shrink: 0;
-    grid-column: 2;
-    grid-row: 2 / span 2;
+    grid-column: 1;
+    grid-row: 4;
+
+    width: 100%;
+    min-height: 40px;
+    margin: 0;
+    padding: 8px 10px;
+
     align-self: stretch;
-    justify-self: start;
-    margin: 8px 10px 8px 0;
-    width: calc(100% - 10px);
-    min-height: 48px;
-    padding: 10px 12px;
+    justify-self: stretch;
+
     font-size: 12px;
     line-height: 1.15;
     white-space: normal;
-    border-radius: 12px;
-  }
 
-  .subject-card .panel-action-btn.complete {
+    border-radius: 0 0 4px 4px;
+}
+
+  .session-screen .subject-card .panel-action-btn.complete {
     min-height: 40px;
     padding-top: 8px;
     padding-bottom: 8px;
   }
 
-  .stats-summary,
-  .stat-row {
+  .session-screen .stats-summary,
+  .session-screen .stat-row {
     font-size: 11px;
   }
 
-  .subject-stats-list {
-    grid-column: 1;
-    grid-row: 3;
-    align-self: start;
-    justify-self: stretch;
-    gap: 6px;
-    width: 100%;
-    padding: 4px 8px 10px 10px;
-  }
 
-  .subject-stats-list.compact {
-    justify-content: flex-start;
-  }
-
-  .subject-stats-list.compact .stats-summary {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 8px;
-    white-space: nowrap;
-  }
-
-  .subject-stats-list.compact .stats-summary > span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    flex: 0 1 auto;
-    order: 2;
-  }
-
-  .subject-stats-list.compact .status-dot-small {
-    margin-right: 0;
-    flex: 0 0 auto;
-    order: 1;
-  }
-
-  .stats-summary,
-  .stat-row {
-    display: grid;
-    width: 100%;
-    grid-template-columns: 58px 1fr;
-    align-items: center;
-    gap: 8px;
-    text-align: left;
-  }
-
-  .stat-value {
-    justify-self: center;
-    text-align: center;
-  }
-
-  .status-text {
-    display: inline-block;
-    text-align: left;
-  }
-
-  .sensors-scroll-container,
-  .sensor-list-container,
-  .sensors-list-container {
-    min-height: 0;
-    overflow-y: auto;
-  }
-
-  .subject-section {
-    margin-bottom: 12px;
-  }
-
-  .subject-header {
-    margin-bottom: 8px;
-  }
+  /* Assign sensors */
 
   .assign-sensors-screen .subject-stats-row {
     display: none;
@@ -586,126 +518,59 @@
     width: 100%;
   }
 
-  .assign-sensors-screen .subject-header {
-    margin-bottom: 6px;
-  }
-
-  .sensor-row {
-    gap: 8px;
-    padding: 8px 10px;
-    flex-wrap: wrap;
-  }
-
-  .sensor-name,
-  .sensor-location,
-  .sensor-row-error {
-    font-size: 11px;
-  }
-
-  .sensor-name {
-    min-width: 0;
-  }
-
-  .sensor-actions {
-    width: 100%;
-    justify-content: flex-end;
-    gap: 6px;
-  }
-
-  .sensor-action-btn-large {
-    min-width: 84px;
-    height: 34px;
-    padding: 0 10px;
-    font-size: 11px;
-  }
-
-  .battery-container {
-    gap: 6px;
-  }
-
-  .battery-container svg {
-    width: 28px;
-    height: 28px;
-  }
-
-  .sensor-info-type,
-  .sensor-info-loc,
-  .sensor-info-comp,
-  .battery-level-text {
-    font-size: 11px;
-  }
-
   .assign-sensors-screen .sensor-row {
     display: grid;
-    grid-template-columns: max-content minmax(72px, 86px) minmax(82px, 1fr) auto;
+    grid-template-columns:
+      max-content
+      minmax(72px, 86px)
+      minmax(82px, 1fr)
+      auto;
     align-items: center;
     column-gap: 6px;
-    padding: 8px 10px;
+    padding: 6px 8px;
   }
 
   .assign-sensors-screen .sensor-name,
   .assign-sensors-screen .sensor-location {
     min-width: 0;
     text-align: left;
-  }
-
-  .assign-sensors-screen .sensor-name {
-    justify-self: start;
+    font-size: 12px;
   }
 
   .assign-sensors-screen .battery-container {
-    width: 100%;
     min-width: 0;
     justify-content: flex-start;
     gap: 6px;
   }
 
   .assign-sensors-screen .battery-container svg {
-    width: 30px;
-    height: 30px;
+    width: 26px;
+    height: 26px;
   }
 
   .assign-sensors-screen .battery-level-text {
     display: inline;
-    font-size: 12px;
-  }
-
-  .assign-sensors-screen .sensor-location {
-    min-width: 0;
-    padding-left: 0;
-    margin-left: 8px;
+    font-size: 11px;
   }
 
   .assign-sensors-screen .sensor-actions {
     width: auto;
     justify-content: flex-end;
-    align-items: center;
     gap: 6px;
-    margin-left: 0;
   }
 
   .assign-sensors-screen .sensor-action-btn-large {
-    min-width: 70px;
+    min-width: 68px;
     height: 30px;
     padding: 0 8px;
     font-size: 10px;
-    border-radius: 6px;
   }
 
-  .assign-sensors-screen .sensor-row-error {
-    grid-column: 1 / -1;
-    margin-left: 0;
-    padding-top: 2px;
-  }
 
-  .three-col-grid {
-    grid-template-columns: 1fr;
-    margin-top: 8px;
-  }
+  /* Sensor setup */
 
-  .sensor-setup-screen .setup-list-panel > .panel-action-btn,
-  .sensor-setup-screen .action-row .secondary-btn {
-    display: none;
+  .sensor-setup-screen {
+    overflow: hidden;
   }
 
   .sensor-setup-screen .split-panel-grid {
@@ -714,7 +579,6 @@
   }
 
   .sensor-setup-screen .setup-list-panel {
-    background: transparent;
     height: auto;
     overflow: visible;
   }
@@ -738,17 +602,12 @@
     flex-direction: column;
     justify-content: flex-start;
     align-items: flex-start;
-    gap: 8px;
+    gap: 6px;
     min-height: 0;
     max-height: 132px;
     padding: 10px;
-    border-width: 2px;
     line-height: 1.2;
     overflow: hidden;
-  }
-
-  .sensor-setup-screen .setup-item.selected {
-    border-width: 2px;
   }
 
   .sensor-setup-screen .setup-item-main {
@@ -756,7 +615,7 @@
   }
 
   .sensor-setup-screen .setup-item-title {
-    margin-bottom: 6px;
+    margin-bottom: 4px;
     font-size: 11px;
     line-height: 1.2;
     white-space: normal;
@@ -765,21 +624,11 @@
   .sensor-setup-screen .setup-item-summary {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
     width: 100%;
     font-size: 10px;
     text-transform: none;
-    color: rgba(231, 238, 243, 0.85);
     overflow: hidden;
-  }
-
-  .sensor-setup-screen .setup-item-summary-line {
-    line-height: 1.2;
-    word-break: break-word;
-  }
-
-  .sensor-setup-screen .setup-item-summary-line-computes {
-    color: rgba(231, 238, 243, 0.68);
   }
 
   .sensor-setup-screen .action-row {
@@ -795,6 +644,23 @@
     width: 100%;
   }
 
+  .sensor-config-empty {
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    line-height: 1.25;
+    letter-spacing: 0.02em;
+  }
+
+
+  /* Three-column/detail screens */
+
+  .three-col-grid {
+    grid-template-columns: 1fr;
+    margin-top: 8px;
+    overflow-y: auto;
+  }
+
   .column-panel.type-col,
   .column-panel.placement-col,
   .column-panel.comp-col {
@@ -808,18 +674,90 @@
     gap: 8px;
   }
 
-  .placement-grid {
+
+  /* Active session / graphs */
+
+  .subject-content-grid,
+  .periodic-subject-grid {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+
+  .graph-panel-column {
+    min-height: 160px;
+  }
+
+  .graph-panel {
+    padding: 10px;
+  }
+
+  .active-session-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    width: 100%;
+  }
+
+
+  .active-session-screen .action-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .subject-intensity-grid,
+  .periodic-axes-row,
+  .metric-grid {
     gap: 8px;
   }
 
-  .computation-item span,
-  .column-subtext {
-    font-size: 11px;
+  .nexus-time-control {
+    gap: 6px;
+    margin-top: 8px;
   }
+
+  .time-control-label {
+    margin: 0 8px;
+  }
+
+
+  /* New activity */
+
+  .new-activity-screen .quick-selection-section {
+    top: 0;
+    margin: 8px 0 0;
+  }
+
+  .new-activity-screen .quick-selection-title {
+    padding: 4px;
+    font-size: 13px;
+  }
+
+  .new-activity-screen .quick-selection-container {
+    gap: 8px;
+  }
+
+  .new-activity-screen .quick-selection-container .setup-item {
+    min-height: 42px;
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .new-activity-screen .form-container {
+    min-height: 0;
+    overflow: auto;
+    padding-top: 6px;
+    padding-bottom: 4px;
+  }
+
+
+  /* Modals */
 
   .overlay-modal {
     min-width: 0;
     width: min(90vw, 320px);
+    min-height: 0;
     padding: 16px 18px;
     gap: 10px;
   }
@@ -838,293 +776,8 @@
     max-width: 100%;
   }
 
-  .subject-content-grid,
-  .periodic-subject-grid {
-    grid-template-columns: 1fr;
-    overflow-y: auto;
-  }
 
-  .graph-panel-column {
-    min-height: 180px;
-  }
-
-  .graph-panel {
-    padding: 12px;
-  }
-
-  .active-session-card {
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    width: 100%;
-  }
-
-  .active-session-card.subject-card {
-    grid-template-columns: none;
-    grid-template-rows: none;
-    column-gap: 0;
-  }
-
-  .active-session-card .subject-card-title {
-    width: 100%;
-    margin: 0;
-    text-align: center;
-  }
-
-  .compact-active-session-card {
-    display: grid;
-    grid-template-rows: auto auto;
-    align-content: start;
-    width: 100%;
-    min-height: 0;
-    height: 100%;
-    padding: 18px 10px 18px;
-    box-sizing: border-box;
-    gap: 16px;
-  }
-
-  .compact-active-session-card .subject-card-title {
-    width: 100%;
-    margin: 0;
-    text-align: center;
-  }
-
-  .startup-gate-card-content.compact {
-    padding: 12px 10px;
-    gap: 10px;
-  }
-
-  .startup-gate-card-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
-
-  .startup-phase-badge {
-    align-self: center;
-    font-size: 11px;
-    padding: 5px 10px;
-  }
-
-  .startup-gate-body {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-
-  .startup-countdown-panel,
-  .startup-status-panel {
-    padding: 12px;
-  }
-
-  .startup-countdown-value {
-    font-size: 42px;
-  }
-
-  .startup-status-message {
-    font-size: 14px;
-    line-height: 1.3;
-  }
-
-  .startup-status-reason,
-  .startup-countdown-label,
-  .startup-status-title {
-    font-size: 11px;
-  }
-
-  .compact-intensity-values {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 6px;
-    min-width: 0;
-    justify-items: start;
-  }
-
-  .compact-active-session-body {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    align-items: center;
-    align-self: stretch;
-    justify-self: stretch;
-    min-height: 0;
-    flex: 1 1 auto;
-    align-content: center;
-    gap: 6px;
-    width: 100%;
-    min-width: 0;
-    padding-top: 12px;
-    padding-bottom: 12px;
-  }
-
-  .compact-intensity-title {
-    font-size: 11px;
-    text-align: left;
-    margin: 0 0 2px;
-    color: #e7eef3;
-  }
-
-  .compact-intensity-columns {
-    display: grid;
-    grid-template-columns: max-content 40px;
-    column-gap: 8px;
-    align-items: start;
-    width: fit-content;
-  }
-
-  .compact-intensity-labels,
-  .compact-intensity-metrics {
-    display: grid;
-    grid-template-columns: 1fr;
-    row-gap: 6px;
-  }
-
-  .compact-intensity-location {
-    text-align: left;
-    white-space: nowrap;
-    font-size: 10px;
-  }
-
-  .compact-intensity-value {
-    text-align: right;
-    font-size: 11px;
-    font-family: monospace;
-    width: 40px;
-  }
-
-  .compact-intensity-chart {
-    display: flex;
-    align-items: stretch;
-    justify-content: stretch;
-    width: 240px;
-    min-width: 240px;
-    min-height: 84px;
-    height: 84px;
-    justify-self: center;
-    margin-left: 0;
-  }
-
-  .active-session-card .panel-action-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    margin-top: 0;
-  }
-
-  .active-session-card-actions .panel-action-btn.split-right {
-    display: none;
-  }
-
-  .active-session-card-actions {
-    grid-template-columns: 1fr;
-  }
-
-  .active-session-card-actions .panel-action-btn.split-left {
-    width: 100%;
-    border-radius: 0 0 4px 4px;
-  }
-
-  .active-session-screen .action-row .secondary-btn {
-    display: none;
-  }
-
-  .active-session-screen .action-row {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .subject-intensity-grid,
-  .periodic-axes-row,
-  .metric-grid {
-    gap: 8px;
-  }
-
-  .subject-intensity-title,
-  .metric-title,
-  .metric-label,
-  .metric-subtitle,
-  .performance-subtitle,
-  .metric-unit,
-  .metric-unit-medium,
-  .metric-ratio-text,
-  .metric-ratio-label,
-  .metric-ratio-value,
-  .bar-graph-legend,
-  .bar-graph-empty {
-    font-size: 11px;
-  }
-
-  .subject-intensity-value,
-  .metric-value-large,
-  .metric-value-medium,
-  .time-control-label {
-    font-size: 12px;
-  }
-
-  .time-control-icon {
-    height: 18px;
-  }
-
-  .nexus-time-control {
-    gap: 6px;
-    margin-top: 10px;
-  }
-
-  .time-control-label {
-    margin: 0 8px;
-  }
-
-  .time-control-btn.spacing-left {
-    margin-left: 8px;
-  }
-
-  .time-control-btn.spacing-right {
-    margin-right: 8px;
-  }
-
-  .quick-selection-title {
-    display: none;
-  }
-
-  .quick-selection-container {
-    gap: 8px;
-  }
-
-  .new-activity-screen .quick-selection-section {
-    top: 0;
-    margin-top: 28px;
-  }
-
-  .new-activity-screen .quick-selection-container .setup-item {
-    min-height: 42px;
-    padding: 8px 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .new-activity-screen .form-container {
-    min-height: 0;
-    overflow: auto;
-    padding-top: 20px;
-    padding-bottom: 8px;
-  }
-
-  .fixed-width-counter {
-    width: 2ch;
-  }
-
-  .home-screen-actions .nexus-btn,
-  .screen-footer .nexus-btn,
-  .action-row .nexus-btn,
-  .subject-footer-grid .nexus-btn {
-    min-height: 64px;
-    width: 100%;
-    padding: 12px 10px;
-    line-height: 1.2;
-    text-align: center;
-    white-space: normal;
-  }
-
-  .home-screen-actions .nexus-btn {
-    width: min(100%, 600px);
-  }
+  /* Errors / status */
 
   .error-banner {
     margin: 0 0 8px;
@@ -1136,8 +789,33 @@
     margin-right: 4px;
   }
 
-  .status-indicator {
-    width: 8px;
-    height: 8px;
-  }
+}
+
+.event-log-details {
+  grid-template-columns: 200px minmax(0, 1fr);
+  column-gap: 12px;
+  grid-template-rows: repeat(3, auto);
+  row-gap: 2px;
+  align-items: start;
+  margin-left: 0;
+}
+
+.event-log-type {
+  grid-column: 1;
+  grid-row: 1 / span 3;
+}
+
+.event-log-details > span:nth-of-type(1) {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.event-log-details > span:nth-of-type(2) {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.event-log-details > span:nth-of-type(3) {
+  grid-column: 2;
+  grid-row: 3;
 }
