@@ -62,13 +62,27 @@ if (Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue) {
 
 New-Item -ItemType Directory -Force -Path $InstallRoot, $StateDir, $LogDir, $RunDir, $WorkflowsDir | Out-Null
 
+# The daemon runs as the interactive user, while these directories are created
+# by the elevated installer. Grant that user modify access so logs, runtime
+# files, and saved workflows remain writable after installation.
+$DataAcl = Get-Acl -LiteralPath $DataRoot
+$DataAccessRule = [Security.AccessControl.FileSystemAccessRule]::new(
+    $Identity.User,
+    [Security.AccessControl.FileSystemRights]::Modify,
+    [Security.AccessControl.InheritanceFlags]"ContainerInherit, ObjectInherit",
+    [Security.AccessControl.PropagationFlags]::None,
+    [Security.AccessControl.AccessControlType]::Allow
+)
+$DataAcl.SetAccessRule($DataAccessRule)
+Set-Acl -LiteralPath $DataRoot -AclObject $DataAcl
+
 function Copy-DeploymentTree {
     param([string]$RelativePath, [string[]]$ExcludeDirectories = @())
     $Source = Join-Path $FrameworkRoot $RelativePath
     $Destination = Join-Path $InstallRoot $RelativePath
     if (-not (Test-Path $Source)) { return }
     New-Item -ItemType Directory -Force -Path $Destination | Out-Null
-    $Arguments = @($Source, $Destination, "/MIR", "/NFL", "/NDL", "/NJH", "/NJS", "/NP")
+    $Arguments = @($Source, $Destination, "/MIR", "/R:2", "/W:1", "/NFL", "/NDL", "/NJH", "/NJS", "/NP")
     if ($ExcludeDirectories.Count -gt 0) {
         $Arguments += "/XD"
         $Arguments += $ExcludeDirectories
@@ -160,7 +174,7 @@ $PowerShellExe = (Get-Process -Id $PID).Path
 $TaskArguments = "-NoProfile -ExecutionPolicy Bypass -File `"$RunnerScript`""
 $Action = New-ScheduledTaskAction -Execute $PowerShellExe -Argument $TaskArguments -WorkingDirectory (Join-Path $InstallRoot "neia-api")
 $Trigger = New-ScheduledTaskTrigger -AtLogOn -User $Identity.Name
-$TaskPrincipal = New-ScheduledTaskPrincipal -UserId $Identity.Name -LogonType Interactive -RunLevel Highest
+$TaskPrincipal = New-ScheduledTaskPrincipal -UserId $Identity.Name -LogonType Interactive -RunLevel Limited
 $Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
 Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger -Principal $TaskPrincipal -Settings $Settings -Force | Out-Null
 

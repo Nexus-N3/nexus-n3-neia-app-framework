@@ -27,6 +27,9 @@ if (-not (Get-Command $PythonBin -ErrorAction SilentlyContinue)) {
 }
 if (-not $IsccPath) {
     $Candidates = @()
+    if ($env:LOCALAPPDATA) {
+        $Candidates += Join-Path $env:LOCALAPPDATA "Programs\Inno Setup 6\ISCC.exe"
+    }
     if (${env:ProgramFiles(x86)}) {
         $Candidates += Join-Path ${env:ProgramFiles(x86)} "Inno Setup 6\ISCC.exe"
     }
@@ -83,7 +86,7 @@ function Copy-PayloadTree {
     $Destination = Join-Path $StageRoot $RelativePath
     if (-not (Test-Path $Source)) { return }
     New-Item -ItemType Directory -Force -Path $Destination | Out-Null
-    $Arguments = @($Source, $Destination, "/MIR", "/NFL", "/NDL", "/NJH", "/NJS", "/NP")
+    $Arguments = @($Source, $Destination, "/MIR", "/R:2", "/W:1", "/NFL", "/NDL", "/NJH", "/NJS", "/NP")
     if ($ExcludeDirectories.Count -gt 0) {
         $Arguments += "/XD"
         $Arguments += $ExcludeDirectories

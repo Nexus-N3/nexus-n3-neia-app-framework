@@ -2,6 +2,9 @@
 param()
 
 $ErrorActionPreference = "Stop"
+$BootstrapLog = Join-Path $env:TEMP "Nexus-N3-NEIA-bootstrap.log"
+
+try {
 $InstallRoot = $PSScriptRoot
 $EnvFile = Join-Path $InstallRoot ".env"
 
@@ -23,5 +26,13 @@ $LogFile = Join-Path $LogDir "neia-daemon.log"
 
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
 Set-Location (Join-Path $InstallRoot "neia-api")
+# Uvicorn writes routine startup messages to stderr. Under Windows PowerShell,
+# native stderr becomes an error record, so Stop would terminate a healthy app.
+$ErrorActionPreference = "Continue"
 & $PythonBin -m app.daemon --host $HostName --port $Port *>> $LogFile
 exit $LASTEXITCODE
+}
+catch {
+    $_ | Out-String | Set-Content -LiteralPath $BootstrapLog -Encoding UTF8
+    exit 1
+}
