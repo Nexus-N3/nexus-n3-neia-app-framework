@@ -31,6 +31,8 @@ neia_master_cmd_port: 5555
 neia_master_event_port: 5556
 neia_sync_delete: false
 neia_sync_models: false
+neia_model_sync_excludes:
+  - "ollama"
 neia_local_ui_dist: "{{ neia_repo_local_path }}/neia-ui/dist"
 neia_local_apps_path: "{{ neia_repo_local_path }}/apps"
 neia_local_docs_path: "{{ neia_repo_local_path }}/docs"

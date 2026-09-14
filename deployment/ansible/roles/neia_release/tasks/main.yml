@@ -314,6 +314,7 @@
     src: "{{ neia_local_models_path }}/"
     dest: "{{ neia_install_root }}/models/"
     delete: false
+    rsync_opts: "{{ neia_model_sync_excludes | map('regex_replace', '^', '--exclude=') | list }}"
   delegate_to: localhost
   become: false
   when: neia_sync_models | bool

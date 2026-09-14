@@ -82,6 +82,10 @@ Large voice/STT model assets are not synced by default during release deploys:
 - `neia_sync_models: false`
 
 That keeps normal deploys fast even when `models/` is very large.
+When model sync is enabled, `models/ollama/` is excluded by default because the
+runtime accesses Ollama through its HTTP service instead of reading that local
+model store. Override `neia_model_sync_excludes` if a deployment needs a
+different selection.
 
 If the target actually needs refreshed local models, enable a one-off model sync:
 
