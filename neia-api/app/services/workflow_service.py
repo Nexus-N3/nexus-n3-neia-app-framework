@@ -246,10 +246,10 @@ def check_workflow_compatibility(
                     )
 
                 if (
-                    algorithm_id
-                    not in sensor.supported_algorithms
-                ):
-                    add_issue(
+                        algorithm_id != "pass_through"
+                        and algorithm_id not in sensor.supported_algorithms
+                    ):
+                                        add_issue(
                         WorkflowCompatibilityIssue(
                             code=(
                                 "unsupported_sensor_algorithm"
