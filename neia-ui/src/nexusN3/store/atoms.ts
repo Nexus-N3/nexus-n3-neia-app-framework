@@ -130,6 +130,7 @@ export type StreamLifecyclePhase =
   | 'startup_failed'
   | 'stopping'
   | 'draining'
+  | 'finalization_failed'
   | 'drained'
   | 'stopped';
 

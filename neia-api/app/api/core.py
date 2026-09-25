@@ -22,7 +22,7 @@ async def update_core_connection(payload: dict, services: AppServices = Depends(
     return await update_gateway_target(payload, services)
 
 
-@router.post("connection/retry")
+@router.post("/connection/retry")
 def retry_core_connection(services: AppServices = Depends(get_services)):
     gateway_manager = services.gateway_manager
     core_state_store = services.core_state_store

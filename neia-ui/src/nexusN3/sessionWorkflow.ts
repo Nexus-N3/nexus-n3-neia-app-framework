@@ -50,6 +50,25 @@ export function findSensorCapability(
   return capabilities?.sensors.find((sensor) => sensor.id === sensorType && sensor.available);
 }
 
+export function getSupportedAlgorithmIdsForSensor(
+  sensor: CoreSensorCapability,
+  capabilities: CoreCapabilities | null,
+): string[] {
+  const supported = new Set(sensor.supported_algorithms);
+
+  const passThrough = capabilities?.algorithms.find(
+    (algorithm) =>
+      algorithm.id === 'pass_through' &&
+      algorithm.available,
+  );
+
+  if (passThrough) {
+    supported.add('pass_through');
+  }
+
+  return Array.from(supported);
+}
+
 export function validateSensorRow(
   row: LogicalSensorRow,
   capabilities: CoreCapabilities | null,
@@ -78,7 +97,7 @@ export function validateSensorRow(
         (candidate) => candidate.id === algorithmId && candidate.available,
       );
       return (
-        !sensor.supported_algorithms.includes(algorithmId) ||
+        !getSupportedAlgorithmIdsForSensor(sensor, capabilities).includes(algorithmId) ||
         !algorithm ||
         (
           algorithm.compatible_sensor_types.length > 0 &&
@@ -128,7 +147,7 @@ export function changeSensorType(
 ): LogicalSensorRow {
   const sensor = findSensorCapability(capabilities, sensorType);
   const supportedAlgorithms = new Set(
-    (sensor?.supported_algorithms ?? []).filter((algorithmId) => {
+    (sensor ? getSupportedAlgorithmIdsForSensor(sensor, capabilities) : []).filter((algorithmId) => {
       const algorithm = capabilities?.algorithms.find(
         (candidate) => candidate.id === algorithmId && candidate.available,
       );

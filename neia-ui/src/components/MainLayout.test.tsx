@@ -18,7 +18,7 @@ const connection: CoreConnection = {
 };
 
 describe("MainLayout", () => {
-  it("renders the required navigation and visible disabled AI placeholder", () => {
+  it("renders the required navigation", () => {
     render(
       <MainLayout connection={connection} route="/dashboard" onNavigate={() => undefined}>
         <p>Dashboard content</p>
@@ -26,12 +26,12 @@ describe("MainLayout", () => {
     );
 
     expect(screen.getByRole("button", { name: "Dashboard" })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("button", { name: "Nexus N3 Connection" })).toBeEnabled();
-    expect(screen.getByRole("button", { name: "Nexus N3 Capabilities" })).toBeEnabled();
-    expect(screen.getByRole("button", { name: "Nexus N3 Status" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Connection" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Capabilities" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Status" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "App Catalog" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Workflows" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "Archives" })).toBeEnabled();
-    expect(screen.getByRole("button", { name: /NEIA AI/ })).toBeDisabled();
     expect(screen.getByText("nexus-n3-master.local")).toBeVisible();
     expect(screen.getByText("Connected")).toBeVisible();
   });
@@ -44,7 +44,7 @@ describe("MainLayout", () => {
       </MainLayout>,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Nexus N3 Capabilities" }));
+    fireEvent.click(screen.getByRole("button", { name: "Capabilities" }));
 
     expect(navigate).toHaveBeenCalledWith("/capabilities");
   });

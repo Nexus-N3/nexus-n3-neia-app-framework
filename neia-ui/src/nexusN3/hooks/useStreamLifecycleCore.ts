@@ -246,32 +246,70 @@ export const useStreamLifecycleCore = () => {
 
       if (msg.type === 'stream_drained') {
         const payload = isRecord(msg.payload) ? msg.payload : {};
-        const drainedSubjectIds = normalizeSubjectIds(payload).length > 0
-          ? normalizeSubjectIds(payload)
-          : subjectIds;
+
+        const normalizedSubjectIds = normalizeSubjectIds(payload);
+        const drainedSubjectIds =
+          normalizedSubjectIds.length > 0
+            ? normalizedSubjectIds
+            : subjectIds;
+
         const archiveExists =
-          typeof payload.session_archive_exists === 'boolean' ? payload.session_archive_exists : null;
+          typeof payload.session_archive_exists === 'boolean'
+            ? payload.session_archive_exists
+            : null;
+
+        const status =
+          typeof payload.status === 'string'
+            ? payload.status
+            : 'ok';
+
+        const reason =
+          typeof payload.reason === 'string'
+            ? payload.reason
+            : null;
+
+        const failed = status === 'error';
+
         setStreamDrainState({
           pending: false,
           subjectIds: drainedSubjectIds,
-          status: archiveExists === false ? 'Session finalized without archive.' : 'Session finalization complete.',
+          status: failed
+            ? reason ?? 'Session finalization failed.'
+            : archiveExists === false
+              ? 'Session finalized without archive.'
+              : 'Session finalization complete.',
           sessionArchiveExists: archiveExists,
         });
-        setSessionStage('completed');
+
+        if (!failed) {
+          setSessionStage('completed');
+        }
+
         if (drainedSubjectIds.length === 0) {
           return;
         }
+
         setStreamLifecycleBySubject((prev) => {
           const next = { ...prev };
+
           drainedSubjectIds.forEach((subjectId) => {
-            next[subjectId] = buildLifecycleState('drained', prev[subjectId], {
-              statusMessage: archiveExists === false ? 'Session finalized' : 'Session finalized and archived',
-              reason: typeof payload.reason === 'string' ? payload.reason : null,
-              isOfficial: false,
-              lastEventType: eventType,
-              restartCountdown: false,
-            });
+            next[subjectId] = buildLifecycleState(
+              failed ? 'finalization_failed' : 'drained',
+              prev[subjectId],
+              {
+                statusMessage: failed
+                  ? 'Session finalization failed'
+                  : archiveExists === false
+                    ? 'Session finalized'
+                    : 'Session finalized and archived',
+                reason,
+                isOfficial: false,
+                lastEventType: eventType,
+                restartCountdown: false,
+              },
+            );
           });
+
           return next;
         });
       }

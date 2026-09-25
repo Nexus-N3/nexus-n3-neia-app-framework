@@ -11,6 +11,7 @@ import {
   buildInitSubjects,
   changeSensorType,
   createEmptySensorRow,
+  getSupportedAlgorithmIdsForSensor,
   reconcileSubjectSensorRows,
   validateSensorRow,
   validateSessionDraft,
@@ -285,7 +286,10 @@ export const SensorSetupScreen: React.FC = () => {
                         }
                       >
                         <option value="">Select algorithm</option>
-                        {(selectedSensor?.supported_algorithms ?? []).map((algorithmId) => {
+                        {(selectedSensor
+                            ? getSupportedAlgorithmIdsForSensor(selectedSensor, capabilities)
+                            : []
+                          ).map((algorithmId) => {
                           const algorithm = capabilities?.algorithms.find(
                             (candidate) => candidate.id === algorithmId && candidate.available,
                           );

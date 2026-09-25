@@ -4,6 +4,7 @@ import { Provider, createStore } from 'jotai';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   activeStreamTargetSubjectIdsAtom,
+  connectedSensorsAtom,
   sessionEventsAtom,
   sessionStageAtom,
   streamDrainStateAtom,
@@ -118,6 +119,20 @@ describe('retained Core lifecycle hooks', () => {
 
   it('tracks stop, drain, completion, and disconnect acknowledgements', async () => {
     const { store, Wrapper } = wrapperFor();
+    store.set(connectedSensorsAtom, {
+      'subject-1': [
+        {
+          address: 'AA:BB:CC:DD:EE:01',
+          status: 'connected',
+          location: 'LEFT_ANKLE',
+        },
+        {
+          address: 'AA:BB:CC:DD:EE:02',
+          status: 'connected',
+          location: 'RIGHT_ANKLE',
+        },
+      ],
+    });
     store.set(activeStreamTargetSubjectIdsAtom, ['subject-1']);
     renderHook(() => useStreamLifecycleCore(), { wrapper: Wrapper });
     const disconnect = renderHook(() => useDisconnectSensorsCore(), { wrapper: Wrapper });
@@ -133,9 +148,23 @@ describe('retained Core lifecycle hooks', () => {
     expect(store.get(sessionStageAtom)).toBe('completed');
 
     await act(() => disconnect.result.current.disconnectAll());
-    expect(gateway.sendCommand).toHaveBeenCalledWith({ type: 'disconnect_all' });
-    act(() => gateway.emit({ type: 'sensor_disconnected', payload: {} }));
+    expect(disconnect.result.current.isDisconnecting).toBe(true);
+
+    act(() => gateway.emit({
+      type: 'sensor_disconnected',
+      payload: {},
+    }));
+
     expect(disconnect.result.current.disconnectCount).toBe(1);
+    expect(disconnect.result.current.isDisconnecting).toBe(true);
+
+    act(() => gateway.emit({
+      type: 'sensor_disconnected',
+      payload: {},
+    }));
+
+    expect(disconnect.result.current.disconnectCount).toBe(2);
+    expect(disconnect.result.current.isDisconnecting).toBe(false);
   });
 
   it('clears the workflow only on an explicit reset', () => {

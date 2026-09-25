@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "id": "70370cb9-628e-4c05-b84d-b1d40205aaa5",
+  "name": "Lunar Prep",
+  "created_at": "2026-09-25T11:30:34.654208Z",
+  "modified_at": "2026-09-25T11:30:34.654208Z",
+  "derived_from": null,
+  "subject_count": 1,
+  "subjects": {
+    "s1": [
+      {
+        "sensor_type": "Movella DOT",
+        "location": "LEFT_ANKLE",
+        "algorithms": [
+          "standard_loading_intensity"
+        ]
+      },
+      {
+        "sensor_type": "Movella DOT",
+        "location": "RIGHT_ANKLE",
+        "algorithms": [
+          "standard_loading_intensity"
+        ]
+      },
+      {
+        "sensor_type": "Core 2",
+        "location": "CHEST",
+        "algorithms": [
+          "generic_data_summary"
+        ]
+      },
+      {
+        "sensor_type": "Movesense",
+        "location": "CHEST",
+        "algorithms": [
+          "ecg_rhythm_metrics"
+        ]
+      }
+    ]
+  },
+  "requirements": {
+    "sensors": [
+      "Core 2",
+      "Movella DOT",
+      "Movesense"
+    ],
+    "algorithms": [
+      "ecg_rhythm_metrics",
+      "generic_data_summary",
+      "standard_loading_intensity"
+    ]
+  }
+}

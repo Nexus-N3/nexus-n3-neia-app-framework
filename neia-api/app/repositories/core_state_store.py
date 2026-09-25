@@ -324,7 +324,7 @@ class CoreStateStore:
                         "result_stages": [],
                         "output_types": [],
                         "inputs": deepcopy(_record(algorithm.get("inputs"))),
-                        "available": True,
+                        "available": False,
                     },
                 )
                 if sensor_id not in entry["compatible_sensor_types"]:
@@ -381,7 +381,7 @@ class CoreStateStore:
                         "result_stages": [],
                         "output_types": [],
                         "inputs": deepcopy(_record(algorithm.get("inputs"))),
-                        "available": True,
+                        "available": False,
                     },
                 )
                 entry["display_name"] = (
@@ -408,6 +408,15 @@ class CoreStateStore:
                 inputs = algorithm.get("inputs")
                 if isinstance(inputs, dict):
                     entry["inputs"] = deepcopy(inputs)
+
+                availability = _first(
+                    algorithm, "available", "installed", "is_available"
+                )
+                entry["available"] = (
+                    availability
+                    if isinstance(availability, bool)
+                    else True
+                )
 
         return sensors, list(algorithms_by_id.values())
 
