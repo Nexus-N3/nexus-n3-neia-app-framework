@@ -95,12 +95,12 @@ This allows cloud deployments (no local speaker) to still provide spoken prompts
 
 1. Verify flow mode:
 ```bash
-curl -s http://localhost:8050/api/v1/voice/status
+curl -s http://localhost:8080/api/v1/voice/status
 ```
 Expect `"flow_mode": "ui"`.
 
 2. Verify three dev processes for app dev:
-- `neia-api` on `8050`
+- `neia-api` on `8080`
 - `neia-ui` on `3000`
 - `apps/registry/neia_voice_assistant/ui` on `3002`
 
@@ -109,7 +109,7 @@ Expect `"flow_mode": "ui"`.
 - check `last_error` in `/voice/status`
 - test direct TTS:
 ```bash
-curl -s -X POST http://localhost:8050/api/v1/voice/speak \
+curl -s -X POST http://localhost:8080/api/v1/voice/speak \
   -H 'Content-Type: application/json' \
   -d '{"text":"voice test","wait":true}'
 ```

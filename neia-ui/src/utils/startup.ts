@@ -6,7 +6,7 @@ export const STARTUP_API_MOUTH_DELAY_MS = 0;
 export const STARTUP_BOOTING_MS = 450;
 export const STARTUP_WAKING_MS = 600;
 
-let startupSequenceDone = false;
+let startupSequenceDone = true;
 let startupGreetingSpoken = false;
 
 export function isStartupSequenceDone() {

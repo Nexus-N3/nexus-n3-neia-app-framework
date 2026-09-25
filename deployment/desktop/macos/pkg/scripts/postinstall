@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+target_volume="${3:-/}"
+app_root="${target_volume%/}/Applications/Nexus N3 NEIA.app"
+console_user="$(stat -f '%Su' /dev/console)"
+
+if [[ -z "${console_user}" || "${console_user}" == "root" || "${console_user}" == "loginwindow" || "${console_user}" == "_mbsetupuser" ]]; then
+  echo "A logged-in macOS user is required to configure NEIA." >&2
+  exit 1
+fi
+
+configure_script="${app_root}/Contents/Resources/deployment/desktop/macos/configure_macos_desktop.sh"
+if [[ ! -x "${configure_script}" ]]; then
+  echo "Missing macOS configuration script: ${configure_script}" >&2
+  exit 1
+fi
+
+"${configure_script}" "${console_user}"
+exit 0

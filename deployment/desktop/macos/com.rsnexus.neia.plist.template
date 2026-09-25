@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.rsnexus.neia</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>@VENV_PYTHON@</string>
+    <string>-m</string>
+    <string>app.daemon</string>
+    <string>--host</string>
+    <string>127.0.0.1</string>
+    <string>--port</string>
+    <string>8080</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>@CONTENT_ROOT@/neia-api</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>@VENV_BIN@:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>NEIA_CONTENT_ROOT</key>
+    <string>@CONTENT_ROOT@</string>
+    <key>NEIA_REGISTRY_DIR</key>
+    <string>@CONTENT_ROOT@/apps/registry</string>
+    <key>NEIA_INSTALLED_FILE</key>
+    <string>@STATE_DIR@/installed.json</string>
+    <key>NEIA_STATE_DIR</key>
+    <string>@STATE_DIR@</string>
+    <key>NEIA_LOG_DIR</key>
+    <string>@LOG_DIR@</string>
+    <key>NEIA_RUN_DIR</key>
+    <string>@RUN_DIR@</string>
+    <key>NEIA_WORKFLOWS_DIR</key>
+    <string>@WORKFLOWS_DIR@</string>
+    <key>NEIA_HOST</key>
+    <string>127.0.0.1</string>
+    <key>NEIA_PORT</key>
+    <string>8080</string>
+    <key>NEIA_DEV</key>
+    <string>0</string>
+    <key>NEIA_DEV_FALLBACK</key>
+    <string>0</string>
+    <key>NEIA_GATEWAY</key>
+    <string>zeromq</string>
+    <key>NEIA_SITE</key>
+    <string>lab</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <false/>
+  <key>ThrottleInterval</key>
+  <integer>3</integer>
+  <key>ProcessType</key>
+  <string>Background</string>
+  <key>StandardOutPath</key>
+  <string>@LOG_DIR@/neia-daemon.log</string>
+  <key>StandardErrorPath</key>
+  <string>@LOG_DIR@/neia-daemon-error.log</string>
+</dict>
+</plist>

@@ -94,7 +94,7 @@ function resolveGatewayEventsWsUrl(): string {
   const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
   const { hostname, port } = window.location;
   const devPorts = new Set(["3000", "3002", "5173", "5174"]);
-  const targetPort = devPorts.has(port) ? "8050" : port;
+  const targetPort = devPorts.has(port) ? "8080" : port;
   const portSuffix = targetPort ? `:${targetPort}` : "";
   return `${wsProtocol}://${hostname}${portSuffix}/api/v1/gateway/events`;
 }
