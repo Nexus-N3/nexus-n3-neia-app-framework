@@ -132,6 +132,7 @@ export type CoreStatus = {
     "state" | "available" | "error" | "last_event_at" | "last_ready_at"
   >;
   version: string | null;
+  mode: string | null;
   readiness: string;
   usb: {
     state: string;

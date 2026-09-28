@@ -37,6 +37,7 @@ def test_server_ready_normalizes_capabilities_and_status() -> None:
             "payload": {
                 "site": "lab",
                 "core_version": "3.2.1",
+                "role": "standalone",
                 "ready": True,
                 "supported_sensors": [
                     {
@@ -93,6 +94,7 @@ def test_server_ready_normalizes_capabilities_and_status() -> None:
     ]
     assert capabilities["algorithms"][0]["inputs"] == {"window": 10}
     assert status["version"] == "3.2.1"
+    assert status["mode"] == "standalone"
     assert status["readiness"] == "ready"
     assert status["ble"]["backend"] == "gateway"
     assert status["azure_bridge"]["state"] == "unavailable"
@@ -104,6 +106,29 @@ def test_server_ready_normalizes_capabilities_and_status() -> None:
         "list_path": "/api/outputs",
         "download_path": "/api/outputs/download",
     }
+
+
+def test_device_info_updates_core_mode() -> None:
+    store = CoreStateStore()
+    store.handle_gateway_event(
+        {
+            "type": "device_info",
+            "payload": {
+                "device": {
+                    "role": "standalone",
+                    "software_version": "nexus-n3-core 0.0.7",
+                },
+                "ble": {"backend_label": "nexus_ble_gateway"},
+            },
+        }
+    )
+
+    status = store.status_snapshot(SETTINGS)
+
+    assert status["mode"] == "standalone"
+
+    store.handle_gateway_event({"type": "server_ready", "payload": {}})
+    assert store.status_snapshot(SETTINGS)["mode"] == "standalone"
 
 
 def test_archive_service_rejects_untrusted_discovery_metadata() -> None:

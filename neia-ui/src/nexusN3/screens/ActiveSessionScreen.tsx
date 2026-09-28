@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useAtom, useAtomValue } from 'jotai';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { BackButton } from '../components/BackButton';
 import { ErrorBanner } from '../components/ErrorBanner';
@@ -12,10 +12,17 @@ import { useDisconnectSensorsCore } from '../hooks/useDisconnectSensorsCore';
 import { useLatestComputeResults } from '../hooks/useLatestComputeResults';
 import { useLatestIntermediateResults } from '../hooks/useLatestIntermediateResults';
 import { useResetSessionState } from '../hooks/useResetSessionState';
+import { useStartStream } from '../hooks/useStartStream';
 import { useStopStream } from '../hooks/useStopStream';
 import {
   activeActivityAtom,
+  activeStreamTargetSubjectIdsAtom,
+  computeResultsHistoryAtom,
   configuredSubjectsAtom,
+  latestComputeResultsAtom,
+  latestIntermediateComparisonsAtom,
+  latestIntermediateResultsAtom,
+  sessionEventsAtom,
   sessionStageAtom,
   selectedSubjectAtom,
   streamDrainStateAtom,
@@ -26,6 +33,17 @@ import {
 import { buildWorkflowSubjects } from '../utils/subjects';
 import { SaveWorkflowButton } from '../components/SaveWorkflowButton';
 
+export const incrementActivityTag = (tag: string): string => {
+  const trailingInteger = tag.match(/(\d+)$/);
+  if (!trailingInteger) {
+    return `${tag}_2`;
+  }
+
+  const digits = trailingInteger[1];
+  const nextInteger = String(Number.parseInt(digits, 10) + 1).padStart(digits.length, '0');
+  return `${tag.slice(0, -digits.length)}${nextInteger}`;
+};
+
 export const ActiveSessionScreen: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -34,9 +52,17 @@ export const ActiveSessionScreen: React.FC = () => {
   const [configuredSubjects] = useAtom(configuredSubjectsAtom);
   const [selectedSubject] = useAtom(selectedSubjectAtom);
   const [activeActivity, setActiveActivity] = useAtom(activeActivityAtom);
-  const [sessionStage] = useAtom(sessionStageAtom);
+  const [sessionStage, setSessionStage] = useAtom(sessionStageAtom);
   const streamLifecycle = useAtomValue(streamLifecycleBySubjectAtom);
   const streamDrainState = useAtomValue(streamDrainStateAtom);
+  const setSessionEvents = useSetAtom(sessionEventsAtom);
+  const setLatestComputeResults = useSetAtom(latestComputeResultsAtom);
+  const setLatestIntermediateResults = useSetAtom(latestIntermediateResultsAtom);
+  const setLatestIntermediateComparisons = useSetAtom(latestIntermediateComparisonsAtom);
+  const setComputeResultsHistory = useSetAtom(computeResultsHistoryAtom);
+  const setStreamLifecycle = useSetAtom(streamLifecycleBySubjectAtom);
+  const setStreamDrainState = useSetAtom(streamDrainStateAtom);
+  const setActiveStreamTargetSubjectIds = useSetAtom(activeStreamTargetSubjectIdsAtom);
   const { latestResults } = useLatestComputeResults();
   const { latestIntermediateResults } = useLatestIntermediateResults();
   const { stopStreamForSubjects, isStopping, errorMsg: stopError, dismissError: dismissStopError } = useStopStream();
@@ -48,6 +74,12 @@ export const ActiveSessionScreen: React.FC = () => {
     dismissError: dismissDisconnectError,
   } = useDisconnectSensorsCore();
   const { resetSessionState } = useResetSessionState();
+  const {
+    startStreamForSubjects,
+    isStarting,
+    errorMsg: startError,
+    dismissError: dismissStartError,
+  } = useStartStream();
   const [ending, setEnding] = useState(false);
 
   const subjects = useMemo(
@@ -67,9 +99,38 @@ export const ActiveSessionScreen: React.FC = () => {
     setEnding(true);
     try {
       await stopStreamForSubjects(subjects.map((subject) => subject.name));
-      setActiveActivity(false);
     } catch {
       setEnding(false);
+    }
+  };
+
+  const handleRepeatSession = async () => {
+    if (!completed || isStarting || !activeActivity) return;
+
+    const nextTag = incrementActivityTag(activeActivity);
+    const subjectIds = subjects.map((subject) => subject.name);
+
+    setSessionEvents([]);
+    setLatestComputeResults({});
+    setLatestIntermediateResults({});
+    setLatestIntermediateComparisons({});
+    setComputeResultsHistory({});
+    setStreamLifecycle({});
+    setStreamDrainState({
+      pending: false,
+      subjectIds: [],
+      status: null,
+      sessionArchiveExists: null,
+    });
+    setActiveStreamTargetSubjectIds([]);
+
+    try {
+      await startStreamForSubjects(nextTag, subjectIds);
+      setActiveActivity(nextTag);
+      setSessionStage('active');
+      navigate('/active-session', { replace: true });
+    } catch {
+      // Error state is handled by the hook for UI display.
     }
   };
 
@@ -82,6 +143,7 @@ export const ActiveSessionScreen: React.FC = () => {
     <ScreenLayout className="screen-layout active-session-screen event-centred-session">
       {stopError ? <ErrorBanner message={stopError} onDismiss={dismissStopError} /> : null}
       {disconnectError ? <ErrorBanner message={disconnectError} onDismiss={dismissDisconnectError} /> : null}
+      {startError ? <ErrorBanner message={startError} onDismiss={dismissStartError} /> : null}
 
       <ScreenHeader
         className="compact"
@@ -150,8 +212,12 @@ export const ActiveSessionScreen: React.FC = () => {
             >
               {isDisconnecting ? 'Disconnecting...' : 'Disconnect sensors'}
             </button>
-            <button className="nexus-btn secondary-btn" onClick={() => { window.location.hash = '/archives'; }}>
-              View archives
+            <button
+              className="nexus-btn secondary-btn"
+              onClick={handleRepeatSession}
+              disabled={isStarting || !activeActivity}
+            >
+              {isStarting ? 'Starting repeat...' : 'Repeat session'}
             </button>
             <button className="nexus-btn" onClick={handleReset}>
               Start another session
@@ -179,16 +245,18 @@ export const ActiveSessionScreen: React.FC = () => {
       </div>
 
       <StatusOverlay
-        busy={isDisconnecting || streamDrainState.pending || (ending && !completed)}
+        busy={isDisconnecting || isStarting || streamDrainState.pending || (ending && !completed)}
         statusText={
           isDisconnecting
             ? 'Disconnecting sensors...'
-            : streamDrainState.pending || (ending && !completed)
-              ? streamDrainState.status ?? 'Finalizing session results...'
-              : null
+            : isStarting
+              ? 'Starting repeat session...'
+              : streamDrainState.pending || (ending && !completed)
+                ? streamDrainState.status ?? 'Finalizing session results...'
+                : null
         }
-        errors={[disconnectError]}
-        onDismiss={disconnectError ? dismissDisconnectError : undefined}
+        errors={[disconnectError, startError]}
+        onDismiss={disconnectError ? dismissDisconnectError : startError ? dismissStartError : undefined}
       />
     </ScreenLayout>
   );

@@ -56,6 +56,7 @@ class CoreStateStore:
         self._archive_service: dict[str, Any] = {"available": False}
         self._status: dict[str, Any] = {
             "version": None,
+            "mode": None,
             "readiness": "unknown",
             "usb": {
                 "state": "unknown",
@@ -203,13 +204,15 @@ class CoreStateStore:
             if raw_readiness is False
             else _state(raw_readiness) or "ready"
         )
-        self._status.update(
-            {
-                "version": _first(payload, "version", "core_version", "server_version"),
-                "readiness": readiness,
-                "updated_at": received_at,
-            }
-        )
+        status_update = {
+            "version": _first(payload, "version", "core_version", "server_version"),
+            "readiness": readiness,
+            "updated_at": received_at,
+        }
+        mode = _first(payload, "mode", "role", "device_type")
+        if mode is not None:
+            status_update["mode"] = mode
+        self._status.update(status_update)
         self._archive_service = self._normalize_archive_service(
             payload.get("archive_service"),
             payload.get("site"),
@@ -501,10 +504,14 @@ class CoreStateStore:
         }
 
     def _ingest_device_info(self, payload: dict[str, Any], recieved_at: str) -> None:
-        version = _first(payload["device"], "software_version")
+        device = _record(payload.get("device"))
+        version = _first(device, "software_version")
+        mode = _first(device, "role", "mode", "device_type")
         ble_adater = payload["ble"]["backend_label"]
 
         self._status["version"] = version
+        if mode is not None:
+            self._status["mode"] = mode
         self._status["ble"]["adapter_state"] = ble_adater
         
         # ingest the azure piece

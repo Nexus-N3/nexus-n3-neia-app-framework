@@ -29,6 +29,7 @@ export function CoreStatusScreen() {
                 state={status?.connection.state}
               />
               <StatusValue label="Version" value={status?.version ?? "Unknown"} />
+              <StatusValue label="Mode" value={displayState(status?.mode)} />
               <StatusValue
                 label="Readiness"
                 value={displayState(status?.readiness)}

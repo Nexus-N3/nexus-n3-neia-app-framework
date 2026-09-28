@@ -21,4 +21,4 @@ export interface DiscoveredSensorsMap {
   [subjectId: string]: string[];
 }
 
-export type SensorFlowPhase = 'idle' | 'discovering' | 'connecting' | 'done' | 'error';
+export type SensorFlowPhase = 'idle' | 'disconnecting' | 'discovering' | 'connecting' | 'done' | 'error';

@@ -35,6 +35,7 @@ vi.mock('./useGatewaySocket', () => ({
 
 import { useDisconnectSensorsCore } from './useDisconnectSensorsCore';
 import { useDiscoverSensorsCore } from './useDiscoverSensorsCore';
+import { useConnectedSensorUpdatesCore } from './useConnectedSensorUpdatesCore';
 import { useIdentifySensor } from './useIdentifySensor';
 import { useResetSessionState } from './useResetSessionState';
 import { useStartStream } from './useStartStream';
@@ -79,6 +80,52 @@ describe('retained Core lifecycle hooks', () => {
       payload: { subjects: [{ subject_id: 'subject-1', connected_sensors: ['AA'] }] },
     }));
     expect(result.current.phase).toBe('done');
+  });
+
+  it('disconnects all sensors before rediscovering and reconnecting a partial attempt', async () => {
+    const { Wrapper } = wrapperFor();
+    const { result } = renderHook(() => useDiscoverSensorsCore(), { wrapper: Wrapper });
+
+    act(() => result.current.recoverAndConnect(['AA', 'BB']));
+    expect(result.current.phase).toBe('disconnecting');
+    expect(gateway.sendCommand).toHaveBeenLastCalledWith({ type: 'disconnect_all' });
+
+    act(() => gateway.emit({
+      type: 'sensor_disconnected',
+      payload: { disconnected_sensors: ['AA'] },
+    }));
+    expect(result.current.phase).toBe('disconnecting');
+
+    act(() => gateway.emit({
+      type: 'sensor_disconnected',
+      payload: { disconnected_sensors: ['BB'] },
+    }));
+    expect(result.current.phase).toBe('discovering');
+    expect(gateway.sendCommand).toHaveBeenLastCalledWith({ type: 'discover_sensors' });
+
+    act(() => gateway.emit({
+      type: 'sensors_discovered',
+      payload: { subjects: [{ subject_id: 'subject-1', discovered_sensors: ['AA', 'BB', 'CC', 'DD'] }] },
+    }));
+    await waitFor(() => expect(gateway.sendCommand).toHaveBeenLastCalledWith({ type: 'connect_all' }));
+    expect(result.current.phase).toBe('connecting');
+  });
+
+  it('clears stale connection state on discovery and deduplicates addresses', () => {
+    const { Wrapper } = wrapperFor();
+    const { result } = renderHook(() => useConnectedSensorUpdatesCore(), { wrapper: Wrapper });
+
+    act(() => gateway.emit({
+      type: 'sensor_connected',
+      payload: { subjects: [{ subject_id: 'subject-1', connected_sensors: ['AA', 'aa', 'BB'] }] },
+    }));
+    expect(result.current.connectedSensors['subject-1']).toHaveLength(2);
+
+    act(() => gateway.emit({
+      type: 'sensors_discovered',
+      payload: { subjects: [{ subject_id: 'subject-1', discovered_sensors: ['CC'] }] },
+    }));
+    expect(result.current.connectedSensors).toEqual({ 'subject-1': [] });
   });
 
   it('sends identify, start, stop, and initialization commands', async () => {

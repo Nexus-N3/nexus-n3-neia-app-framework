@@ -90,6 +90,11 @@ export const getConnectedSubjectsFromPayload = (payload: unknown): SubjectPayloa
         ? subject.connected_sensors
             .map(parseConnectedSensor)
             .filter((sensor): sensor is ConnectedSensorInfo => sensor !== null)
+            .filter((sensor, index, sensors) =>
+              sensors.findIndex(
+                (candidate) => candidate.address.toUpperCase() === sensor.address.toUpperCase(),
+              ) === index,
+            )
         : [],
     }))
     .filter((subject) => subject.subject_id);

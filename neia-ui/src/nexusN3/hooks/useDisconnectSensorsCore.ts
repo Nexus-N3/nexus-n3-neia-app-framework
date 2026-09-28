@@ -33,10 +33,10 @@ export const useDisconnectSensorsCore = () => {
         const disconnectedRaw = payload.disconnected_sensors;
 
         const disconnectedCount = Array.isArray(disconnectedRaw)
-          ? disconnectedRaw.length
+          ? Math.max(disconnectedRaw.length, 1)
           : disconnectedRaw
             ? 1
-            : 0;
+            : 1;
 
         receivedDisconnectsRef.current += disconnectedCount;
         setDisconnectCount(receivedDisconnectsRef.current);

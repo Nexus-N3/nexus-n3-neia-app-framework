@@ -3,6 +3,7 @@ import { useGatewaySocket } from './useGatewaySocket';
 import type { ConnectedSensorsMap, DiscoveredSensorsMap, SensorFlowPhase } from './gatewaySensorTypes';
 import {
   getConnectedSubjectsFromPayload,
+  getDisconnectedAddressesFromPayload,
   getDiscoveredSubjectsFromPayload,
 } from './gatewaySensorPayloads';
 
@@ -15,12 +16,52 @@ export const useDiscoverSensorsCore = () => {
   const [connectedSensors, setConnectedSensors] = useState<ConnectedSensorsMap>({});
   const autoConnectRef = useRef(false);
   const connectSubjectIdsRef = useRef<string[] | null>(null);
+  const recoveryDisconnectAddressesRef = useRef<Set<string> | null>(null);
   const phaseRef = useRef<SensorFlowPhase>('idle');
 
   useEffect(() => {
     const unsubscribe = subscribe((msg) => {
+      if (msg.type === 'sensor_disconnected' && recoveryDisconnectAddressesRef.current !== null) {
+        const pendingAddresses = recoveryDisconnectAddressesRef.current;
+        const disconnectedAddresses = getDisconnectedAddressesFromPayload(msg.payload);
+        disconnectedAddresses.forEach((address) => {
+          pendingAddresses.delete(address.toUpperCase());
+        });
+        if (disconnectedAddresses.length === 0 && pendingAddresses.size > 0) {
+          pendingAddresses.delete(pendingAddresses.values().next().value as string);
+        }
+
+        if (pendingAddresses.size > 0) {
+          return;
+        }
+
+        recoveryDisconnectAddressesRef.current = null;
+        autoConnectRef.current = true;
+        connectSubjectIdsRef.current = null;
+        phaseRef.current = 'discovering';
+        setPhase('discovering');
+        void sendCommand({ type: 'discover_sensors' }).catch((error) => {
+          console.error('[useDiscoverSensorsCore] Network error:', error);
+          setErrorMsg('Network error sending discover command');
+          autoConnectRef.current = false;
+          phaseRef.current = 'error';
+          setPhase('error');
+        });
+        return;
+      }
+
       if (msg.type === 'sensors_discovered' || msg.type === 'sensors_discovered_for_subject') {
         const subjects = getDiscoveredSubjectsFromPayload(msg.payload);
+        setConnectedSensors((prev) => {
+          if (subjects.length === 0) {
+            return {};
+          }
+          const next = { ...prev };
+          subjects.forEach((subject) => {
+            next[subject.subject_id] = [];
+          });
+          return next;
+        });
         setDiscoveredSensors((prev) => {
           const next: DiscoveredSensorsMap = { ...prev };
           subjects.forEach((subject) => {
@@ -70,13 +111,17 @@ export const useDiscoverSensorsCore = () => {
         connectSubjectIdsRef.current = null;
       }
 
-      if (msg.type === 'error' && (phaseRef.current === 'discovering' || phaseRef.current === 'connecting')) {
+      if (
+        msg.type === 'error'
+        && (phaseRef.current === 'disconnecting' || phaseRef.current === 'discovering' || phaseRef.current === 'connecting')
+      ) {
         setErrorMsg(typeof msg.payload === 'string' ? msg.payload : JSON.stringify(msg.payload));
         phaseRef.current = 'error';
         setPhase('error');
         autoConnectRef.current = false;
         setActiveSubjectId(null);
         connectSubjectIdsRef.current = null;
+        recoveryDisconnectAddressesRef.current = null;
       }
     });
 
@@ -95,6 +140,7 @@ export const useDiscoverSensorsCore = () => {
         autoConnectRef.current = false;
         setActiveSubjectId(null);
         connectSubjectIdsRef.current = null;
+        recoveryDisconnectAddressesRef.current = null;
       }
     },
     [sendCommand],
@@ -108,6 +154,21 @@ export const useDiscoverSensorsCore = () => {
     setErrorMsg(null);
     setActiveSubjectId(null);
     void doSend({ type: 'discover_sensors' });
+  }, [doSend]);
+
+  const recoverAndConnect = useCallback((connectedAddresses: string[]) => {
+    autoConnectRef.current = false;
+    connectSubjectIdsRef.current = null;
+    recoveryDisconnectAddressesRef.current = new Set(
+      connectedAddresses.map((address) => address.toUpperCase()),
+    );
+    phaseRef.current = 'disconnecting';
+    setPhase('disconnecting');
+    setErrorMsg(null);
+    setActiveSubjectId(null);
+    setDiscoveredSensors({});
+    setConnectedSensors({});
+    void doSend({ type: 'disconnect_all' });
   }, [doSend]);
 
   const discoverAndConnectForSubject = useCallback(
@@ -167,9 +228,10 @@ export const useDiscoverSensorsCore = () => {
     setErrorMsg(null);
     setActiveSubjectId(null);
     connectSubjectIdsRef.current = null;
+    recoveryDisconnectAddressesRef.current = null;
   }, []);
 
-  const isBusy = phase === 'discovering' || phase === 'connecting';
+  const isBusy = phase === 'disconnecting' || phase === 'discovering' || phase === 'connecting';
 
   return {
     phase,
@@ -179,6 +241,7 @@ export const useDiscoverSensorsCore = () => {
     discoveredSensors,
     connectedSensors,
     discoverAndConnect,
+    recoverAndConnect,
     discoverAndConnectForSubject,
     discoverAll,
     connectAll,

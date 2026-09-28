@@ -28,12 +28,14 @@ export const SessionScreen: React.FC = () => {
   const [connectedSensors] = useAtom(connectedSensorsAtom);
   const streamDrainState = useAtomValue(streamDrainStateAtom);
   const setDiscoveredSensors = useSetAtom(discoveredSensorsAtom);
+  const setConnectedSensors = useSetAtom(connectedSensorsAtom);
   const {
     phase,
     isBusy,
     activeSubjectId,
     errorMsg: discoverError,
     discoverAndConnect,
+    recoverAndConnect,
     discoverAndConnectForSubject,
     dismiss,
     discoveredSensors: liveDiscoveredSensors,
@@ -80,14 +82,32 @@ export const SessionScreen: React.FC = () => {
     setDiscoveredSensors(liveDiscoveredSensors);
   }, [liveDiscoveredSensors, setDiscoveredSensors]);
 
-  // Generate subjects based on count
+  const connectedAddresses = Array.from(new Set(
+    Object.values(connectedSensors)
+      .flat()
+      .filter((sensor) => sensor.status.toUpperCase() === 'CONNECTED')
+      .map((sensor) => sensor.address.toUpperCase()),
+  ));
+  const claimedConnectedAddresses = new Set<string>();
+
+  // Generate subjects based on count. A physical address can satisfy only one
+  // configured sensor, even if a stale payload lists it more than once.
   const subjects = buildWorkflowSubjects(subjectCount, subjectPrefix, configuredSubjects, selectedSubject).map((subject) => {
     const subjectId = subject.name;
     const id = subject.id;
     const requiredSensors = rowsBySubject[subjectId] ?? [];
     const placedCount = requiredSensors.filter((sensor) => placedSensors.has(`${id}:${sensor.id}`)).length;
     const discovered = discoveredSensors[subjectId.toLowerCase()] ?? discoveredSensors[subjectId] ?? [];
-    const connected = connectedSensors[subjectId.toLowerCase()] ?? connectedSensors[subjectId] ?? [];
+    const connected = (connectedSensors[subjectId.toLowerCase()] ?? connectedSensors[subjectId] ?? [])
+      .filter((sensor) => sensor.status.toUpperCase() === 'CONNECTED')
+      .filter((sensor) => {
+        const address = sensor.address.toUpperCase();
+        if (claimedConnectedAddresses.has(address)) {
+          return false;
+        }
+        claimedConnectedAddresses.add(address);
+        return true;
+      });
 
     return {
       id,
@@ -102,15 +122,35 @@ export const SessionScreen: React.FC = () => {
     };
   });
 
-  const allSensorsPlaced = subjects.length > 0 && subjects.every((s) => s.sensorsPlaced >= s.sensorsRequired && s.sensorsRequired > 0);
+  const allSubjectsReady = subjects.length > 0 && subjects.every(
+    (subject) => subject.sensorsRequired > 0
+      && subject.sensorsConnected >= subject.sensorsRequired
+      && subject.sensorsPlaced >= subject.sensorsRequired,
+  );
+
+  const startConnection = (subjectId?: string) => {
+    const isRetry = phase === 'done' || connectedAddresses.length > 0;
+    if (isRetry) {
+      setConnectedSensors({});
+      setDiscoveredSensors({});
+      recoverAndConnect(connectedAddresses);
+      return;
+    }
+
+    if (subjectId) {
+      discoverAndConnectForSubject(subjectId);
+    } else {
+      discoverAndConnect();
+    }
+  };
 
   useEffect(() => {
     setSessionStage((current) =>
       current === 'sensor_discovery' || current === 'session_readiness'
-        ? (allSensorsPlaced ? 'session_readiness' : 'sensor_discovery')
+        ? (allSubjectsReady ? 'session_readiness' : 'sensor_discovery')
         : current,
     );
-  }, [allSensorsPlaced, setSessionStage]);
+  }, [allSubjectsReady, setSessionStage]);
 
   // Get current page subjects
   const currentSubjects = subjects.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
@@ -142,10 +182,10 @@ export const SessionScreen: React.FC = () => {
           >
             {isDisconnecting ? 'Disconnecting sensors...' : isDrainPending ? 'Finalizing session...' : 'Disconnect sensors'}
           </button>
-          <button className="nexus-btn secondary-btn" onClick={() => discoverAndConnect()} disabled={!serverReady || isBusy || isDisconnecting}>
+          <button className="nexus-btn secondary-btn" onClick={() => startConnection()} disabled={!serverReady || isBusy || isDisconnecting}>
             {'Connect all subjects'}
           </button>
-          <button className="nexus-btn" onClick={() => navigate('/new-activity')} disabled={!serverReady || !allSensorsPlaced || isDisconnecting}>
+          <button className="nexus-btn" onClick={() => navigate('/new-activity')} disabled={!serverReady || !allSubjectsReady || isDisconnecting}>
             Create Activity
           </button>
         </div>
@@ -153,18 +193,26 @@ export const SessionScreen: React.FC = () => {
     >
       <div className="subjects-grid">
         {currentSubjects.map((subject) => {
-          const isComplete = subject.sensorsPlaced >= subject.sensorsRequired && subject.sensorsRequired > 0;
-          const isConnected = subject.sensorsConnected > 0;
+          const hasAllRequiredConnections = subject.sensorsRequired > 0
+            && subject.sensorsConnected >= subject.sensorsRequired;
+          const isComplete = hasAllRequiredConnections
+            && subject.sensorsPlaced >= subject.sensorsRequired;
           const isSubjectBusy = isBusy && activeSubjectId === subject.name;
-          const buttonLabel = isComplete ? 'Subject Connected' : isConnected ? 'Place sensors' : isSubjectBusy ? 'Connecting...' : 'Connect subject';
+          const buttonLabel = isComplete && hasAllRequiredConnections
+            ? 'Subject Connected'
+            : hasAllRequiredConnections
+              ? 'Place sensors'
+              : isSubjectBusy
+                ? 'Connecting...'
+                : 'Connect subject';
           const handleSubjectAction = () => {
-            if (isComplete || isConnected) {
+            if (hasAllRequiredConnections) {
               navigate(`/assign-sensors?subjectId=${subject.id}`);
               return;
             }
 
             if (serverReady) {
-              discoverAndConnectForSubject(subject.name);
+              startConnection(subject.name);
             }
           };
 
@@ -208,7 +256,7 @@ export const SessionScreen: React.FC = () => {
               <button
                 className={`panel-action-btn primary ${isComplete ? 'complete' : ''}`}
                 onClick={handleSubjectAction}
-                disabled={!serverReady || (isBusy && !isConnected)}
+                disabled={!serverReady || isBusy}
               >
                 {buttonLabel}
               </button>
@@ -222,12 +270,14 @@ export const SessionScreen: React.FC = () => {
         statusText={
           isDisconnecting
             ? 'Disconnecting sensors...'
+            : phase === 'disconnecting'
+              ? 'Disconnecting sensors...'
             : streamDrainState.pending
               ? streamDrainState.status ?? 'Finalizing session files...'
             : phase === 'discovering'
             ? 'Discovering sensors...'
             : phase === 'connecting'
-              ? 'Connecting to sensors...'
+              ? 'Connecting sensors...'
               : phase === 'error'
                 ? 'Sensor setup failed'
                 : disconnectError
