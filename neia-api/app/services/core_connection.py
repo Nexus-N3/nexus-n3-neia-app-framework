@@ -1,5 +1,6 @@
 import asyncio
 
+import httpx
 from fastapi import HTTPException
 
 from ..app import AppServices
@@ -10,6 +11,9 @@ CORE_STATUS_COMMANDS = (
     "get_usb_status",
     "get_device_info",
 )
+
+SELECTABLE_CORE_ROLES = frozenset({"standalone", "master"})
+IDLE_SESSION_STATES = frozenset({"inactive", "completed"})
 
 
 def request_core_status(gateway_manager) -> None:
@@ -84,3 +88,62 @@ async def update_gateway_target(payload: dict, services: AppServices):
         )
 
     return core_state_store.connection_snapshot(result)
+
+async def update_core_role(
+    payload: dict,
+    services: AppServices,
+    client: httpx.AsyncClient | None = None,
+):
+    role = payload.get("role") if isinstance(payload, dict) else None
+    if role not in SELECTABLE_CORE_ROLES:
+        raise HTTPException(status_code=400, detail="Role must be standalone or master")
+
+    settings = services.gateway_manager.gateway_settings()
+    status = services.core_state_store.status_snapshot(settings)
+    if status.get("mode") == role:
+        return {"role": role, "restarting": False}
+    if status.get("connection", {}).get("available") is not True:
+        raise HTTPException(status_code=503, detail="Nexus N3 Core is unavailable")
+    if status.get("active_session", {}).get("state") not in IDLE_SESSION_STATES:
+        raise HTTPException(status_code=409, detail="Core must be idle before changing mode")
+
+    service = services.core_state_store.archive_service_snapshot()
+    host = settings.get("target_host")
+    if (
+        service.get("available") is not True
+        or service.get("scheme") not in {"http", "https"}
+        or not isinstance(service.get("port"), int)
+        or not isinstance(host, str)
+        or not host
+    ):
+        raise HTTPException(status_code=503, detail="Core Admin API is unavailable")
+
+    url = httpx.URL(
+        scheme=service["scheme"],
+        host=host,
+        port=service["port"],
+        path="/api/server/role",
+    )
+    owns_client = client is None
+    active_client = client or httpx.AsyncClient(follow_redirects=False)
+    try:
+        response = await active_client.put(url, json={"role": role}, timeout=5.0)
+    except httpx.TimeoutException as exc:
+        raise HTTPException(status_code=504, detail="Core role change timed out") from exc
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=502, detail="Core Admin API could not be reached") from exc
+    finally:
+        if owns_client:
+            await active_client.aclose()
+
+    if not 200 <= response.status_code < 300:
+        try:
+            upstream_detail = response.json().get("detail")
+        except ValueError:
+            upstream_detail = None
+        detail = upstream_detail if isinstance(upstream_detail, str) else "Core rejected the role change"
+        status_code = response.status_code if response.status_code in {400, 409} else 502
+        raise HTTPException(status_code=status_code, detail=detail)
+
+    services.core_state_store.begin_connection_attempt()
+    return response.json()

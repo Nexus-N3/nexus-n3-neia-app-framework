@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import type { CoreStatus } from "../types";
@@ -6,14 +6,21 @@ import { CoreStatusScreen } from "./CoreStatusScreen";
 
 const core = vi.hoisted(() => ({
   status: null as CoreStatus | null,
+  updateRole: vi.fn(),
 }));
 
 vi.mock("../core/CoreProvider", () => ({
-  useCore: () => ({ loading: false, status: core.status }),
+  useCore: () => ({
+    loading: false,
+    status: core.status,
+    switchingRole: false,
+    updateRole: core.updateRole,
+  }),
 }));
 
 describe("CoreStatusScreen", () => {
-  it("reports the Core runtime mode", () => {
+  it("reports and switches the Core runtime mode only while idle", async () => {
+    core.updateRole.mockResolvedValue(undefined);
     core.status = {
       endpoint: "nexus-n3.local",
       cmd_port: 5555,
@@ -47,9 +54,23 @@ describe("CoreStatusScreen", () => {
       services: [],
     };
 
-    render(<CoreStatusScreen />);
+    const { rerender } = render(<CoreStatusScreen />);
 
     expect(screen.getByText("Mode")).toBeVisible();
-    expect(screen.getByText("Standalone")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Standalone" })).toBeDisabled();
+    expect(screen.getByText("Current: Standalone")).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Worker" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "AI" })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Master" }));
+    await waitFor(() => expect(core.updateRole).toHaveBeenCalledWith("master"));
+
+    core.status = {
+      ...core.status!,
+      active_session: { state: "active", session_id: "session-1" },
+    };
+    rerender(<CoreStatusScreen />);
+
+    expect(screen.getByRole("button", { name: "Master" })).toBeDisabled();
   });
 });

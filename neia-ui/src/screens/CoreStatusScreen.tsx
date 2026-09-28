@@ -1,8 +1,28 @@
+import { useState } from "react";
+
 import { displayState, formatBytes, StatusValue } from "../components/StatusValue";
 import { useCore } from "../core/CoreProvider";
 
 export function CoreStatusScreen() {
-  const { loading, status } = useCore();
+  const { loading, status, switchingRole, updateRole } = useCore();
+  const [roleError, setRoleError] = useState<string | null>(null);
+  const currentRole =
+    status?.mode === "standalone" || status?.mode === "master"
+      ? status.mode
+      : null;
+  const sessionState = status?.active_session.state;
+  const isIdle =
+    status?.connection.available === true &&
+    (sessionState === "inactive" || sessionState === "completed");
+
+  const switchRole = async (role: "standalone" | "master") => {
+    setRoleError(null);
+    try {
+      await updateRole(role);
+    } catch (requestError) {
+      setRoleError(requestError instanceof Error ? requestError.message : "Failed to change Core mode.");
+    }
+  };
 
   return (
     <div className="system-view-v2">
@@ -35,6 +55,46 @@ export function CoreStatusScreen() {
                 value={displayState(status?.readiness)}
                 state={status?.readiness}
               />
+            </div>
+
+            <div className="mode-control-v2">
+              <div>
+                <span className="mode-label-v2">Operating mode</span>
+                <strong>Current: {displayState(status?.mode)}</strong>
+              </div>
+              <div className="mode-options-v2" aria-label="Core operating mode">
+                {(["standalone", "master"] as const).map((role) => (
+                  <button
+                    aria-pressed={currentRole === role}
+                    className={
+                      currentRole === role ? "primary-action-v2" : "secondary-action-v2"
+                    }
+                    disabled={
+                      !isIdle ||
+                      switchingRole ||
+                      currentRole === null ||
+                      currentRole === role
+                    }
+                    key={role}
+                    onClick={() => void switchRole(role)}
+                    type="button"
+                  >
+                    {displayState(role)}
+                  </button>
+                ))}
+              </div>
+              <p className="mode-help-v2">
+                {switchingRole
+                  ? "Applying mode and restarting Core…"
+                  : currentRole === null
+                    ? "This Core role is deployment-managed."
+                    : isIdle
+                      ? "Changing mode restarts Core."
+                      : "Mode can only be changed while Core is idle."}
+              </p>
+              {roleError ? (
+                <p className="form-message-v2 error" role="alert">{roleError}</p>
+              ) : null}
             </div>
           </section>
 

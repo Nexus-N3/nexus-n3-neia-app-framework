@@ -1661,6 +1661,36 @@ body.display-profile-800x480 .nexus-n3-built-in-view {
   box-shadow: 0 18px 50px rgba(34, 27, 66, 0.06);
 }
 
+.mode-control-v2 {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--v2-line);
+}
+
+.mode-control-v2 > div:first-child {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.mode-label-v2 {
+  color: var(--v2-muted);
+}
+
+.mode-options-v2 {
+  display: flex;
+  gap: 10px;
+}
+
+.mode-help-v2 {
+  margin: 0;
+  color: var(--v2-muted);
+  font-size: 0.9rem;
+}
+
 .session-hero-card {
   min-height: 420px;
   display: flex;

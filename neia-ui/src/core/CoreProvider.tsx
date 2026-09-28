@@ -27,6 +27,7 @@ type CoreContextValue = {
   eventConnected: boolean;
   loading: boolean;
   retrying: boolean;
+  switchingRole: boolean;
   saving: boolean;
   status: CoreStatus | null;
   refresh: () => Promise<void>;
@@ -35,6 +36,7 @@ type CoreContextValue = {
   sendUsbCommand: (action: "mount" | "unmount") => Promise<void>;
   subscribe: (listener: CoreEventListener) => () => void;
   updateConnection: (input: UpdateConnectionInput) => Promise<void>;
+  updateRole: (role: "standalone" | "master") => Promise<void>;
 };
 
 const CoreContext = createContext<CoreContextValue | null>(null);
@@ -61,6 +63,7 @@ export function CoreProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [retrying, setRetrying] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [switchingRole, setSwitchingRole] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [eventConnected, setEventConnected] = useState(false);
   const listenersRef = useRef(new Set<CoreEventListener>());
@@ -147,6 +150,47 @@ export function CoreProvider({ children }: { children: ReactNode }) {
         throw requestError;
       } finally {
         setSaving(false);
+      }
+    },
+    [refresh],
+  );
+
+  const updateRole = useCallback(
+    async (role: "standalone" | "master") => {
+      setSwitchingRole(true);
+      setError(null);
+      try {
+        const result = await readJson<{ role: string; restarting: boolean }>(
+          "/api/v1/core/role",
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ role }),
+          },
+        );
+        setStatus((current) => current ? { ...current, mode: result.role } : current);
+        if (result.restarting) {
+          setConnection((current) =>
+            current
+              ? { ...current, state: "connecting", available: false, error: null }
+              : current,
+          );
+          window.setTimeout(() => {
+            void refresh();
+          }, 1500);
+          window.setTimeout(() => {
+            void refresh();
+          }, 8500);
+        }
+      } catch (requestError) {
+        setError(
+          requestError instanceof Error
+            ? requestError.message
+            : "Failed to change Core mode.",
+        );
+        throw requestError;
+      } finally {
+        setSwitchingRole(false);
       }
     },
     [refresh],
@@ -305,11 +349,13 @@ export function CoreProvider({ children }: { children: ReactNode }) {
       retry,
       retrying,
       saving,
+      switchingRole,
       sendCommand,
       sendUsbCommand,
       status,
       subscribe,
       updateConnection,
+      updateRole,
     }),
     [
       capabilities,
@@ -321,11 +367,13 @@ export function CoreProvider({ children }: { children: ReactNode }) {
       retry,
       retrying,
       saving,
+      switchingRole,
       sendCommand,
       sendUsbCommand,
       status,
       subscribe,
       updateConnection,
+      updateRole,
     ],
   );
 

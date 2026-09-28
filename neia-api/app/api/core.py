@@ -3,7 +3,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from ..app import AppServices, get_services
 from ..runtime_settings import save_gateway_runtime_settings
-from ..services.core_connection import update_gateway_target, request_core_status
+from ..services.core_connection import (
+    request_core_status,
+    update_core_role,
+    update_gateway_target,
+)
 
 
 router = APIRouter(
@@ -20,6 +24,11 @@ def core_connection(services: AppServices = Depends(get_services)):
 @router.put("/connection")
 async def update_core_connection(payload: dict, services: AppServices = Depends(get_services),):
     return await update_gateway_target(payload, services)
+
+
+@router.put("/role")
+async def update_role(payload: dict, services: AppServices = Depends(get_services)):
+    return await update_core_role(payload, services)
 
 
 @router.post("/connection/retry")
