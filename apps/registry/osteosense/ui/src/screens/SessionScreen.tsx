@@ -31,6 +31,7 @@ export const SessionScreen: React.FC = () => {
     errorMsg: discoverError,
     discoverAndConnect,
     recoverAndConnect,
+    recoverAndConnectForSubject,
     discoverAndConnectForSubject,
     dismiss,
     discoveredSensors: liveDiscoveredSensors,
@@ -117,19 +118,29 @@ export const SessionScreen: React.FC = () => {
   );
 
   const startConnection = (subjectId?: string) => {
-    const isRetry = phase === 'done' || connectedAddresses.length > 0;
-    if (isRetry) {
+    if (subjectId) {
+      const subjectConnectedAddresses = Array.from(new Set(
+        (connectedSensors[subjectId.toLowerCase()] ?? connectedSensors[subjectId] ?? [])
+          .filter((sensor) => sensor.status.toUpperCase() === 'CONNECTED')
+          .map((sensor) => sensor.address.toUpperCase()),
+      ));
+
+      if (subjectConnectedAddresses.length > 0) {
+        recoverAndConnectForSubject(subjectId, subjectConnectedAddresses);
+      } else {
+        discoverAndConnectForSubject(subjectId);
+      }
+      return;
+    }
+
+    if (connectedAddresses.length > 0) {
       setConnectedSensors({});
       setDiscoveredSensors({});
       recoverAndConnect(connectedAddresses);
       return;
     }
 
-    if (subjectId) {
-      discoverAndConnectForSubject(subjectId);
-    } else {
-      discoverAndConnect();
-    }
+    discoverAndConnect();
   };
 
   // Get current page subjects

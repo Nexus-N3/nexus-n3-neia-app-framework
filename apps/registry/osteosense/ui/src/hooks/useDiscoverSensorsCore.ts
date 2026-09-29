@@ -17,6 +17,7 @@ export const useDiscoverSensorsCore = () => {
   const autoConnectRef = useRef(false);
   const connectSubjectIdsRef = useRef<string[] | null>(null);
   const recoveryDisconnectAddressesRef = useRef<Set<string> | null>(null);
+  const recoverySubjectIdsRef = useRef<string[] | null>(null);
   const phaseRef = useRef<SensorFlowPhase>('idle');
 
   useEffect(() => {
@@ -35,12 +36,20 @@ export const useDiscoverSensorsCore = () => {
           return;
         }
 
+        const subjectIds = recoverySubjectIdsRef.current;
         recoveryDisconnectAddressesRef.current = null;
+        recoverySubjectIdsRef.current = null;
         autoConnectRef.current = true;
-        connectSubjectIdsRef.current = null;
+        connectSubjectIdsRef.current = subjectIds;
         phaseRef.current = 'discovering';
         setPhase('discovering');
-        void sendCommand({ type: 'discover_sensors' }).catch((error) => {
+        const command = subjectIds && subjectIds.length > 0
+          ? {
+              type: 'discover_sensors_for_subjects',
+              payload: { subject_ids: subjectIds },
+            }
+          : { type: 'discover_sensors' };
+        void sendCommand(command).catch((error) => {
           console.error('[useDiscoverSensorsCore] Network error:', error);
           setErrorMsg('Network error sending discover command');
           autoConnectRef.current = false;
@@ -122,6 +131,7 @@ export const useDiscoverSensorsCore = () => {
         setActiveSubjectId(null);
         connectSubjectIdsRef.current = null;
         recoveryDisconnectAddressesRef.current = null;
+        recoverySubjectIdsRef.current = null;
       }
     });
 
@@ -141,6 +151,7 @@ export const useDiscoverSensorsCore = () => {
         setActiveSubjectId(null);
         connectSubjectIdsRef.current = null;
         recoveryDisconnectAddressesRef.current = null;
+        recoverySubjectIdsRef.current = null;
       }
     },
     [sendCommand],
@@ -159,6 +170,7 @@ export const useDiscoverSensorsCore = () => {
   const recoverAndConnect = useCallback((connectedAddresses: string[]) => {
     autoConnectRef.current = false;
     connectSubjectIdsRef.current = null;
+    recoverySubjectIdsRef.current = null;
     recoveryDisconnectAddressesRef.current = new Set(
       connectedAddresses.map((address) => address.toUpperCase()),
     );
@@ -169,6 +181,25 @@ export const useDiscoverSensorsCore = () => {
     setDiscoveredSensors({});
     setConnectedSensors({});
     void doSend({ type: 'disconnect_all' });
+  }, [doSend]);
+
+  const recoverAndConnectForSubject = useCallback((subjectId: string, connectedAddresses: string[]) => {
+    autoConnectRef.current = false;
+    connectSubjectIdsRef.current = [subjectId];
+    recoverySubjectIdsRef.current = [subjectId];
+    recoveryDisconnectAddressesRef.current = new Set(
+      connectedAddresses.map((address) => address.toUpperCase()),
+    );
+    phaseRef.current = 'disconnecting';
+    setPhase('disconnecting');
+    setErrorMsg(null);
+    setActiveSubjectId(subjectId);
+    setDiscoveredSensors((prev) => ({ ...prev, [subjectId]: [] }));
+    setConnectedSensors((prev) => ({ ...prev, [subjectId]: [] }));
+    void doSend({
+      type: 'disconnect_subjects',
+      payload: { subject_ids: [subjectId] },
+    });
   }, [doSend]);
 
   const discoverAndConnectForSubject = useCallback(
@@ -229,6 +260,7 @@ export const useDiscoverSensorsCore = () => {
     setActiveSubjectId(null);
     connectSubjectIdsRef.current = null;
     recoveryDisconnectAddressesRef.current = null;
+    recoverySubjectIdsRef.current = null;
   }, []);
 
   const isBusy = phase === 'disconnecting' || phase === 'discovering' || phase === 'connecting';
@@ -242,6 +274,7 @@ export const useDiscoverSensorsCore = () => {
     connectedSensors,
     discoverAndConnect,
     recoverAndConnect,
+    recoverAndConnectForSubject,
     discoverAndConnectForSubject,
     discoverAll,
     connectAll,

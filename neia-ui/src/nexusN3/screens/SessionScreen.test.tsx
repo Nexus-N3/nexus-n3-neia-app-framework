@@ -41,7 +41,7 @@ beforeEach(() => {
 });
 
 describe('SessionScreen sensor connection gating', () => {
-  it('keeps a 2-of-4 subject on Connect and performs a clean retry', () => {
+  it('keeps a 2-of-4 subject on Connect and retries only that subject', () => {
     const store = createStore();
     store.set(serverReadyAtom, true);
     store.set(sessionStageAtom, 'sensor_discovery');
@@ -74,22 +74,31 @@ describe('SessionScreen sensor connection gating', () => {
     expect(screen.getByText('2', { selector: '.stat-value' })).toBeVisible();
 
     fireEvent.click(screen.getByRole('button', { name: 'Connect subject' }));
-    expect(gateway.sendCommand).toHaveBeenLastCalledWith({ type: 'disconnect_all' });
+    expect(gateway.sendCommand).toHaveBeenLastCalledWith({
+      type: 'disconnect_subjects',
+      payload: { subject_ids: ['Subject_1'] },
+    });
     expect(screen.getByText('Disconnecting sensors...')).toBeVisible();
-    expect(store.get(connectedSensorsAtom)).toEqual({});
+    expect(store.get(connectedSensorsAtom).Subject_1).toHaveLength(2);
 
     act(() => gateway.emit({
       type: 'sensor_disconnected',
       payload: { disconnected_sensors: ['AA', 'BB'] },
     }));
-    expect(gateway.sendCommand).toHaveBeenLastCalledWith({ type: 'discover_sensors' });
+    expect(gateway.sendCommand).toHaveBeenLastCalledWith({
+      type: 'discover_sensors_for_subjects',
+      payload: { subject_ids: ['Subject_1'] },
+    });
     expect(screen.getByText('Discovering sensors...')).toBeVisible();
 
     act(() => gateway.emit({
       type: 'sensors_discovered',
       payload: { subjects: [{ subject_id: 'Subject_1', discovered_sensors: ['AA', 'BB', 'CC', 'DD'] }] },
     }));
-    expect(gateway.sendCommand).toHaveBeenLastCalledWith({ type: 'connect_all' });
+    expect(gateway.sendCommand).toHaveBeenLastCalledWith({
+      type: 'connect_subjects',
+      payload: { subject_ids: ['Subject_1'] },
+    });
     expect(screen.getByText('Connecting sensors...')).toBeVisible();
   });
 });

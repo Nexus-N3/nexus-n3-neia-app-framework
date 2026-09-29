@@ -111,6 +111,36 @@ describe('retained Core lifecycle hooks', () => {
     expect(result.current.phase).toBe('connecting');
   });
 
+  it('disconnects, rediscovers, and reconnects only the selected subject on retry', async () => {
+    const { Wrapper } = wrapperFor();
+    const { result } = renderHook(() => useDiscoverSensorsCore(), { wrapper: Wrapper });
+
+    act(() => result.current.recoverAndConnectForSubject('subject-2', ['CC', 'DD']));
+    expect(result.current.activeSubjectId).toBe('subject-2');
+    expect(gateway.sendCommand).toHaveBeenLastCalledWith({
+      type: 'disconnect_subjects',
+      payload: { subject_ids: ['subject-2'] },
+    });
+
+    act(() => gateway.emit({
+      type: 'sensor_disconnected',
+      payload: { disconnected_sensors: ['CC', 'DD'] },
+    }));
+    expect(gateway.sendCommand).toHaveBeenLastCalledWith({
+      type: 'discover_sensors_for_subjects',
+      payload: { subject_ids: ['subject-2'] },
+    });
+
+    act(() => gateway.emit({
+      type: 'sensors_discovered',
+      payload: { subjects: [{ subject_id: 'subject-2', discovered_sensors: ['CC', 'DD'] }] },
+    }));
+    await waitFor(() => expect(gateway.sendCommand).toHaveBeenLastCalledWith({
+      type: 'connect_subjects',
+      payload: { subject_ids: ['subject-2'] },
+    }));
+  });
+
   it('clears stale connection state on discovery and deduplicates addresses', () => {
     const { Wrapper } = wrapperFor();
     const { result } = renderHook(() => useConnectedSensorUpdatesCore(), { wrapper: Wrapper });
