@@ -13,6 +13,7 @@ import type { CoreCapabilities, CoreConnection, CoreStatus } from "../types";
 
 type CoreEvent = Record<string, unknown>;
 type CoreEventListener = (event: CoreEvent) => void;
+type SelectableCoreRole = "standalone" | "master";
 
 type UpdateConnectionInput = {
   target_host: string;
@@ -36,7 +37,7 @@ type CoreContextValue = {
   sendUsbCommand: (action: "mount" | "unmount") => Promise<void>;
   subscribe: (listener: CoreEventListener) => () => void;
   updateConnection: (input: UpdateConnectionInput) => Promise<void>;
-  updateRole: (role: "standalone" | "master") => Promise<void>;
+  updateRole: (role: SelectableCoreRole) => Promise<void>;
 };
 
 const CoreContext = createContext<CoreContextValue | null>(null);
@@ -67,7 +68,10 @@ export function CoreProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [eventConnected, setEventConnected] = useState(false);
   const listenersRef = useRef(new Set<CoreEventListener>());
+  const connectionAvailableRef = useRef(false);
   const refreshInFlightRef = useRef<Promise<void> | null>(null);
+  const pendingRoleRef = useRef<SelectableCoreRole | null>(null);
+  const roleReconnectTimersRef = useRef<number[]>([]);
 
   const refresh = useCallback(async () => {
     if (refreshInFlightRef.current) {
@@ -80,9 +84,21 @@ export function CoreProvider({ children }: { children: ReactNode }) {
           readJson<CoreCapabilities>("/api/v1/core/capabilities"),
           readJson<CoreStatus>("/api/v1/core/status"),
         ]);
+        connectionAvailableRef.current = nextConnection.available;
         setConnection(nextConnection);
         setCapabilities(nextCapabilities);
-        setStatus(nextStatus);
+        const pendingRole = pendingRoleRef.current;
+        if (
+          pendingRole &&
+          nextStatus.connection.available === true &&
+          nextStatus.mode === pendingRole
+        ) {
+          pendingRoleRef.current = null;
+          setSwitchingRole(false);
+          setStatus(nextStatus);
+        } else {
+          setStatus(pendingRole ? { ...nextStatus, mode: pendingRole } : nextStatus);
+        }
         setError(null);
       } catch (requestError) {
         setError(requestError instanceof Error ? requestError.message : "Failed to load Core state.");
@@ -155,10 +171,43 @@ export function CoreProvider({ children }: { children: ReactNode }) {
     [refresh],
   );
 
+  const scheduleRoleReconnect = useCallback(
+    (role: SelectableCoreRole) => {
+      roleReconnectTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+      roleReconnectTimersRef.current = [];
+
+      [2500, 5000, 8000, 12000].forEach((delay) => {
+        const timer = window.setTimeout(() => {
+          if (pendingRoleRef.current !== role) return;
+          void (async () => {
+            try {
+              const nextConnection = await readJson<CoreConnection>(
+                "/api/v1/core/connection/retry",
+                { method: "POST" },
+              );
+              setConnection(nextConnection);
+            } catch {
+              // Core is expected to be temporarily unavailable during restart.
+            }
+            await refresh();
+          })();
+        }, delay);
+        roleReconnectTimersRef.current.push(timer);
+      });
+
+      const settleTimer = window.setTimeout(() => {
+        if (pendingRoleRef.current === role) setSwitchingRole(false);
+      }, 17000);
+      roleReconnectTimersRef.current.push(settleTimer);
+    },
+    [refresh],
+  );
+
   const updateRole = useCallback(
-    async (role: "standalone" | "master") => {
+    async (role: SelectableCoreRole) => {
       setSwitchingRole(true);
       setError(null);
+      let restartPending = false;
       try {
         const result = await readJson<{ role: string; restarting: boolean }>(
           "/api/v1/core/role",
@@ -168,6 +217,8 @@ export function CoreProvider({ children }: { children: ReactNode }) {
             body: JSON.stringify({ role }),
           },
         );
+        pendingRoleRef.current = result.restarting ? role : null;
+        restartPending = result.restarting;
         setStatus((current) => current ? { ...current, mode: result.role } : current);
         if (result.restarting) {
           setConnection((current) =>
@@ -175,12 +226,7 @@ export function CoreProvider({ children }: { children: ReactNode }) {
               ? { ...current, state: "connecting", available: false, error: null }
               : current,
           );
-          window.setTimeout(() => {
-            void refresh();
-          }, 1500);
-          window.setTimeout(() => {
-            void refresh();
-          }, 8500);
+          scheduleRoleReconnect(role);
         }
       } catch (requestError) {
         setError(
@@ -190,11 +236,18 @@ export function CoreProvider({ children }: { children: ReactNode }) {
         );
         throw requestError;
       } finally {
-        setSwitchingRole(false);
+        if (!restartPending) {
+          setSwitchingRole(false);
+        }
       }
     },
-    [refresh],
+    [scheduleRoleReconnect],
   );
+
+  useEffect(() => () => {
+    roleReconnectTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+    roleReconnectTimersRef.current = [];
+  }, []);
 
   const sendCommand = useCallback(async (command: object) => {
     await readJson("/api/v1/gateway/command", {
@@ -217,8 +270,6 @@ export function CoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    void refresh();
-
     const protocol = window.location.protocol === "https:" ? "wss" : "ws";
     const socketUrl = `${protocol}://${window.location.host}/api/v1/gateway/events`;
 
@@ -227,6 +278,7 @@ export function CoreProvider({ children }: { children: ReactNode }) {
     let initialConnectTimer: number | null = null;
     let reconnectTimer: number | null = null;
     let refreshTimer: number | null = null;
+    const startupDiscoveryTimers: number[] = [];
 
     const scheduleRefresh = () => {
       if (refreshTimer !== null) return;
@@ -297,6 +349,37 @@ export function CoreProvider({ children }: { children: ReactNode }) {
       };
     };
 
+    const discoverCore = () => {
+      if (stopped || connectionAvailableRef.current) return;
+
+      void (async () => {
+        try {
+          const nextConnection = await readJson<CoreConnection>(
+            "/api/v1/core/connection/retry",
+            { method: "POST" },
+          );
+          if (stopped) return;
+          connectionAvailableRef.current = nextConnection.available;
+          setConnection(nextConnection);
+        } catch {
+          // Startup discovery is best-effort; manual connection remains available.
+        }
+        if (!stopped) await refresh();
+      })();
+    };
+
+    void (async () => {
+      await refresh();
+      if (stopped || connectionAvailableRef.current) return;
+
+      [0, 2500, 5000].forEach((delay) => {
+        startupDiscoveryTimers.push(window.setTimeout(discoverCore, delay));
+      });
+      startupDiscoveryTimers.push(window.setTimeout(() => {
+        if (!stopped) void refresh();
+      }, 13500));
+    })();
+
     // Avoid opening a WebSocket during React Strict Mode's temporary
     // development mount.
     initialConnectTimer = window.setTimeout(connectSocket, 0);
@@ -315,6 +398,10 @@ export function CoreProvider({ children }: { children: ReactNode }) {
       if (refreshTimer !== null) {
         window.clearTimeout(refreshTimer);
       }
+
+      startupDiscoveryTimers.forEach((timer) => {
+        window.clearTimeout(timer);
+      });
 
       const activeSocket = socket;
       socket = null;

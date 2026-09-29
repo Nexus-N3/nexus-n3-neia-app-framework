@@ -1821,6 +1821,10 @@ body.display-profile-800x480 .nexus-n3-built-in-view {
   font-size: 20px;
 }
 
+.status-grid-v2 p {
+  color:red
+}
+
 .status-grid-v2 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -130,6 +130,9 @@ def test_device_info_updates_core_mode() -> None:
     store.handle_gateway_event({"type": "server_ready", "payload": {}})
     assert store.status_snapshot(SETTINGS)["mode"] == "standalone"
 
+    store.handle_gateway_event({"type": "server_ready", "payload": {"role": "master"}})
+    assert store.status_snapshot(SETTINGS)["mode"] == "master"
+
 
 def test_archive_service_rejects_untrusted_discovery_metadata() -> None:
     store = CoreStateStore()
