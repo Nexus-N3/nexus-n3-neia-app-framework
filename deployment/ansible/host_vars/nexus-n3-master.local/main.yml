@@ -1,0 +1,12 @@
+---
+neia_site: lab
+
+neia_voice_enabled: false
+neia_voice_tts_enabled: true
+neia_voice_tts_piper_player_device: pipewire
+
+# Models already exist on the master, so normal API/UI updates needn't resend them.
+neia_sync_models: false
+
+# Only needed if the rsnexus user's UID is not 1000.
+neia_service_uid: 1000
