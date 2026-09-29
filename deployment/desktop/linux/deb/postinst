@@ -35,6 +35,28 @@ case "${1:-configure}" in
     if [[ ! -f "${STATE_ROOT}/installed.json" && -f "${INSTALL_ROOT}/apps/installed.json" ]]; then
       install -o "${SERVICE_USER}" -g "${SERVICE_GROUP}" -m 0644 "${INSTALL_ROOT}/apps/installed.json" "${STATE_ROOT}/installed.json"
     fi
+    python3 - "${STATE_ROOT}/installed.json" <<'PY'
+import json
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+if path.is_file():
+    try:
+        installed = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        installed = None
+    if isinstance(installed, list) and "nexus" in installed:
+        path.write_text(
+            json.dumps([app_id for app_id in installed if app_id != "nexus"], indent=2) + "\n",
+            encoding="utf-8",
+        )
+PY
+
+    install -d -o "${SERVICE_USER}" -g "${SERVICE_GROUP}" -m 0755 "${STATE_ROOT}/workflows"
+    if [[ -z "$(find "${STATE_ROOT}/workflows" -mindepth 1 -print -quit)" && -d "${INSTALL_ROOT}/workflows" ]]; then
+      cp -R "${INSTALL_ROOT}/workflows/." "${STATE_ROOT}/workflows/"
+    fi
 
     if [[ ! -x "${VENV_PYTHON}" ]]; then
       python3 -m venv "${VENV_ROOT}"
@@ -60,12 +82,16 @@ case "${1:-configure}" in
         -e "s|^NEIA_STATE_DIR=.*|NEIA_STATE_DIR=${STATE_ROOT}|" \
         -e "s|^NEIA_LOG_DIR=.*|NEIA_LOG_DIR=${LOG_ROOT}|" \
         -e "s|^NEIA_RUN_DIR=.*|NEIA_RUN_DIR=/run/${PACKAGE_NAME}|" \
+        -e "s|^NEIA_WORKFLOWS_DIR=.*|NEIA_WORKFLOWS_DIR=${STATE_ROOT}/workflows|" \
         "${ENV_FILE}"
       if ! grep -Eq '^NEIA_HOST=' "${ENV_FILE}"; then
         printf 'NEIA_HOST=127.0.0.1\n' >> "${ENV_FILE}"
       fi
       if ! grep -Eq '^NEIA_PORT=' "${ENV_FILE}"; then
         printf 'NEIA_PORT=8080\n' >> "${ENV_FILE}"
+      fi
+      if ! grep -Eq '^NEIA_WORKFLOWS_DIR=' "${ENV_FILE}"; then
+        printf 'NEIA_WORKFLOWS_DIR=%s/workflows\n' "${STATE_ROOT}" >> "${ENV_FILE}"
       fi
     fi
 

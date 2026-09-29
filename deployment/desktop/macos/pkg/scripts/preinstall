@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+console_user="$(stat -f '%Su' /dev/console)"
+if [[ -n "${console_user}" && "${console_user}" != "root" && "${console_user}" != "loginwindow" ]]; then
+  console_uid="$(id -u "${console_user}")"
+  launchctl bootout "gui/${console_uid}/com.rsnexus.neia" >/dev/null 2>&1 || true
+fi
+
+exit 0

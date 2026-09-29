@@ -31,6 +31,11 @@ function resolveViewportProfile(): string {
   if (window.innerWidth <= 800 && window.innerHeight <= 480) {
     return "800x480";
   }
+
+ /*if (window.innerWidth >= 1920 && window.innerHeight >= 1080) {
+    return "1920x1080";
+  }*/
+
   return "";
 }
 

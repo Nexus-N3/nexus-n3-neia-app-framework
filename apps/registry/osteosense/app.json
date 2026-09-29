@@ -9,8 +9,8 @@
   "supports_online": true,
   "supports_offline": true,
   "layout_mode": "framed",
-  "entry_ui": "ui/assets/index.js?v=8",
-  "style": "ui/assets/index.css?v=8",
+  "entry_ui": "ui/assets/index.js?v=9",
+  "style": "ui/assets/index.css?v=9",
   "mount": "OsteosenseMount",
   "dev_entry_ui": "http://localhost:3003/src/main.tsx",
   "dev_mount": "OsteosenseMount"

@@ -1,0 +1,9 @@
+neia_site: lunar
+
+# Enable local speech playback and keep the Piper assets deployed.
+neia_voice_tts_enabled: true
+neia_sync_models: true
+neia_voice_tts_piper_player_device: "plughw:1,0"
+
+# Launch the touch-friendly maximized Firefox session after login.
+neia_kiosk_enabled: true

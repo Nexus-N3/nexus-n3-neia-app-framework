@@ -1,26 +1,116 @@
 # Desktop Deployment
 
-This directory holds the first-pass "desktop-style" deployment flow for
-`nexus-n3-neia-app-framework`.
+This directory holds the desktop-style deployment flow for
+`nexus-n3-neia-app-framework` on Linux, Windows, and macOS.
 
 The current target is not a native thick client. It is a local daemon-style web
 application:
 
 - a local service runs `neia-api`
-- the service serves the existing `neia-ui`
+- the service serves the compiled `neia-ui`, including the built-in Nexus N3
+  session workflow
 - users access the framework in a normal browser on `localhost`
-- the current `apps/registry` remains the app source for now
+- `apps/registry` contains optional applications only
+- saved Nexus N3 workflows are mutable runtime data, separate from installed
+  application files
 
 ## Current scope
 
-The implementation is Linux-first.
-
-There are now two Linux paths:
+All three platforms have two paths:
 
 - local developer daemon scripts for testing from the repo checkout
-- a first system-install path that models what a downloaded package would do
+- an installed desktop daemon and browser launcher
 
-Windows and macOS packaging can follow once the local daemon shape is stable.
+## Package build quick reference
+
+Build packages on the matching target operating system from the framework
+repository root. Node.js/npm is required only on the build machine; users
+installing the resulting package do not need Node.js.
+
+### Build the Linux `.deb`
+
+Build the API wheel first, then run the Debian builder:
+
+```bash
+cd neia-api
+python3 -m build --wheel
+cd ..
+./deployment/desktop/linux/deb/build_deb.sh
+```
+
+Expected output:
+
+```text
+deployment/desktop/linux/dist/nexus-n3-neia-app-framework_<version>_all.deb
+```
+
+Build prerequisites are Python 3.10+, the Python `build` and Pillow packages,
+Node/npm, `dpkg-deb`, and `fakeroot`. On Ubuntu, the system packaging tools can
+be installed with:
+
+```bash
+sudo apt install dpkg-dev fakeroot python3-venv python3-pil
+```
+
+Useful builder options:
+
+```bash
+./deployment/desktop/linux/deb/build_deb.sh --version 0.1.1
+./deployment/desktop/linux/deb/build_deb.sh --output /path/to/output
+./deployment/desktop/linux/deb/build_deb.sh --skip-ui-build
+```
+
+### Build the Windows `.exe`
+
+Run from PowerShell on Windows:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+& .\deployment\desktop\windows\installer\build_windows_installer.ps1
+```
+
+Expected output:
+
+```text
+deployment\desktop\windows\dist\Nexus-N3-NEIA-Setup-<version>.exe
+```
+
+Build prerequisites are Python 3.10+, the Python `build` package, Node/npm, and
+Inno Setup 6. Useful options:
+
+```powershell
+& .\deployment\desktop\windows\installer\build_windows_installer.ps1 -Version 0.1.1
+& .\deployment\desktop\windows\installer\build_windows_installer.ps1 -OutputDir C:\packages
+& .\deployment\desktop\windows\installer\build_windows_installer.ps1 -IsccPath "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+& .\deployment\desktop\windows\installer\build_windows_installer.ps1 -SkipUiBuild -SkipApiBuild
+```
+
+### Build the macOS `.pkg`
+
+Run on macOS:
+
+```bash
+./deployment/desktop/macos/pkg/build_pkg.sh
+```
+
+Expected output:
+
+```text
+deployment/desktop/macos/dist/Nexus-N3-NEIA-<version>.pkg
+```
+
+Build prerequisites are macOS 12+, Python 3.10+, the Python `build` package,
+Node/npm, and `pkgbuild`, `productbuild`, `plutil`, and `rsync`. Useful options:
+
+```bash
+./deployment/desktop/macos/pkg/build_pkg.sh --version 0.1.1
+./deployment/desktop/macos/pkg/build_pkg.sh --output /path/to/output
+./deployment/desktop/macos/pkg/build_pkg.sh --skip-ui-build --skip-api-build
+./deployment/desktop/macos/pkg/build_pkg.sh --sign "Developer ID Installer: Your Name (TEAMID)"
+```
+
+The skip-build options are intended only when `neia-ui/dist` and the API wheel
+are already current.
 
 ## Local Linux run
 
@@ -33,10 +123,25 @@ Use the helper scripts in [`linux`](./linux):
 Default behavior:
 
 - binds to `127.0.0.1:8080`
-- serves content from the current repo checkout
+- rebuilds and serves the single refactored `neia-ui` bundle by default
 - uses the current registry under `apps/registry`
 - seeds installed apps from `apps/installed.json`
+- reads and writes workflows under the checkout's `workflows` directory
 - writes runtime state under `deployment/desktop/.runtime/linux-local`
+
+Set `NEIA_SKIP_UI_BUILD=1` to reuse an existing `neia-ui/dist` build. The start
+script refuses to run if `dist/index.html` is absent.
+
+The helper also verifies that the daemon survives startup. If port `8080` is
+already owned by an older installed NEIA service, stop it before starting the
+checkout daemon:
+
+```bash
+sudo systemctl stop nexus-n3-neia-app-framework.service
+```
+
+Alternatively, use a different local port, for example
+`NEIA_PORT=8081 ./deployment/desktop/linux/start_local_daemon.sh`.
 
 ## Linux installed service model
 
@@ -75,10 +180,13 @@ The Linux installer now supports a few basic operational modes:
 - default install/update: preserves existing app data and keeps the current env file
 - `--force-env`: overwrite the installed env file from the example template
 - `--rebuild-venv`: recreate the application virtualenv
+- `--skip-ui-build`: package the existing `neia-ui/dist` without rebuilding it
 - `--no-start`: install/update without restarting the service
 
 The installer prefers a built wheel from `neia-api/dist/*.whl` when one exists.
 If no wheel is present, it falls back to installing from the copied source tree.
+The current wheel does not vendor third-party Python dependencies, so the target
+machine needs network access while `pip` creates the runtime virtualenv.
 
 ## Uninstall behavior
 
@@ -94,6 +202,7 @@ The Linux local scripts create a local runtime root with separate concerns:
 - `state/`: mutable state such as `installed.json`
 - `logs/`: daemon logs
 - `run/`: PID file
+- `workflows/`: saved built-in Nexus N3 workflow configurations (system installs)
 
 That separation mirrors the eventual packaged layout, where install content and
 mutable runtime state should not be mixed together.
@@ -113,16 +222,161 @@ For a system install, the intended split is:
 - `NEIA_STATE_DIR`
 - `NEIA_LOG_DIR`
 - `NEIA_RUN_DIR`
+- `NEIA_WORKFLOWS_DIR`
 - `NEIA_HOST`
 - `NEIA_PORT`
+
+## Windows local run
+
+Use the PowerShell helpers in [`windows`](./windows):
+
+- `start_local_daemon.ps1`
+- `stop_local_daemon.ps1`
+- `status_local_daemon.ps1`
+
+From PowerShell at the repository root:
+
+```powershell
+& .\deployment\desktop\windows\start_local_daemon.ps1
+& .\deployment\desktop\windows\status_local_daemon.ps1
+& .\deployment\desktop\windows\stop_local_daemon.ps1
+```
+
+The local Windows runtime is stored under
+`deployment/desktop/.runtime/windows-local`. As on Linux, the UI is rebuilt by
+default; pass `-SkipUiBuild` to reuse the existing bundle.
+
+## Windows installed desktop model
+
+Run the installer from an elevated Windows PowerShell window:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+& .\deployment\desktop\windows\install_windows_desktop.ps1
+```
+
+The installer:
+
+1. builds the refactored `neia-ui`
+2. installs immutable files under `C:\Program Files\Nexus N3 NEIA`
+3. stores state, logs, and workflows under `C:\ProgramData\Nexus N3 NEIA`
+4. creates a Python virtual environment and installs `neia-api`
+5. registers a `Nexus N3 NEIA` Scheduled Task at user logon
+6. adds a desktop shortcut for the installing user that starts the task and opens the UI
+
+Task Scheduler is used because an ordinary Python console process does not
+implement the Windows Service Control Manager protocol. This provides the same
+desktop-daemon lifecycle without requiring a third-party service wrapper.
+
+Installer switches mirror Linux behavior:
+
+- `-NoStart`
+- `-ForceEnv`
+- `-RebuildVenv`
+- `-SkipUiBuild`
+
+To uninstall while retaining saved workflows and other runtime state:
+
+```powershell
+& .\deployment\desktop\windows\uninstall_windows_desktop.ps1 -KeepData
+```
+
+The example Windows dotenv configuration is
+[`windows/neia-desktop.env.example`](./windows/neia-desktop.env.example).
+
+## Windows `.exe` packaging
+
+The installable Windows package is built with Inno Setup 6 using:
+
+```powershell
+& .\deployment\desktop\windows\installer\build_windows_installer.ps1
+```
+
+The builder:
+
+- rebuilds `neia-ui`, including built-in Nexus N3
+- rebuilds the `neia-api` wheel
+- stages only release content, excluding `node_modules`, source-only optional UI
+  directories, virtualenvs, caches, and the local Ollama model store
+- compiles `Nexus-N3-NEIA-Setup-<version>.exe` under
+  `deployment\desktop\windows\dist`
+
+Build prerequisites are Python 3.10+, the Python `build` package, Node/npm, and
+Inno Setup 6. Use `-SkipUiBuild` or `-SkipApiBuild` only when the corresponding
+existing artifact is known to be current. `-IsccPath` can locate a nonstandard
+Inno Setup installation.
+
+The target Windows machine needs Python 3.10+ on `PATH` and network access for
+third-party Python packages. The installer treats a failed PowerShell/runtime
+configuration as an installation failure instead of reporting false success.
+
+## macOS local run
+
+Use the shell helpers in [`macos`](./macos):
+
+```bash
+./deployment/desktop/macos/start_local_daemon.sh
+./deployment/desktop/macos/status_local_daemon.sh
+./deployment/desktop/macos/stop_local_daemon.sh
+```
+
+The local runtime is stored under `deployment/desktop/.runtime/macos-local`.
+The refactored `neia-ui` is rebuilt by default; set `NEIA_SKIP_UI_BUILD=1` only
+when the existing build is current.
+
+## macOS `.pkg` packaging
+
+Build the installable macOS package on a Mac with:
+
+```bash
+./deployment/desktop/macos/pkg/build_pkg.sh
+```
+
+The builder creates `deployment/desktop/macos/dist/Nexus-N3-NEIA-<version>.pkg`.
+It builds a standard application bundle under `/Applications`, configures a
+per-user LaunchAgent, and stores mutable runtime content in:
+
+- `~/Library/Application Support/Nexus N3 NEIA`
+- `~/Library/Logs/Nexus N3 NEIA`
+- `~/Library/LaunchAgents/com.rsnexus.neia.plist`
+
+This keeps saved workflows and optional-app state outside the signed/static
+application payload. The application launcher starts the agent and opens NEIA
+at `http://127.0.0.1:8080`.
+
+Build prerequisites are macOS 12+, Python 3.10+, the Python `build` package,
+Node/npm, and the standard Apple `pkgbuild`, `productbuild`, `plutil`, and
+`rsync` tools. Pass `--sign "Developer ID Installer: ..."` to sign with an
+available Installer certificate. Distribution outside a controlled test
+environment also requires Apple notarization.
+
+The target Mac needs Python 3.10+ and network access while the installer creates
+the per-user virtualenv. Package installation requires a logged-in desktop user
+because the LaunchAgent belongs to that user.
+
+After installing the package, validate the complete target-host contract with:
+
+```bash
+"/Applications/Nexus N3 NEIA.app/Contents/Resources/deployment/desktop/macos/test_macos_target.sh"
+```
+
+The test checks the application bundle, LaunchAgent, health endpoint, compiled
+refactored UI, workflow storage, and removal of the legacy optional `nexus`
+entry.
+
+Manual uninstall, preserving saved data:
+
+```bash
+sudo "/Applications/Nexus N3 NEIA.app/Contents/Resources/deployment/desktop/macos/uninstall_macos_desktop.sh" --keep-data
+```
 
 ## Next steps
 
 The next packaging layer should add:
 
-- `.deb` and/or `.rpm` packaging that wraps the current install assets
-- Windows installer/service packaging
-- macOS app/service packaging
+- `.rpm` packaging around the Linux install assets
+- signing for the Windows `.exe`, or an MSI/MSIX distribution wrapper
+- Apple notarization for public macOS distribution
 - app upload/import flow on top of the existing registry model
 
 ## Ubuntu `.deb` packaging
@@ -140,7 +394,7 @@ live under [`linux/deb`](./linux/deb):
 
 The `.deb` builder rebuilds `neia-ui/dist` from the current frontend source by
 default before packaging. This avoids shipping stale UI bundles that do not
-match the checked-out source code.
+match the checked-out source code, including the built-in Nexus N3 workflow.
 
 The intended UX on Ubuntu is:
 

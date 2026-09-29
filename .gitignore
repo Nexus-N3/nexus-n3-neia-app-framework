@@ -37,3 +37,6 @@ models/ollama/
 deployment/desktop/.runtime/
 deployment/desktop/linux/.build/
 deployment/desktop/linux/dist/
+deployment/desktop/.build/
+deployment/desktop/windows/dist/
+deployment/desktop/macos/dist/

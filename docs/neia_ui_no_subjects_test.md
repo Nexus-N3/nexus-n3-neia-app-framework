@@ -14,13 +14,13 @@ Start `neia-api`:
 
 ```bash
 cd /home/mike/Desktop/apps/dev/rs-nexus-project/nexus-n3-neia-app-framework/neia-api
-env PYTHONPATH=. uvicorn app.main:app --reload --host 0.0.0.0 --port 8050
+env PYTHONPATH=. python -m app.daemon --reload --host 0.0.0.0 --port 8080
 ```
 
 ## Add Subjects
 
 ```bash
-curl -X POST http://localhost:8050/api/v1/control-center/messages \
+curl -X POST http://localhost:8080/api/v1/control-center/messages \
   -H 'Content-Type: application/json' \
   -d '{
     "type": "subject_catalog_update",
@@ -58,7 +58,7 @@ Expected UI behavior:
 ## Add Session Configs
 
 ```bash
-curl -X POST http://localhost:8050/api/v1/control-center/messages \
+curl -X POST http://localhost:8080/api/v1/control-center/messages \
   -H 'Content-Type: application/json' \
   -d '{
     "type": "session_config_update",
@@ -172,7 +172,7 @@ Expected UI behavior:
 ## Clear Subjects
 
 ```bash
-curl -X POST http://localhost:8050/api/v1/control-center/messages \
+curl -X POST http://localhost:8080/api/v1/control-center/messages \
   -H 'Content-Type: application/json' \
   -d '{
     "type": "subject_catalog_update",
@@ -193,7 +193,7 @@ Expected UI behavior:
 ## Clear Session Configs
 
 ```bash
-curl -X POST http://localhost:8050/api/v1/control-center/messages \
+curl -X POST http://localhost:8080/api/v1/control-center/messages \
   -H 'Content-Type: application/json' \
   -d '{
     "type": "session_config_update",
@@ -216,7 +216,7 @@ Expected UI behavior:
 Open:
 
 ```text
-http://localhost:8050
+http://localhost:8080
 ```
 
 ## Expected Result
@@ -230,7 +230,7 @@ http://localhost:8050
 Confirm backend state:
 
 ```bash
-curl http://localhost:8050/api/v1/control-center/catalog
+curl http://localhost:8080/api/v1/control-center/catalog
 ```
 
 Expected response shape:

@@ -1,0 +1,23 @@
+neia_kiosk_enabled: false
+neia_kiosk_user: "{{ ansible_user }}"
+neia_kiosk_url: "http://localhost:8080"
+neia_kiosk_browser_cmd: firefox
+neia_kiosk_browser_name: Firefox
+neia_kiosk_firefox_profile: "/home/{{ neia_kiosk_user }}/snap/firefox/common/nexusn3-kiosk-profile"
+neia_kiosk_browser_args:
+  - "--no-remote"
+  - "--new-instance"
+  - "--profile"
+  - "{{ neia_kiosk_firefox_profile }}"
+  - "--new-window"
+neia_kiosk_moz_enable_wayland: "1"
+neia_kiosk_autologin: true
+neia_kiosk_disable_sleep: true
+neia_kiosk_remove_legacy_autostart: true
+neia_kiosk_packages:
+  - firefox
+  - curl
+  - xdg-desktop-portal
+  - xdg-desktop-portal-gnome
+  - xdg-desktop-portal-gtk
+  - dbus-x11
