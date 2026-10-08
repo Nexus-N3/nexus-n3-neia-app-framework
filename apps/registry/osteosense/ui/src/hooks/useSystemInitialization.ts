@@ -72,5 +72,7 @@ export const useSystemInitialization = (onSuccess: () => void) => {
     [sendCommand],
   );
 
-  return { isInitializing, errorMsg, initSystem };
+  const dismissError = useCallback(() => setErrorMsg(null), []);
+
+  return { isInitializing, errorMsg, initSystem, dismissError };
 };

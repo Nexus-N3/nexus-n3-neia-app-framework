@@ -16,13 +16,13 @@ import { NewActivityScreen } from './screens/NewActivityScreen';
 import { SubjectActivityScreen } from './screens/SubjectActivityScreen';
 import { ConfigBootstrapScreen } from './screens/ConfigBootstrapScreen';
 import { ResetButton } from './components/ResetButton';
-import { activeActivityAtom, batteryStatusesAtom, configuredSubjectsAtom, connectedSensorsAtom, selectedSessionConfigAtom, selectedSubjectAtom, sessionNameAtom, sessionStageAtom, streamDrainStateAtom, subjectCountAtom, subjectPrefixAtom } from './store/atoms';
+import { ErrorDismissButton } from './components/ErrorDismissButton';
+import { activeActivityAtom, batteryStatusesAtom, configuredSubjectsAtom, connectedSensorsAtom, selectedSessionConfigAtom, selectedSubjectAtom, sessionNameAtom, sessionStageAtom, subjectCountAtom, subjectPrefixAtom } from './store/atoms';
 import { GatewaySocketProvider } from './hooks/useGatewaySocket';
 import { useServerReadiness } from './hooks/useServerReadiness';
 import { useBatteryUpdatesCore } from './hooks/useBatteryUpdatesCore';
 import { useConnectedSensorUpdatesCore } from './hooks/useConnectedSensorUpdatesCore';
-import { useDisconnectSensorsCore } from './hooks/useDisconnectSensorsCore';
-import { useResetSessionState } from './hooks/useResetSessionState';
+import { useResetSession } from './hooks/useResetSession';
 import { useStreamLifecycleCore } from './hooks/useStreamLifecycleCore';
 import { useSessionEventIngestion } from './hooks/useSessionEventIngestion';
 import { readSelectedSubjectContext } from './utils/subjectContext';
@@ -50,8 +50,6 @@ const AppContent = () => {
   const navigate = useNavigate();
   const [sessionName] = useAtom(sessionNameAtom);
   const [activeActivity] = useAtom(activeActivityAtom);
-  const [connectedSensors] = useAtom(connectedSensorsAtom);
-  const [streamDrainState] = useAtom(streamDrainStateAtom);
   const setConfiguredSubjects = useSetAtom(configuredSubjectsAtom);
   const setSelectedSessionConfig = useSetAtom(selectedSessionConfigAtom);
   const setSelectedSubject = useSetAtom(selectedSubjectAtom);
@@ -62,8 +60,7 @@ const AppContent = () => {
   const setBatteryStatuses = useSetAtom(batteryStatusesAtom);
   const { batteryStatuses } = useBatteryUpdatesCore();
   const { connectedSensors: liveConnectedSensors } = useConnectedSensorUpdatesCore();
-  const { disconnectAll, isDisconnecting, isDrainPending } = useDisconnectSensorsCore();
-  const { resetSessionState } = useResetSessionState();
+  const { reset, isResetting, isDrainPending, errorMsg: resetError, dismissError: dismissResetError } = useResetSession();
   const isHome = location.pathname === '/';
   const isSessionRelated =
     location.pathname === '/session' ||
@@ -135,24 +132,6 @@ const AppContent = () => {
     setConnectedSensors(liveConnectedSensors);
   }, [liveConnectedSensors, setConnectedSensors]);
 
-  const hasConnectedSensors = Object.values(connectedSensors).some((sensors) => sensors.length > 0);
-
-  const handleReset = React.useCallback(async () => {
-    if (streamDrainState.pending) {
-      return;
-    }
-    if (hasConnectedSensors) {
-      try {
-        await disconnectAll();
-      } catch {
-        // Hook stores UI error state; continue resetting local UI state.
-      }
-    }
-
-    resetSessionState();
-    navigate('/', { replace: true });
-  }, [disconnectAll, hasConnectedSensors, navigate, resetSessionState, streamDrainState.pending]);
-
   return (
     <div className="nexus-shell">
       <div className="nexus-app">
@@ -166,14 +145,22 @@ const AppContent = () => {
             </div>
           </div>
           <div className="header-right">
-            <ResetButton onClick={handleReset} disabled={isDisconnecting || isDrainPending} />
+            <ResetButton onClick={reset} disabled={isResetting || isDrainPending} />
           </div>
         </header>
 
         <div className="header-line"></div>
 
+        {isResetting ? <div role="status">Resetting session...</div> : null}
+        {resetError ? (
+          <div className="error-banner error-dismissible" role="alert">
+            <p>{resetError}</p>
+            <p>The UI has been reset. Sensor cleanup remains unconfirmed; check the gateway and affected sensors before creating a new session.</p>
+            <ErrorDismissButton onClick={dismissResetError} />
+          </div>
+        ) : null}
         <div className="route-stage">
-          <Routes>
+          {!isResetting && <Routes>
             <Route path="/" element={<HomeScreen />} />
             <Route path="/new-session" element={<StageGuard required="session_creation"><NewSessionScreen /></StageGuard>} />
             <Route path="/subjects" element={<StageGuard required="subject_selection"><SubjectsRequiredScreen /></StageGuard>} />
@@ -185,7 +172,7 @@ const AppContent = () => {
             <Route path="/completed" element={<StageGuard required="completed"><ActiveSessionScreen /></StageGuard>} />
             <Route path="/new-activity" element={<StageGuard required="session_readiness"><NewActivityScreen /></StageGuard>} />
             <Route path="/activity/subject/:id" element={<StageGuard required="active"><SubjectActivityScreen /></StageGuard>} />
-          </Routes>
+          </Routes>}
         </div>
       </div>
     </div>

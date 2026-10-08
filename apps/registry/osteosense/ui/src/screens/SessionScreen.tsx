@@ -9,7 +9,6 @@ import { SubjectsCarousel } from '../components/SubjectsCarousel';
 import { subjectCountAtom, setupsAtom, selectedSetupIdAtom, selectedSubjectAtom, placedSensorsAtom, subjectPrefixAtom, discoveredSensorsAtom, connectedSensorsAtom } from '../store/atoms';
 import { useDiscoverSensorsCore } from '../hooks/useDiscoverSensorsCore';
 import { useDisconnectSensorsCore } from '../hooks/useDisconnectSensorsCore';
-import { useResetSessionState } from '../hooks/useResetSessionState';
 import { buildWorkflowSubjects } from '../utils/subjects';
 
 export const SessionScreen: React.FC = () => {
@@ -36,9 +35,7 @@ export const SessionScreen: React.FC = () => {
     dismiss,
     discoveredSensors: liveDiscoveredSensors,
   } = useDiscoverSensorsCore();
-  const { disconnectAll, disconnectCount, isDisconnecting, errorMsg: disconnectError, dismissError: dismissDisconnectError } = useDisconnectSensorsCore();
-  const { resetSessionState } = useResetSessionState();
-  const [disconnectRequested, setDisconnectRequested] = useState(false);
+  const { disconnectAll, isDisconnecting, errorMsg: disconnectError, dismissError: dismissDisconnectError } = useDisconnectSensorsCore();
 
   // Pagination state (we show 4 items at a time in a 2x2 grid)
   const [currentPage, setCurrentPage] = useState(0);
@@ -59,15 +56,6 @@ export const SessionScreen: React.FC = () => {
   const handleBack = () => {
     navigate('/sensor-setup');
   };
-
-  useEffect(() => {
-    if (!disconnectRequested || disconnectCount === 0) {
-      return;
-    }
-
-    resetSessionState();
-    navigate('/');
-  }, [disconnectCount, disconnectRequested, navigate, resetSessionState]);
 
   useEffect(() => {
     setDiscoveredSensors(liveDiscoveredSensors);
@@ -235,11 +223,10 @@ export const SessionScreen: React.FC = () => {
         <button
           className="nexus-btn disconnect-btn"
           onClick={async () => {
-            setDisconnectRequested(true);
             try {
               await disconnectAll();
             } catch {
-              setDisconnectRequested(false);
+              // The hook displays the cleanup error.
             }
           }}
           disabled={isBusy || isDisconnecting}

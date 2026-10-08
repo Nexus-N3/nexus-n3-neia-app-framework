@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCore } from '../../core/CoreProvider';
 import { BackButton } from '../components/BackButton';
 import { InfoButton } from '../components/InfoButton';
+import { ErrorDismissButton } from '../components/ErrorDismissButton';
 import { ScreenLayout } from '../components/ScreenLayout';
 import { NEXUS_N3_APP } from '../config';
 import { useSystemInitialization } from '../hooks/useSystemInitialization';
@@ -79,7 +80,7 @@ export const SensorSetupScreen: React.FC = () => {
   const activeRows = activeSubject ? rowsBySubject[activeSubject.name] ?? [] : [];
   const availableSensors = capabilities?.sensors.filter((sensor) => sensor.available) ?? [];
 
-  const { isInitializing, errorMsg, initSystem } = useSystemInitialization(() => {
+  const { isInitializing, errorMsg, initSystem, dismissError } = useSystemInitialization(() => {
     setSessionStage('sensor_discovery');
     navigate('/session');
   });
@@ -163,7 +164,14 @@ export const SensorSetupScreen: React.FC = () => {
         </div>
       }
     >
-      {errorMsg ? <div className="error-banner">Error: {errorMsg}</div> : null}
+      {errorMsg ? (
+        <div className="error-banner error-dismissible" role="alert">
+          <p>Error: {errorMsg}</p>
+          <p>Dismiss this error, then use Reset to start over.</p>
+          <ErrorDismissButton onClick={dismissError} />
+        </div>
+      ) : null}
+
 
       <div className="subject-configuration-layout">
         <nav className="subject-config-tabs" aria-label="Subjects">

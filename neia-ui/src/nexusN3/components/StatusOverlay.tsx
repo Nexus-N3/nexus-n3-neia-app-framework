@@ -1,4 +1,5 @@
 import React from 'react';
+import { ErrorDismissButton } from './ErrorDismissButton';
 
 interface StatusOverlayProps {
   busy?: boolean;
@@ -24,7 +25,7 @@ export const StatusOverlay: React.FC<StatusOverlayProps> = ({
 
   return (
     <div className="overlay-backdrop" onClick={!busy ? onDismiss : undefined}>
-      <div className="overlay-modal" onClick={(event) => event.stopPropagation()}>
+      <div className={`overlay-modal${!busy && onDismiss ? ' error-dismissible' : ''}`} onClick={(event) => event.stopPropagation()}>
         {busy && <div className="overlay-spinner" />}
         {statusText && <div className="overlay-status">{statusText}</div>}
         {visibleErrors.map((error, index) => (
@@ -33,9 +34,7 @@ export const StatusOverlay: React.FC<StatusOverlayProps> = ({
           </div>
         ))}
         {!busy && onDismiss && (
-          <button className="nexus-btn" onClick={onDismiss}>
-            {dismissLabel}
-          </button>
+          <ErrorDismissButton onClick={onDismiss} label={dismissLabel} />
         )}
       </div>
     </div>

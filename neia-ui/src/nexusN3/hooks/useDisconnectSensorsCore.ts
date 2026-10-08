@@ -1,128 +1,86 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { useGatewaySocket } from './useGatewaySocket';
-import {
-  connectedSensorsAtom,
-  streamDrainStateAtom,
-} from '../store/atoms';
+import { streamDrainStateAtom } from '../store/atoms';
+import { collectCleanupResult, collectCleanupParticipants, cancelCleanupOperation, cleanupTimeoutError, createCleanupOperation, type CleanupOperation, type CleanupResult } from './cleanupResults';
 
 export const useDisconnectSensorsCore = () => {
   const { sendCommand, subscribe } = useGatewaySocket();
   const streamDrainState = useAtomValue(streamDrainStateAtom);
-  const connectedSensors = useAtomValue(connectedSensorsAtom);
-
+  const operation = useRef<CleanupOperation | null>(null);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
+  const [cleanupComplete, setCleanupComplete] = useState(false);
+  const [cleanupFailed, setCleanupFailed] = useState(false);
+  const [cleanupResults, setCleanupResults] = useState<CleanupResult[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [disconnectCount, setDisconnectCount] = useState(0);
+  useEffect(() => subscribe((msg) => {
+    const current = operation.current;
+    if (!current) return;
+    const payload = typeof msg.payload === 'object' && msg.payload ? msg.payload as Record<string, unknown> : {};
+    if (msg.type === 'sensor_cleanup_started') {
+      collectCleanupParticipants(current, payload);
+    } else if (msg.type === 'sensor_cleanup_complete') {
+      const results = collectCleanupResult(current, payload);
+      if (!results) return;
+      cancelCleanupOperation(operation.current);
+      operation.current = null;
+      setCleanupResults(results);
+      setCleanupComplete(true);
+      setIsDisconnecting(false);
+      const unresolved = results.filter((result) => result.status === 'unconfirmed' || result.status === 'failed');
+      setCleanupFailed(unresolved.length > 0);
+      if (unresolved.length) setErrorMsg(`Physical cleanup unconfirmed: ${unresolved.map((result) => `${result.name || result.address}${result.location ? ` (${result.location.replace(/_/g, ' ')})` : ''}: ${result.error || result.status}`).join('; ')}`);
+    } else if (msg.type === 'error' && payload.correlation_id === current.correlationId) {
+      cancelCleanupOperation(operation.current);
+      operation.current = null;
+      setIsDisconnecting(false);
+      setErrorMsg(typeof payload.message === 'string' ? payload.message : 'Failed to clean up sensors.');
+    }
+  }), [subscribe]);
 
-  const expectedDisconnectsRef = useRef(0);
-  const receivedDisconnectsRef = useRef(0);
+  useEffect(() => () => cancelCleanupOperation(operation.current), []);
 
-  useEffect(() => {
-    const unsubscribe = subscribe((msg) => {
-      if (!isDisconnecting) {
-        return;
-      }
-
-      if (msg.type === 'sensor_disconnected') {
-        const payload =
-          typeof msg.payload === 'object' && msg.payload
-            ? msg.payload as Record<string, unknown>
-            : {};
-
-        const disconnectedRaw = payload.disconnected_sensors;
-
-        const disconnectedCount = Array.isArray(disconnectedRaw)
-          ? Math.max(disconnectedRaw.length, 1)
-          : disconnectedRaw
-            ? 1
-            : 1;
-
-        receivedDisconnectsRef.current += disconnectedCount;
-        setDisconnectCount(receivedDisconnectsRef.current);
-
-        if (
-          receivedDisconnectsRef.current >=
-          expectedDisconnectsRef.current
-        ) {
-          setIsDisconnecting(false);
-        }
-
-        return;
-      }
-
-      if (msg.type === 'error') {
-        const payload = msg.payload;
-
-        const message =
-          typeof payload === 'string'
-            ? payload
-            : typeof payload === 'object' &&
-                payload &&
-                'message' in payload &&
-                typeof payload.message === 'string'
-              ? payload.message
-              : 'Failed to disconnect sensors.';
-
-        setErrorMsg(message);
-        setIsDisconnecting(false);
-      }
-    });
-
-    return unsubscribe;
-  }, [isDisconnecting, subscribe]);
-
-  const disconnectAll = useCallback(async () => {
+  const disconnect = useCallback(async (subjectIds?: string[]) => {
+    if (operation.current) return;
     if (streamDrainState.pending) {
-      const message =
-        'Session finalization is still in progress. Wait for stream drain to complete before disconnecting.';
-
+      const message = 'Session finalization is still in progress. Wait for stream drain to complete before disconnecting.';
       setErrorMsg(message);
       throw new Error(message);
     }
-
-    expectedDisconnectsRef.current = Object.values(connectedSensors).reduce(
-      (total, sensors) => total + sensors.length,
-      0,
-    );
-    receivedDisconnectsRef.current = 0;
-
-    setDisconnectCount(0);
+    const current = createCleanupOperation((expired) => {
+      if (operation.current !== expired) return;
+      operation.current = null;
+      setCleanupResults([...expired.nodes.values()].flat());
+      setCleanupComplete(true);
+      setIsDisconnecting(false);
+      setCleanupFailed(true);
+      setErrorMsg(cleanupTimeoutError(expired));
+    });
+    operation.current = current;
+    setCleanupComplete(false);
+    setCleanupFailed(false);
+    setCleanupResults([]);
     setIsDisconnecting(true);
     setErrorMsg(null);
-
     try {
-      await sendCommand({ type: 'disconnect_all' });
-
-      if (expectedDisconnectsRef.current === 0) {
-        setIsDisconnecting(false);
-      }
+      await sendCommand({ type: subjectIds ? 'disconnect_subjects' : 'disconnect_all', payload: {
+        correlation_id: current.correlationId, ...(subjectIds ? { subject_ids: subjectIds } : {}),
+      } });
     } catch (error) {
-      console.error(
-        '[useDisconnectSensorsCore] Failed to send disconnect command:',
-        error,
-      );
-
-      setErrorMsg('Failed to disconnect sensors.');
+      if (operation.current !== current) throw error;
+      cancelCleanupOperation(operation.current);
+      operation.current = null;
       setIsDisconnecting(false);
+      setErrorMsg('Failed to send sensor cleanup command.');
       throw error;
     }
-  }, [
-    connectedSensors,
-    sendCommand,
-    streamDrainState.pending,
-  ]);
-
-  const dismissError = useCallback(() => {
-    setErrorMsg(null);
-  }, []);
-
+  }, [sendCommand, streamDrainState.pending]);
+  const disconnectAll = useCallback(() => disconnect(), [disconnect]);
   return {
-    disconnectAll,
-    disconnectCount,
-    isDisconnecting,
-    isDrainPending: streamDrainState.pending,
-    errorMsg,
-    dismissError,
+    disconnectAll, disconnectSubjects: disconnect, cleanupComplete, cleanupResults,
+    cleanupSucceeded: cleanupComplete && !cleanupFailed,
+    disconnectCount: cleanupComplete ? cleanupResults.length : 0,
+    isDisconnecting, isDrainPending: streamDrainState.pending, errorMsg,
+    dismissError: useCallback(() => setErrorMsg(null), []),
   };
 };

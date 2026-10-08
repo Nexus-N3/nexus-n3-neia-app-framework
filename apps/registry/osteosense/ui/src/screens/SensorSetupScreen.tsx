@@ -18,7 +18,7 @@ export const SensorSetupScreen: React.FC = () => {
   const [subjectPrefix] = useAtom(subjectPrefixAtom);
   const [selectedSubject] = useAtom(selectedSubjectAtom);
 
-  const { isInitializing, errorMsg, initSystem } = useSystemInitialization(() => {
+  const { isInitializing, errorMsg, initSystem, dismissError } = useSystemInitialization(() => {
     navigate('/session');
   });
 
@@ -140,8 +140,11 @@ export const SensorSetupScreen: React.FC = () => {
       {errorMsg && (
         <div className="error-banner">
           Error: {errorMsg}
+          <p>Dismiss this error, then use Reset to start over.</p>
+          <button className="nexus-btn secondary-btn" onClick={dismissError}>Dismiss error</button>
         </div>
       )}
+
 
       <div className="split-panel-grid">
         {/* Left: Setup List */}

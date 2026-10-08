@@ -15,7 +15,7 @@ const gateway = vi.hoisted(() => {
   const listeners = new Set<(message: Record<string, unknown>) => void>();
   return {
     listeners,
-    sendCommand: vi.fn(async () => undefined),
+    sendCommand: vi.fn(async (_command: { type: string; payload?: Record<string, unknown> }) => undefined),
     emit(message: Record<string, unknown>) {
       listeners.forEach((listener) => listener(message));
     },
@@ -88,7 +88,7 @@ describe('retained Core lifecycle hooks', () => {
 
     act(() => result.current.recoverAndConnect(['AA', 'BB']));
     expect(result.current.phase).toBe('disconnecting');
-    expect(gateway.sendCommand).toHaveBeenLastCalledWith({ type: 'disconnect_all' });
+    expect(gateway.sendCommand).toHaveBeenLastCalledWith({ type: 'disconnect_all', payload: { correlation_id: expect.any(String) } });
 
     act(() => gateway.emit({
       type: 'sensor_disconnected',
@@ -97,8 +97,8 @@ describe('retained Core lifecycle hooks', () => {
     expect(result.current.phase).toBe('disconnecting');
 
     act(() => gateway.emit({
-      type: 'sensor_disconnected',
-      payload: { disconnected_sensors: ['BB'] },
+      type: 'sensor_cleanup_complete',
+      payload: { correlation_id: gateway.sendCommand.mock.calls[0][0].payload!.correlation_id, node_id: 'standalone', expected_node_ids: ['standalone'], results: [{ address: 'AA', status: 'cleaned' }, { address: 'BB', status: 'cleaned' }] },
     }));
     expect(result.current.phase).toBe('discovering');
     expect(gateway.sendCommand).toHaveBeenLastCalledWith({ type: 'discover_sensors' });
@@ -119,12 +119,12 @@ describe('retained Core lifecycle hooks', () => {
     expect(result.current.activeSubjectId).toBe('subject-2');
     expect(gateway.sendCommand).toHaveBeenLastCalledWith({
       type: 'disconnect_subjects',
-      payload: { subject_ids: ['subject-2'] },
+      payload: { subject_ids: ['subject-2'], correlation_id: expect.any(String) },
     });
 
     act(() => gateway.emit({
-      type: 'sensor_disconnected',
-      payload: { disconnected_sensors: ['CC', 'DD'] },
+      type: 'sensor_cleanup_complete',
+      payload: { correlation_id: gateway.sendCommand.mock.calls[0][0].payload!.correlation_id, node_id: 'standalone', expected_node_ids: ['standalone'], results: [{ address: 'CC', status: 'cleaned' }, { address: 'DD', status: 'cleaned' }] },
     }));
     expect(gateway.sendCommand).toHaveBeenLastCalledWith({
       type: 'discover_sensors_for_subjects',
@@ -232,7 +232,7 @@ describe('retained Core lifecycle hooks', () => {
       payload: {},
     }));
 
-    expect(disconnect.result.current.disconnectCount).toBe(1);
+    expect(disconnect.result.current.disconnectCount).toBe(0);
     expect(disconnect.result.current.isDisconnecting).toBe(true);
 
     act(() => gateway.emit({
@@ -240,7 +240,16 @@ describe('retained Core lifecycle hooks', () => {
       payload: {},
     }));
 
+    expect(disconnect.result.current.isDisconnecting).toBe(true);
+    act(() => gateway.emit({ type: 'sensor_cleanup_complete', payload: {
+      correlation_id: gateway.sendCommand.mock.calls[gateway.sendCommand.mock.calls.length - 1][0].payload!.correlation_id,
+      node_id: 'standalone', expected_node_ids: ['standalone'], results: [
+        { address: 'AA:BB:CC:DD:EE:01', status: 'cleaned' },
+        { address: 'AA:BB:CC:DD:EE:02', status: 'cleaned' },
+      ],
+    } }));
     expect(disconnect.result.current.disconnectCount).toBe(2);
+    expect(disconnect.result.current.cleanupComplete).toBe(true);
     expect(disconnect.result.current.isDisconnecting).toBe(false);
   });
 

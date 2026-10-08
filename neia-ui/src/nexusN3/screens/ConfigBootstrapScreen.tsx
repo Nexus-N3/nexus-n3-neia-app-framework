@@ -17,7 +17,7 @@ export const ConfigBootstrapScreen: React.FC = () => {
   const bootstrapStartedRef = React.useRef(false);
   const sessionConfig = React.useMemo(() => readSelectedSessionConfig(), []);
 
-  const { isInitializing, errorMsg: initError, initSystem } = useSystemInitialization(() => {
+  const { isInitializing, errorMsg: initError, initSystem, dismissError } = useSystemInitialization(() => {
     clearSelectedSessionConfig();
     setSessionStage('sensor_discovery');
     navigate('/session', { replace: true });
@@ -67,6 +67,8 @@ export const ConfigBootstrapScreen: React.FC = () => {
         busy={isInitializing}
         statusText={statusText}
         errors={[initError]}
+        dismissLabel="Dismiss error"
+        onDismiss={dismissError}
       />
     </ScreenLayout>
   );

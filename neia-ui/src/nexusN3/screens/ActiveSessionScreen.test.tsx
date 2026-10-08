@@ -1,7 +1,7 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { Provider, createStore } from 'jotai';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useLocation } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   activeActivityAtom,
@@ -21,15 +21,21 @@ import {
   subjectSensorRowsAtom,
 } from '../store/atoms';
 import { ActiveSessionScreen, incrementActivityTag } from './ActiveSessionScreen';
+import { useStreamLifecycleCore } from '../hooks/useStreamLifecycleCore';
+import { useResetSession } from '../hooks/useResetSession';
 
 const gateway = vi.hoisted(() => ({
-  sendCommand: vi.fn(async () => undefined),
+  sendCommand: vi.fn(async (_command: { type: string; payload?: Record<string, unknown> }) => undefined),
+  listeners: new Set<(message: Record<string, unknown>) => void>(),
 }));
 
 vi.mock('../hooks/useGatewaySocket', () => ({
   useGatewaySocket: () => ({
     sendCommand: gateway.sendCommand,
-    subscribe: () => () => undefined,
+    subscribe: (listener: (message: Record<string, unknown>) => void) => {
+      gateway.listeners.add(listener);
+      return () => gateway.listeners.delete(listener);
+    },
   }),
 }));
 
@@ -40,6 +46,57 @@ vi.mock('../components/SaveWorkflowButton', () => ({
 describe('ActiveSessionScreen repeat session', () => {
   beforeEach(() => {
     gateway.sendCommand.mockClear();
+    gateway.listeners.clear();
+  });
+
+  it('lets the user dismiss a terminal physical-stop timeout without claiming successful finalization', async () => {
+    const store = createStore();
+    store.set(sessionStageAtom, 'active');
+    store.set(activeActivityAtom, 'Run_01');
+    store.set(configuredSubjectsAtom, [{ subject_id: 'subject-1', display_name: 'Subject One' }]);
+    store.set(activeStreamTargetSubjectIdsAtom, ['subject-1']);
+    const reason = 'physical sensor stop failed: PluginTransportError: Timed out waiting for gateway response';
+    const Lifecycle = () => {
+      useStreamLifecycleCore();
+      const { reset, isResetting, isDrainPending } = useResetSession();
+      const location = useLocation();
+      return <>
+        <button onClick={reset} disabled={isResetting || isDrainPending}>Reset UI</button>
+        <span data-testid="current-route">{location.pathname}</span>
+        <ActiveSessionScreen />
+      </>;
+    };
+    render(<Provider store={store}><MemoryRouter initialEntries={['/active-session']}><Lifecycle /></MemoryRouter></Provider>);
+
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'End session' })));
+    expect(document.querySelector('.overlay-spinner')).not.toBeNull();
+    expect(screen.queryByRole('button', { name: 'Dismiss error' })).not.toBeInTheDocument();
+    act(() => gateway.listeners.forEach((listener) => listener({
+      type: 'stream_drained', payload: {
+        subject_ids: ['subject-1'], status: 'error', reason,
+        physical_stop_complete: false, session_archive_exists: false,
+      },
+    })));
+    expect(screen.getByText(reason)).toBeVisible();
+    expect(document.querySelector('.overlay-spinner')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Dismiss error' }));
+    expect(document.querySelector('.overlay-backdrop')).toBeNull();
+    expect(store.get(streamDrainStateAtom).pending).toBe(false);
+    expect(store.get(streamDrainStateAtom).status).toBe(reason);
+    expect(store.get(streamLifecycleBySubjectAtom)['subject-1'].phase).toBe('finalization_failed');
+    expect(store.get(sessionStageAtom)).toBe('active');
+    expect(screen.getByRole('button', { name: 'End session' })).toBeEnabled();
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Reset UI' })));
+    expect(gateway.sendCommand).toHaveBeenLastCalledWith({ type: 'disconnect_all', payload: { correlation_id: expect.any(String) } });
+    const command = gateway.sendCommand.mock.calls[gateway.sendCommand.mock.calls.length - 1][0];
+    act(() => gateway.listeners.forEach((listener) => listener({
+      type: 'sensor_cleanup_complete', payload: {
+        correlation_id: command.payload!.correlation_id,
+        node_id: 'standalone', expected_node_ids: ['standalone'], results: [],
+      },
+    })));
+    expect(screen.getByTestId('current-route')).toHaveTextContent('/');
+    expect(store.get(sessionStageAtom)).toBe('idle');
   });
 
   it.each([

@@ -3,6 +3,8 @@ import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { BackButton } from '../components/BackButton';
 import { ErrorBanner } from '../components/ErrorBanner';
+import { LiveSensorWarnings } from '../components/LiveSensorWarnings';
+import { lostSensorWarningsAtom } from '../components/LiveSensorWarnings';
 import { EventResultsPanel } from '../components/EventResultsPanel';
 import { InfoButton } from '../components/InfoButton';
 import { ScreenHeader } from '../components/ScreenHeader';
@@ -55,6 +57,7 @@ export const ActiveSessionScreen: React.FC = () => {
   const [sessionStage, setSessionStage] = useAtom(sessionStageAtom);
   const streamLifecycle = useAtomValue(streamLifecycleBySubjectAtom);
   const streamDrainState = useAtomValue(streamDrainStateAtom);
+  const setLostSensorWarnings = useSetAtom(lostSensorWarningsAtom);
   const setSessionEvents = useSetAtom(sessionEventsAtom);
   const setLatestComputeResults = useSetAtom(latestComputeResultsAtom);
   const setLatestIntermediateResults = useSetAtom(latestIntermediateResultsAtom);
@@ -81,12 +84,23 @@ export const ActiveSessionScreen: React.FC = () => {
     dismissError: dismissStartError,
   } = useStartStream();
   const [ending, setEnding] = useState(false);
+  const [finalizationErrorDismissed, setFinalizationErrorDismissed] = useState(false);
 
   const subjects = useMemo(
     () => buildWorkflowSubjects(subjectCount, subjectPrefix, configuredSubjects, selectedSubject),
     [configuredSubjects, selectedSubject, subjectCount, subjectPrefix],
   );
   const completed = sessionStage === 'completed';
+  const finalizationFailed = !streamDrainState.pending && subjects.some(
+    (subject) => streamLifecycle[subject.name]?.phase === 'finalization_failed',
+  );
+  const finalizationError = finalizationFailed && !finalizationErrorDismissed
+    ? streamDrainState.status ?? 'Session finalization failed.'
+    : null;
+
+  useEffect(() => {
+    if (finalizationFailed) setEnding(false);
+  }, [finalizationFailed]);
 
   useEffect(() => {
     if (completed && location.pathname !== '/completed') {
@@ -96,6 +110,7 @@ export const ActiveSessionScreen: React.FC = () => {
 
   const handleEndSession = async () => {
     if (isStopping || ending || completed) return;
+    setFinalizationErrorDismissed(false);
     setEnding(true);
     try {
       await stopStreamForSubjects(subjects.map((subject) => subject.name));
@@ -110,6 +125,8 @@ export const ActiveSessionScreen: React.FC = () => {
     const nextTag = incrementActivityTag(activeActivity);
     const subjectIds = subjects.map((subject) => subject.name);
 
+    setLostSensorWarnings([]);
+    setFinalizationErrorDismissed(false);
     setSessionEvents([]);
     setLatestComputeResults({});
     setLatestIntermediateResults({});
@@ -135,6 +152,7 @@ export const ActiveSessionScreen: React.FC = () => {
   };
 
   const handleReset = () => {
+    if (isDisconnecting || isDrainPending) return;
     resetSessionState();
     navigate('/', { replace: true });
   };
@@ -184,6 +202,7 @@ export const ActiveSessionScreen: React.FC = () => {
 </div>
 
       <EventResultsPanel completed={completed} />
+      <LiveSensorWarnings suppressed={ending || isStopping || isDisconnecting || completed} />
 
       {/*<details className="specialized-results">
         <summary>Specialized computation views</summary>
@@ -215,11 +234,11 @@ export const ActiveSessionScreen: React.FC = () => {
             <button
               className="nexus-btn secondary-btn"
               onClick={handleRepeatSession}
-              disabled={isStarting || !activeActivity}
+              disabled={isStarting || isDisconnecting || isDrainPending || !activeActivity}
             >
               {isStarting ? 'Starting repeat...' : 'Repeat session'}
             </button>
-            <button className="nexus-btn" onClick={handleReset}>
+            <button className="nexus-btn" onClick={handleReset} disabled={isDisconnecting || isDrainPending}>
               Start another session
             </button>
           </>
@@ -245,18 +264,23 @@ export const ActiveSessionScreen: React.FC = () => {
       </div>
 
       <StatusOverlay
-        busy={isDisconnecting || isStarting || streamDrainState.pending || (ending && !completed)}
+        busy={isDisconnecting || isStarting || streamDrainState.pending || (ending && !completed && !finalizationFailed)}
         statusText={
           isDisconnecting
             ? 'Disconnecting sensors...'
             : isStarting
               ? 'Starting repeat session...'
-              : streamDrainState.pending || (ending && !completed)
+              : streamDrainState.pending || (ending && !completed && !finalizationFailed)
                 ? streamDrainState.status ?? 'Finalizing session results...'
                 : null
         }
-        errors={[disconnectError, startError]}
-        onDismiss={disconnectError ? dismissDisconnectError : startError ? dismissStartError : undefined}
+        errors={[disconnectError, startError, finalizationError]}
+        dismissLabel="Dismiss error"
+        onDismiss={disconnectError || startError || finalizationError ? () => {
+          dismissDisconnectError();
+          dismissStartError();
+          setFinalizationErrorDismissed(true);
+        } : undefined}
       />
     </ScreenLayout>
   );

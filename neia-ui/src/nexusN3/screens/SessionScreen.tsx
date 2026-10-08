@@ -10,7 +10,6 @@ import { ScreenLayout } from '../components/ScreenLayout';
 import { configuredSubjectsAtom, subjectCountAtom, selectedSubjectAtom, placedSensorsAtom, subjectPrefixAtom, discoveredSensorsAtom, connectedSensorsAtom, serverReadyAtom, sessionStageAtom, streamDrainStateAtom, subjectSensorRowsAtom } from '../store/atoms';
 import { useDiscoverSensorsCore } from '../hooks/useDiscoverSensorsCore';
 import { useDisconnectSensorsCore } from '../hooks/useDisconnectSensorsCore';
-import { useResetSessionState } from '../hooks/useResetSessionState';
 import { isCompactFlowViewport } from '../utils/displayProfiles';
 import { buildWorkflowSubjects } from '../utils/subjects';
 
@@ -43,14 +42,11 @@ export const SessionScreen: React.FC = () => {
   } = useDiscoverSensorsCore();
   const {
     disconnectAll,
-    disconnectCount,
     isDisconnecting,
     isDrainPending,
     errorMsg: disconnectError,
     dismissError: dismissDisconnectError,
   } = useDisconnectSensorsCore();
-  const { resetSessionState } = useResetSessionState();
-  const [disconnectRequested, setDisconnectRequested] = useState(false);
 
   // Pagination state (larger screens show 4 items at a time, compact shows 1)
   const [currentPage, setCurrentPage] = useState(0);
@@ -69,15 +65,6 @@ export const SessionScreen: React.FC = () => {
   const handleBack = () => {
     navigate('/sensor-setup');
   };
-
-  useEffect(() => {
-    if (!disconnectRequested || disconnectCount === 0) {
-      return;
-    }
-
-    resetSessionState();
-    navigate('/');
-  }, [disconnectCount, disconnectRequested, navigate, resetSessionState]);
 
   useEffect(() => {
     setDiscoveredSensors(liveDiscoveredSensors);
@@ -182,11 +169,10 @@ export const SessionScreen: React.FC = () => {
           <button
             className="nexus-btn disconnect-btn"
             onClick={async () => {
-              setDisconnectRequested(true);
               try {
                 await disconnectAll();
               } catch {
-                setDisconnectRequested(false);
+                // The hook displays the cleanup error.
               }
             }}
             disabled={isBusy || isDisconnecting || isDrainPending}

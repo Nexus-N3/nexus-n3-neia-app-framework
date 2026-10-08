@@ -785,6 +785,10 @@
     font-size: 11px;
   }
 
+  .error-dismissible {
+    padding-right: 2.75rem;
+  }
+
   .server-status-container {
     margin-right: 4px;
   }

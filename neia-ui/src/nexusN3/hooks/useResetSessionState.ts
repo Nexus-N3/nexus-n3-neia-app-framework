@@ -1,3 +1,4 @@
+import { lostSensorWarningsAtom } from '../components/LiveSensorWarnings';
 import { useCallback } from 'react';
 import { useSetAtom } from 'jotai';
 import {
@@ -27,6 +28,7 @@ import {
 
 export const useResetSessionState = () => {
   const setSessionName = useSetAtom(sessionNameAtom);
+  const setLostSensorWarnings = useSetAtom(lostSensorWarningsAtom);
   const setSessionEvents = useSetAtom(sessionEventsAtom);
   const setSessionStage = useSetAtom(sessionStageAtom);
   const setSubjectSensorRows = useSetAtom(subjectSensorRowsAtom);
@@ -51,6 +53,7 @@ export const useResetSessionState = () => {
 
   const resetSessionState = useCallback(() => {
     setSessionName('');
+    setLostSensorWarnings([]);
     setSessionEvents([]);
     setSessionStage('idle');
     setSubjectSensorRows({});
@@ -78,6 +81,7 @@ export const useResetSessionState = () => {
     });
     setActiveWorkflowId(null);
   }, [
+    setLostSensorWarnings,
     setActiveActivity,
     setActiveStreamTargetSubjectIds,
     setBatteryStatuses,

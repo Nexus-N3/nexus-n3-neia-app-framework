@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { Provider, createStore } from 'jotai';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useLocation } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   connectedSensorsAtom,
@@ -17,7 +17,7 @@ const gateway = vi.hoisted(() => {
   const listeners = new Set<(message: Record<string, unknown>) => void>();
   return {
     listeners,
-    sendCommand: vi.fn(async () => undefined),
+    sendCommand: vi.fn(async (_command: { type: string; payload?: Record<string, unknown> }) => undefined),
     emit(message: Record<string, unknown>) {
       listeners.forEach((listener) => listener(message));
     },
@@ -76,14 +76,14 @@ describe('SessionScreen sensor connection gating', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Connect subject' }));
     expect(gateway.sendCommand).toHaveBeenLastCalledWith({
       type: 'disconnect_subjects',
-      payload: { subject_ids: ['Subject_1'] },
+      payload: { subject_ids: ['Subject_1'], correlation_id: expect.any(String) },
     });
     expect(screen.getByText('Disconnecting sensors...')).toBeVisible();
     expect(store.get(connectedSensorsAtom).Subject_1).toHaveLength(2);
 
     act(() => gateway.emit({
-      type: 'sensor_disconnected',
-      payload: { disconnected_sensors: ['AA', 'BB'] },
+      type: 'sensor_cleanup_complete',
+      payload: { correlation_id: gateway.sendCommand.mock.calls[0][0].payload!.correlation_id, node_id: 'standalone', expected_node_ids: ['standalone'], results: [{ address: 'AA', status: 'cleaned' }, { address: 'BB', status: 'cleaned' }] },
     }));
     expect(gateway.sendCommand).toHaveBeenLastCalledWith({
       type: 'discover_sensors_for_subjects',
@@ -101,4 +101,23 @@ describe('SessionScreen sensor connection gating', () => {
     });
     expect(screen.getByText('Connecting sensors...')).toBeVisible();
   });
+});
+
+
+it.each(['cleaned', 'unconfirmed'])('explicit disconnect stays on the screen after %s completion', async (status) => {
+  const store = createStore();
+  store.set(serverReadyAtom, true);
+  store.set(sessionStageAtom, 'sensor_discovery');
+  store.set(subjectCountAtom, 1);
+  function RouteProbe() { return <div data-testid="route">{useLocation().pathname}</div>; }
+  render(<Provider store={store}><MemoryRouter initialEntries={['/session']}><SessionScreen /><RouteProbe /></MemoryRouter></Provider>);
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Disconnect sensors' })));
+  const correlation_id = gateway.sendCommand.mock.calls[0][0].payload!.correlation_id;
+  act(() => gateway.emit({ type: 'sensor_cleanup_complete', payload: {
+    correlation_id, node_id: 'standalone', expected_node_ids: ['standalone'],
+    results: [{ address: 'A', status, ...(status === 'unconfirmed' ? { error: 'Sensor unreachable' } : {}) }],
+  } }));
+  expect(screen.getByTestId('route')).toHaveTextContent('/session');
+  expect(store.get(sessionStageAtom)).toBe('sensor_discovery');
+  if (status === 'unconfirmed') expect(screen.getByText(/Sensor unreachable/)).toBeVisible();
 });
