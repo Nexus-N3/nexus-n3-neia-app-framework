@@ -13,7 +13,7 @@ import { StatusOverlay } from '../components/StatusOverlay';
 import { useDisconnectSensorsCore } from '../hooks/useDisconnectSensorsCore';
 import { useLatestComputeResults } from '../hooks/useLatestComputeResults';
 import { useLatestIntermediateResults } from '../hooks/useLatestIntermediateResults';
-import { useResetSessionState } from '../hooks/useResetSessionState';
+import { useResetSession } from '../hooks/useResetSession';
 import { useStartStream } from '../hooks/useStartStream';
 import { useStopStream } from '../hooks/useStopStream';
 import {
@@ -76,7 +76,7 @@ export const ActiveSessionScreen: React.FC = () => {
     errorMsg: disconnectError,
     dismissError: dismissDisconnectError,
   } = useDisconnectSensorsCore();
-  const { resetSessionState } = useResetSessionState();
+  const { reset, isResetting, errorMsg: resetError, dismissError: dismissResetError } = useResetSession();
   const {
     startStreamForSubjects,
     isStarting,
@@ -153,13 +153,13 @@ export const ActiveSessionScreen: React.FC = () => {
 
   const handleReset = () => {
     if (isDisconnecting || isDrainPending) return;
-    resetSessionState();
-    navigate('/', { replace: true });
+    void reset();
   };
 
   return (
     <ScreenLayout className="screen-layout active-session-screen event-centred-session">
       {stopError ? <ErrorBanner message={stopError} onDismiss={dismissStopError} /> : null}
+      {resetError ? <ErrorBanner message={resetError} onDismiss={dismissResetError} /> : null}
       {disconnectError ? <ErrorBanner message={disconnectError} onDismiss={dismissDisconnectError} /> : null}
       {startError ? <ErrorBanner message={startError} onDismiss={dismissStartError} /> : null}
 
@@ -238,7 +238,7 @@ export const ActiveSessionScreen: React.FC = () => {
             >
               {isStarting ? 'Starting repeat...' : 'Repeat session'}
             </button>
-            <button className="nexus-btn" onClick={handleReset} disabled={isDisconnecting || isDrainPending}>
+            <button className="nexus-btn" onClick={handleReset} disabled={isDisconnecting || isDrainPending || isResetting}>
               Start another session
             </button>
           </>

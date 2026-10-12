@@ -6,7 +6,7 @@ import { clearSelectedSessionConfig } from '../utils/sessionConfigContext';
 
 export const useResetSession = () => {
   const navigate = useNavigate();
-  const cleanup = useDisconnectSensorsCore();
+  const cleanup = useDisconnectSensorsCore(true);
   const { resetSessionState } = useResetSessionState();
   const requested = useRef(false);
   const [isResetting, setIsResetting] = useState(false);
@@ -16,25 +16,28 @@ export const useResetSession = () => {
         || (!cleanup.cleanupComplete && !cleanup.errorMsg)) return;
     requested.current = false;
     setIsResetting(false);
-    // Starting over is allowed even when physical cleanup is unconfirmed.
+    if (cleanup.coreReadyForConfiguration !== true) return;
+    // Core allows configuration even when some physical resources remain unavailable.
     // Keep the cleanup error visible; only Core can confirm a new initialization.
     clearSelectedSessionConfig();
     resetSessionState();
     navigate('/', { replace: true });
-  }, [cleanup.isDisconnecting, cleanup.cleanupComplete, cleanup.errorMsg, navigate, resetSessionState]);
+  }, [cleanup.isDisconnecting, cleanup.cleanupComplete, cleanup.errorMsg, cleanup.coreReadyForConfiguration, navigate, resetSessionState]);
 
-  const reset = useCallback(async () => {
+  const reset = useCallback(async (options: { allow_ble_reset?: boolean; confirmed_stopped_sensor_addresses?: string[] } = {}) => {
     if (requested.current || cleanup.isDrainPending) return;
     requested.current = true;
     setIsResetting(true);
     try {
       // UI connection knowledge is lost on refresh; always ask Core to clean up.
-      await cleanup.disconnectAll();
+      await cleanup.disconnectAll(options);
     } catch {
-      // The cleanup hook reports failure, which also completes the UI reset.
+      // Retain configuration until an authoritative Core recovery acknowledgement.
     }
   }, [cleanup.isDrainPending, cleanup.disconnectAll]);
 
   return { reset, isResetting, isDrainPending: cleanup.isDrainPending,
+    coreReadyForConfiguration: cleanup.coreReadyForConfiguration,
+    gatewayCommunicationAvailable: cleanup.gatewayCommunicationAvailable, recoveryResults: cleanup.cleanupResults,
     errorMsg: cleanup.errorMsg, dismissError: cleanup.dismissError };
 };

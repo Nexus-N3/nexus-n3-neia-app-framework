@@ -5,6 +5,9 @@ export interface CleanupResult {
   status: 'cleaned' | 'already_clean' | 'unconfirmed' | 'failed';
   error?: string;
   link_connected?: boolean;
+  measurement_stop_confirmed?: boolean;
+  eligible_for_acquisition?: boolean;
+  confirmation_source?: 'operator' | 'plugin';
 }
 export interface CleanupOperation {
   correlationId: string;

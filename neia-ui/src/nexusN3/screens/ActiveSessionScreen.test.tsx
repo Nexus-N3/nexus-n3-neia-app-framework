@@ -61,7 +61,7 @@ describe('ActiveSessionScreen repeat session', () => {
       const { reset, isResetting, isDrainPending } = useResetSession();
       const location = useLocation();
       return <>
-        <button onClick={reset} disabled={isResetting || isDrainPending}>Reset UI</button>
+        <button onClick={() => void reset()} disabled={isResetting || isDrainPending}>Reset UI</button>
         <span data-testid="current-route">{location.pathname}</span>
         <ActiveSessionScreen />
       </>;
@@ -87,12 +87,12 @@ describe('ActiveSessionScreen repeat session', () => {
     expect(store.get(sessionStageAtom)).toBe('active');
     expect(screen.getByRole('button', { name: 'End session' })).toBeEnabled();
     await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Reset UI' })));
-    expect(gateway.sendCommand).toHaveBeenLastCalledWith({ type: 'disconnect_all', payload: { correlation_id: expect.any(String) } });
+    expect(gateway.sendCommand).toHaveBeenLastCalledWith({ type: 'disconnect_all', payload: { correlation_id: expect.any(String), recover_session: true } });
     const command = gateway.sendCommand.mock.calls[gateway.sendCommand.mock.calls.length - 1][0];
     act(() => gateway.listeners.forEach((listener) => listener({
       type: 'sensor_cleanup_complete', payload: {
         correlation_id: command.payload!.correlation_id,
-        node_id: 'standalone', expected_node_ids: ['standalone'], results: [],
+        node_id: 'standalone', expected_node_ids: ['standalone'], core_ready_for_configuration: true, gateway_communication_available: true, results: [],
       },
     })));
     expect(screen.getByTestId('current-route')).toHaveTextContent('/');

@@ -60,7 +60,7 @@ const AppContent = () => {
   const setBatteryStatuses = useSetAtom(batteryStatusesAtom);
   const { batteryStatuses } = useBatteryUpdatesCore();
   const { connectedSensors: liveConnectedSensors } = useConnectedSensorUpdatesCore();
-  const { reset, isResetting, isDrainPending, errorMsg: resetError, dismissError: dismissResetError } = useResetSession();
+  const { reset, isResetting, isDrainPending, errorMsg: resetError, dismissError: dismissResetError, coreReadyForConfiguration, gatewayCommunicationAvailable, recoveryResults } = useResetSession();
   const isHome = location.pathname === '/';
   const isSessionRelated =
     location.pathname === '/session' ||
@@ -151,11 +151,24 @@ const AppContent = () => {
 
         <div className="header-line"></div>
 
-        {isResetting ? <div role="status">Resetting session...</div> : null}
+        {isResetting ? <div role="status">Recovering session resources...</div> : null}
+        {coreReadyForConfiguration === true ? <div role="status">Last Reset: Core ready for configuration. Gateway communication {gatewayCommunicationAvailable ? 'available' : 'unavailable'}.</div> : null}
         {resetError ? (
           <div className="error-banner error-dismissible" role="alert">
             <p>{resetError}</p>
-            <p>The UI has been reset. Sensor cleanup remains unconfirmed; check the gateway and affected sensors before creating a new session.</p>
+            <p>{coreReadyForConfiguration === true
+              ? 'You can configure a new session. Affected sensors remain unavailable for acquisition until reconciled.'
+              : 'Core recovery has not been confirmed. Retry Reset; your configuration is retained.'}</p>
+            {coreReadyForConfiguration && gatewayCommunicationAvailable && recoveryResults.some((sensor) => sensor.eligible_for_acquisition === false) ? (
+              <div>
+                <p>After stopping or power cycling the listed sensors, verify their measurement indicators are off. Confirming this will also reset the gateway BLE connections.</p>
+                <button className="nexus-btn secondary-btn" disabled={isResetting || isDrainPending}
+                  onClick={() => void reset({ allow_ble_reset: true,
+                    confirmed_stopped_sensor_addresses: recoveryResults.filter((sensor) => sensor.eligible_for_acquisition === false).map((sensor) => sensor.address) })}>
+                  Confirm listed sensors stopped and recover
+                </button>
+              </div>
+            ) : null}
             <ErrorDismissButton onClick={dismissResetError} />
           </div>
         ) : null}
