@@ -246,6 +246,12 @@ export const useStreamLifecycleCore = () => {
 
       if (msg.type === 'stream_drained') {
         const payload = isRecord(msg.payload) ? msg.payload : {};
+        // Distributed nodes report local drains individually. Completion is
+        // owned by the master's existing STOP barrier, including finalization.
+        // Keep node-local failure reporting available without declaring success.
+        if (payload.stop_session_id && payload.aggregate !== true && payload.status !== 'error') {
+          return;
+        }
 
         const normalizedSubjectIds = normalizeSubjectIds(payload);
         const drainedSubjectIds =
@@ -281,7 +287,7 @@ export const useStreamLifecycleCore = () => {
           sessionArchiveExists: archiveExists,
         });
 
-        if (!failed) {
+        if (!failed && payload.all_streams_drained !== false) {
           setSessionStage('completed');
         }
 
