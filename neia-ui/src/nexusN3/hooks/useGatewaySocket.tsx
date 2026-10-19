@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { createContext, useCallback, useContext, useRef, type ReactNode } from "react";
 
 import { useCore } from "../../core/CoreProvider";
 
@@ -10,15 +10,24 @@ export interface GatewaySocketContext {
   sendCommand: (command: object) => Promise<void>;
 }
 
-export function GatewaySocketProvider({ children }: { children: ReactNode }) {
-  return children;
+const CommandsPausedContext = createContext(false);
+
+export function GatewaySocketProvider({ children, commandsPaused = false }: { children: ReactNode; commandsPaused?: boolean }) {
+  return <CommandsPausedContext.Provider value={commandsPaused}>{children}</CommandsPausedContext.Provider>;
 }
 
 export function useGatewaySocket(): GatewaySocketContext {
   const { eventConnected, sendCommand, subscribe } = useCore();
+  const commandsPaused = useContext(CommandsPausedContext);
+  const pausedRef = useRef(commandsPaused);
+  pausedRef.current = commandsPaused;
+  const sendWorkflowCommand = useCallback(async (command: object) => {
+    if (pausedRef.current) throw new Error('Session exit is in progress.');
+    await sendCommand(command);
+  }, [sendCommand]);
   return {
     connected: eventConnected,
-    sendCommand,
+    sendCommand: sendWorkflowCommand,
     subscribe,
   };
 }

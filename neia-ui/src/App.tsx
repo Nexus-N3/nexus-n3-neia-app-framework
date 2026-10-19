@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { MainLayout } from "./components/MainLayout";
 import { RemoteOperationOverlay } from "./components/RemoteOperationOverlay";
@@ -7,6 +7,7 @@ import { CoreProvider, useCore } from "./core/CoreProvider";
 import { invalidateAppsSnapshot, useApps } from "./hooks/useApps";
 import { useHashRoute } from "./hooks/useHashRoute";
 import { NexusN3View } from "./nexusN3/NexusN3View";
+import { useSessionAbandonment } from "./nexusN3/hooks/useSessionAbandonment";
 import { AppCatalogScreen } from "./screens/AppCatalogScreen";
 import { AppHostScreen } from "./screens/AppHostScreen";
 import { CoreCapabilitiesScreen } from "./screens/CoreCapabilitiesScreen";
@@ -68,8 +69,17 @@ function AppContent() {
   const [showStartup, setShowStartup] = useState(!isStartupSequenceDone() && !isAppRoute);
   const [startupExiting, setStartupExiting] = useState(false);
 
-  const navigate = (nextRoute: string) => {
+  const navigate = useCallback((nextRoute: string) => {
     window.location.hash = nextRoute;
+  }, []);
+  const abandonment = useSessionAbandonment(navigate);
+  const navigateFromMenu = (nextRoute: string) => {
+    if (abandonment.navigationBlocked || abandonment.isAbandoning) return;
+    if (route === '/session') {
+      void abandonment.leave(nextRoute);
+    } else {
+      navigate(nextRoute);
+    }
   };
 
   const install = async (appId: string) => {
@@ -342,7 +352,7 @@ function AppContent() {
       );
       break;
     case "/session":
-      view = <NexusN3View />;
+      view = <NexusN3View commandsPaused={abandonment.isAbandoning} />;
       break;
     case "/workflows":
       view = <WorkflowsScreen />;
@@ -364,8 +374,15 @@ function AppContent() {
 
   return (
     <>
-      <MainLayout connection={connection} route={route} onNavigate={navigate}>
-        {view}
+      <MainLayout connection={connection} route={route} onNavigate={navigateFromMenu} navigationDisabled={abandonment.isAbandoning || abandonment.navigationBlocked}>
+        {abandonment.navigationBlockReason ? <p role="status">{abandonment.navigationBlockReason}</p> : null}
+        {abandonment.isAbandoning ? <p role="status">{abandonment.message}</p> : null}
+        {abandonment.error ? <p role="alert" className="form-message-v2 error">{abandonment.error}</p> : null}
+        {route === '/session' ? (
+          <fieldset disabled={abandonment.isAbandoning} style={{ border: 0, margin: 0, padding: 0, minWidth: 0 }}>
+            {view}
+          </fieldset>
+        ) : view}
       </MainLayout>
       {showStartup ? <StartupSequence stage={startupStage} exiting={startupExiting} /> : null}
     </>

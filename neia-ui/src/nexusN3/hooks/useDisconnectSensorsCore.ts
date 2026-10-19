@@ -11,6 +11,7 @@ export const useDisconnectSensorsCore = (recoverSession = false) => {
   const recoveryNodes = useRef(new Map<string, Record<string, unknown>>());
   const [gatewayCommunicationAvailable, setGatewayCommunicationAvailable] = useState<boolean | null>(null);
   const [coreReadyForConfiguration, setCoreReadyForConfiguration] = useState<boolean | null>(null);
+  const [recoveryComplete, setRecoveryComplete] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [cleanupComplete, setCleanupComplete] = useState(false);
   const [cleanupFailed, setCleanupFailed] = useState(false);
@@ -34,6 +35,7 @@ export const useDisconnectSensorsCore = (recoverSession = false) => {
       if (recoverSession) {
         setCoreReadyForConfiguration(coreReady);
         setGatewayCommunicationAvailable(nodes.every((node) => node.gateway_communication_available === true));
+        setRecoveryComplete(nodes.every((node) => node.recovery_complete === true));
       }
       if (recoverSession && !coreReady) setErrorMsg('Core recovery is not confirmed. Retry Reset.');
       else if (recoverSession && nodes.some((node) => node.gateway_communication_available === false)) setErrorMsg('Core is ready for configuration, but gateway communication is unavailable. Restore UART communication and retry Reset before acquisition.');
@@ -71,6 +73,7 @@ export const useDisconnectSensorsCore = (recoverSession = false) => {
     operation.current = current;
     recoveryNodes.current.clear();
     setCoreReadyForConfiguration(null);
+    setRecoveryComplete(false);
     setGatewayCommunicationAvailable(null);
     setCleanupComplete(false);
     setCleanupFailed(false);
@@ -95,7 +98,7 @@ export const useDisconnectSensorsCore = (recoverSession = false) => {
   }, [sendCommand, streamDrainState.pending, recoverSession]);
   const disconnectAll = useCallback((options?: { allow_ble_reset?: boolean; confirmed_stopped_sensor_addresses?: string[] }) => disconnect(undefined, options), [disconnect]);
   return {
-    coreReadyForConfiguration, gatewayCommunicationAvailable, disconnectAll, disconnectSubjects: disconnect, cleanupComplete, cleanupResults,
+    coreReadyForConfiguration, gatewayCommunicationAvailable, recoveryComplete, disconnectAll, disconnectSubjects: disconnect, cleanupComplete, cleanupResults,
     cleanupSucceeded: cleanupComplete && !cleanupFailed,
     disconnectCount: cleanupComplete ? cleanupResults.length : 0,
     isDisconnecting, isDrainPending: streamDrainState.pending, errorMsg,

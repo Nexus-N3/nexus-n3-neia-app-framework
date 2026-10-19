@@ -54,6 +54,9 @@ class CoreStateStore:
             "updated_at": None,
         }
         self._archive_service: dict[str, Any] = {"available": False}
+        self._recovery_id: str | None = None
+        self._recovery_expected: set[str] = set()
+        self._recovery_nodes: dict[str, dict[str, Any]] = {}
         self._status: dict[str, Any] = {
             "version": None,
             "mode": None,
@@ -99,6 +102,47 @@ class CoreStateStore:
                 }
             )
 
+    def record_command(self, command: dict[str, Any]) -> None:
+        """Track recovery before dispatch so only its complete replies retire state."""
+        with self._lock:
+            payload = _record(command.get("payload"))
+            if command.get("type") == "disconnect_all" and payload.get("recover_session") is True:
+                self._recovery_id = _string(payload.get("correlation_id"))
+                self._recovery_expected = set()
+                self._recovery_nodes = {}
+            elif command.get("type") in {"init_system", "start_stream_for_all", "start_stream_for_subjects"}:
+                self._recovery_id = None
+
+    def _ingest_recovery(self, event_type: str, payload: dict[str, Any], received_at: str) -> None:
+        if not self._recovery_id or payload.get("correlation_id") != self._recovery_id:
+            return
+        expected = payload.get("expected_node_ids")
+        if not isinstance(expected, list) or not expected or not all(isinstance(node, str) and node for node in expected):
+            return
+        self._recovery_expected.update(expected)
+        if event_type == "sensor_cleanup_complete":
+            node_id = _string(payload.get("node_id"))
+            if node_id not in self._recovery_expected:
+                return
+            self._recovery_nodes[node_id] = payload
+        if not self._recovery_expected.issubset(self._recovery_nodes):
+            return
+        for node_id in self._recovery_expected:
+            node = self._recovery_nodes[node_id]
+            results = node.get("results")
+            if (node.get("core_ready_for_configuration") is not True
+                or node.get("gateway_communication_available") is not True
+                or node.get("recovery_complete") is not True
+                or not isinstance(results, list)
+                or any(not isinstance(result, dict)
+                       or result.get("status") not in {"cleaned", "already_clean"}
+                       or result.get("link_connected") is not False
+                       for result in results)):
+                return
+        self._status["active_session"] = {"state": "inactive", "session_id": None}
+        self._status["updated_at"] = received_at
+        self._recovery_id = None
+
     def handle_gateway_event(self, event: dict[str, Any]) -> None:
         #print(f"gateway event", event)
         if not isinstance(event, dict):
@@ -111,6 +155,10 @@ class CoreStateStore:
         received_at = _utc_now_iso()
         with self._lock:
             self._connection["last_event_at"] = received_at
+            if event_type in {"sensor_cleanup_started", "sensor_cleanup_complete"}:
+                self._ingest_recovery(event_type, payload, received_at)
+            elif event_type in {"system_initialized", "stream_started", "stream_warmup_started", "stream_official_started"}:
+                self._recovery_id = None
 
             if event_type == "server_ready":
                 #print(f"server ready payload", payload)

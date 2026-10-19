@@ -339,6 +339,8 @@ export function CoreProvider({ children }: { children: ReactNode }) {
             type.includes("health") ||
             type.startsWith("stream_") ||
             type === "system_initialized" ||
+            type === "sensor_cleanup_complete" ||
+            type === "system_reset" ||
             type === "session_completed"
           ) {
             scheduleRefresh();

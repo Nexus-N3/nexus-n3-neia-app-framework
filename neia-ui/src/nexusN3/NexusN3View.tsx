@@ -192,12 +192,12 @@ const AppContent = () => {
   );
 };
 
-export const NexusN3View = () => {
+export const NexusN3View = ({ commandsPaused = false }: { commandsPaused?: boolean }) => {
   return (
     <>
       <div className="nexus-n3-built-in-view">
         <MemoryRouter>
-        <GatewaySocketProvider>
+        <GatewaySocketProvider commandsPaused={commandsPaused}>
           <AppContent />
         </GatewaySocketProvider>
         </MemoryRouter>

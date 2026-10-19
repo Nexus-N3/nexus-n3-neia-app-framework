@@ -19,6 +19,7 @@ router = APIRouter(
 
 @router.post("/command")
 def send_gateway_command(command: dict, services: AppServices = Depends(get_services)):
+    services.core_state_store.record_command(command)
     services.gateway_manager.send_command(command)
     return {"status": "sent"}
 

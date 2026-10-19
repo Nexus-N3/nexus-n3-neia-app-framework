@@ -8,6 +8,7 @@ type MainLayoutProps = {
   connection: CoreConnection | null;
   route: string;
   onNavigate: (route: string) => void;
+  navigationDisabled?: boolean;
 };
 
 const MENU_ITEMS = [
@@ -20,7 +21,7 @@ const MENU_ITEMS = [
   { route: "/archives", label: "Archives" },
 ];
 
-export function MainLayout({ children, connection, route, onNavigate }: MainLayoutProps) {
+export function MainLayout({ children, connection, route, onNavigate, navigationDisabled = false }: MainLayoutProps) {
   const connectionState = connection?.state ?? "disconnected";
   const endpoint = connection?.target_host ?? "Not configured";
 
@@ -54,6 +55,7 @@ export function MainLayout({ children, connection, route, onNavigate }: MainLayo
                 : ""
             }
             key={item.route}
+            disabled={navigationDisabled}
             onClick={() => onNavigate(item.route)}
             type="button"
             aria-current={
