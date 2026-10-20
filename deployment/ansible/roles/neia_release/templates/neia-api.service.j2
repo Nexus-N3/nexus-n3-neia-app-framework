@@ -1,20 +1,18 @@
 [Unit]
-Description=Nexus N3 NEIA App Framework API
+Description=Nexus N3 NEIA App Framework Daemon
 After=network.target
 
 [Service]
 Type=simple
 User={{ neia_service_user }}
 Group={{ neia_service_group }}
-WorkingDirectory={{ neia_install_root }}
-{% for key, value in neia_service_env.items() %}
-{% if value is not none and (value | string | length) > 0 %}
-Environment={{ key }}={{ value }}
-{% endif %}
-{% endfor %}
-ExecStart={{ neia_venv_path }}/bin/uvicorn app.main:app --host {{ neia_host }} --port {{ neia_port }}
+WorkingDirectory={{ neia_api_dir }}
+EnvironmentFile={{ neia_config_file }}
+ExecStart={{ neia_venv_path }}/bin/python -m app.daemon --host ${NEIA_HOST} --port ${NEIA_PORT}
 Restart=on-failure
 RestartSec=3
+RuntimeDirectory={{ neia_runtime_directory }}
+RuntimeDirectoryMode=0755
 
 [Install]
 WantedBy=multi-user.target

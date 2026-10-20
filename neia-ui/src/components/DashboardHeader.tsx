@@ -10,7 +10,7 @@ type DashboardHeaderProps = {
 export function DashboardHeader({
   children,
   description,
-  logoSrc = "/neia_logo.png",
+  logoSrc = "/logo.svg",
   title,
 }: DashboardHeaderProps) {
   return (

@@ -18,8 +18,7 @@ import { GatewaySocketProvider } from './hooks/useGatewaySocket';
 import { useServerReadiness } from './hooks/useServerReadiness';
 import { useBatteryUpdatesCore } from './hooks/useBatteryUpdatesCore';
 import { useConnectedSensorUpdatesCore } from './hooks/useConnectedSensorUpdatesCore';
-import { useDisconnectSensorsCore } from './hooks/useDisconnectSensorsCore';
-import { useResetSessionState } from './hooks/useResetSessionState';
+import { useResetSession } from './hooks/useResetSession';
 import { useStreamLifecycleCore } from './hooks/useStreamLifecycleCore';
 import { readSelectedSubjectContext } from './utils/subjectContext';
 
@@ -30,7 +29,6 @@ const AppContent = () => {
   const navigate = useNavigate();
   const [sessionName] = useAtom(sessionNameAtom);
   const [activeActivity] = useAtom(activeActivityAtom);
-  const [connectedSensors] = useAtom(connectedSensorsAtom);
   const [serverReady] = useAtom(serverReadyAtom);
   const setSelectedSubject = useSetAtom(selectedSubjectAtom);
   const setSubjectCount = useSetAtom(subjectCountAtom);
@@ -39,8 +37,7 @@ const AppContent = () => {
   const setBatteryStatuses = useSetAtom(batteryStatusesAtom);
   const { batteryStatuses } = useBatteryUpdatesCore();
   const { connectedSensors: liveConnectedSensors } = useConnectedSensorUpdatesCore();
-  const { disconnectAll, isDisconnecting } = useDisconnectSensorsCore();
-  const { resetSessionState } = useResetSessionState();
+  const { reset, isResetting, isDrainPending, errorMsg: resetError, dismissError: dismissResetError, coreReadyForConfiguration, gatewayCommunicationAvailable, recoveryResults } = useResetSession();
   const isHome = location.pathname === '/';
   const isSessionRelated =
     location.pathname === '/session' ||
@@ -78,21 +75,6 @@ const AppContent = () => {
     setConnectedSensors(liveConnectedSensors);
   }, [liveConnectedSensors, setConnectedSensors]);
 
-  const hasConnectedSensors = Object.values(connectedSensors).some((sensors) => sensors.length > 0);
-
-  const handleReset = React.useCallback(async () => {
-    if (hasConnectedSensors) {
-      try {
-        await disconnectAll();
-      } catch {
-        // Hook stores UI error state; continue resetting local UI state.
-      }
-    }
-
-    resetSessionState();
-    navigate('/', { replace: true });
-  }, [disconnectAll, hasConnectedSensors, navigate, resetSessionState]);
-
   return (
     <div className="nexus-shell">
       <div className="nexus-app">
@@ -106,14 +88,35 @@ const AppContent = () => {
             </div>
           </div>
           <div className="header-right">
-            <ResetButton onClick={handleReset} disabled={isDisconnecting} />
+            <ResetButton onClick={reset} disabled={isResetting || isDrainPending} />
           </div>
         </header>
 
         <div className="header-line"></div>
 
+        {isResetting ? <div role="status">Recovering session resources...</div> : null}
+        {coreReadyForConfiguration === true ? <div role="status">Last Reset: Core ready for configuration. Gateway communication {gatewayCommunicationAvailable ? 'available' : 'unavailable'}.</div> : null}
+        {resetError ? (
+          <div className="error-banner" role="alert">
+            <p>{resetError}</p>
+            <p>{coreReadyForConfiguration === true
+              ? 'You can configure a new session. Affected sensors remain unavailable for acquisition until reconciled.'
+              : 'Core recovery has not been confirmed. Retry Reset; your configuration is retained.'}</p>
+            {coreReadyForConfiguration && gatewayCommunicationAvailable && recoveryResults.some((sensor) => sensor.eligible_for_acquisition === false) ? (
+              <div>
+                <p>After stopping or power cycling the listed sensors, verify their measurement indicators are off. Confirming this will also reset the gateway BLE connections.</p>
+                <button className="nexus-btn secondary-btn" disabled={isResetting || isDrainPending}
+                  onClick={() => void reset({ allow_ble_reset: true,
+                    confirmed_stopped_sensor_addresses: recoveryResults.filter((sensor) => sensor.eligible_for_acquisition === false).map((sensor) => sensor.address) })}>
+                  Confirm listed sensors stopped and recover
+                </button>
+              </div>
+            ) : null}
+            <button className="nexus-btn secondary-btn" onClick={dismissResetError}>Dismiss error</button>
+          </div>
+        ) : null}
         <div className="route-stage">
-          <Routes>
+          {!isResetting && <Routes>
             <Route path="/" element={<HomeScreen />} />
             <Route path="/subjects" element={<SubjectsRequiredScreen />} />
             <Route path="/sensor-setup" element={<SensorSetupScreen />} />
@@ -121,7 +124,7 @@ const AppContent = () => {
             <Route path="/assign-sensors" element={<AssignSensorsScreen />} />
             <Route path="/active-session" element={<ActiveSessionScreen />} />
             <Route path="/new-activity" element={<NewActivityScreen />} />
-          </Routes>
+          </Routes>}
         </div>
       </div>
     </div>

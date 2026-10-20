@@ -9,7 +9,6 @@ import { SubjectsCarousel } from '../components/SubjectsCarousel';
 import { subjectCountAtom, setupsAtom, selectedSetupIdAtom, selectedSubjectAtom, placedSensorsAtom, subjectPrefixAtom, discoveredSensorsAtom, connectedSensorsAtom } from '../store/atoms';
 import { useDiscoverSensorsCore } from '../hooks/useDiscoverSensorsCore';
 import { useDisconnectSensorsCore } from '../hooks/useDisconnectSensorsCore';
-import { useResetSessionState } from '../hooks/useResetSessionState';
 import { buildWorkflowSubjects } from '../utils/subjects';
 
 export const SessionScreen: React.FC = () => {
@@ -23,19 +22,20 @@ export const SessionScreen: React.FC = () => {
   const [discoveredSensors] = useAtom(discoveredSensorsAtom);
   const [connectedSensors] = useAtom(connectedSensorsAtom);
   const setDiscoveredSensors = useSetAtom(discoveredSensorsAtom);
+  const setConnectedSensors = useSetAtom(connectedSensorsAtom);
   const {
     phase,
     isBusy,
     activeSubjectId,
     errorMsg: discoverError,
     discoverAndConnect,
+    recoverAndConnect,
+    recoverAndConnectForSubject,
     discoverAndConnectForSubject,
     dismiss,
     discoveredSensors: liveDiscoveredSensors,
   } = useDiscoverSensorsCore();
-  const { disconnectAll, disconnectCount, isDisconnecting, errorMsg: disconnectError, dismissError: dismissDisconnectError } = useDisconnectSensorsCore();
-  const { resetSessionState } = useResetSessionState();
-  const [disconnectRequested, setDisconnectRequested] = useState(false);
+  const { disconnectAll, isDisconnecting, errorMsg: disconnectError, dismissError: dismissDisconnectError } = useDisconnectSensorsCore();
 
   // Pagination state (we show 4 items at a time in a 2x2 grid)
   const [currentPage, setCurrentPage] = useState(0);
@@ -58,25 +58,34 @@ export const SessionScreen: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!disconnectRequested || disconnectCount === 0) {
-      return;
-    }
-
-    resetSessionState();
-    navigate('/');
-  }, [disconnectCount, disconnectRequested, navigate, resetSessionState]);
-
-  useEffect(() => {
     setDiscoveredSensors(liveDiscoveredSensors);
   }, [liveDiscoveredSensors, setDiscoveredSensors]);
 
-  // Generate subjects based on count
+  const connectedAddresses = Array.from(new Set(
+    Object.values(connectedSensors)
+      .flat()
+      .filter((sensor) => sensor.status.toUpperCase() === 'CONNECTED')
+      .map((sensor) => sensor.address.toUpperCase()),
+  ));
+  const claimedConnectedAddresses = new Set<string>();
+
+  // Generate subjects based on count. A physical address can satisfy only one
+  // configured sensor, even if a stale payload lists it more than once.
   const subjects = buildWorkflowSubjects(subjectCount, subjectPrefix, selectedSubject).map((subject) => {
     const id = subject.id;
     const subjectId = subject.name;
     const placedCount = selectedSetup ? selectedSetup.sensors.filter((s) => placedSensors.has(`${id}:${s.id}`)).length : 0;
     const discovered = discoveredSensors[subjectId.toLowerCase()] ?? discoveredSensors[subjectId] ?? [];
-    const connected = connectedSensors[subjectId.toLowerCase()] ?? connectedSensors[subjectId] ?? [];
+    const connected = (connectedSensors[subjectId.toLowerCase()] ?? connectedSensors[subjectId] ?? [])
+      .filter((sensor) => sensor.status.toUpperCase() === 'CONNECTED')
+      .filter((sensor) => {
+        const address = sensor.address.toUpperCase();
+        if (claimedConnectedAddresses.has(address)) {
+          return false;
+        }
+        claimedConnectedAddresses.add(address);
+        return true;
+      });
 
     return {
       id,
@@ -90,7 +99,37 @@ export const SessionScreen: React.FC = () => {
     };
   });
 
-  const allSensorsPlaced = subjects.length > 0 && subjects.every((s) => s.sensorsPlaced >= s.sensorsRequired && s.sensorsRequired > 0);
+  const allSubjectsReady = subjects.length > 0 && subjects.every(
+    (subject) => subject.sensorsRequired > 0
+      && subject.sensorsConnected >= subject.sensorsRequired
+      && subject.sensorsPlaced >= subject.sensorsRequired,
+  );
+
+  const startConnection = (subjectId?: string) => {
+    if (subjectId) {
+      const subjectConnectedAddresses = Array.from(new Set(
+        (connectedSensors[subjectId.toLowerCase()] ?? connectedSensors[subjectId] ?? [])
+          .filter((sensor) => sensor.status.toUpperCase() === 'CONNECTED')
+          .map((sensor) => sensor.address.toUpperCase()),
+      ));
+
+      if (subjectConnectedAddresses.length > 0) {
+        recoverAndConnectForSubject(subjectId, subjectConnectedAddresses);
+      } else {
+        discoverAndConnectForSubject(subjectId);
+      }
+      return;
+    }
+
+    if (connectedAddresses.length > 0) {
+      setConnectedSensors({});
+      setDiscoveredSensors({});
+      recoverAndConnect(connectedAddresses);
+      return;
+    }
+
+    discoverAndConnect();
+  };
 
   // Get current page subjects
   const currentSubjects = subjects.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
@@ -108,17 +147,25 @@ export const SessionScreen: React.FC = () => {
       {/* Grid Content */}
       <div className="subjects-grid">
         {currentSubjects.map((subject) => {
-          const isComplete = subject.sensorsPlaced >= subject.sensorsRequired && subject.sensorsRequired > 0;
-          const isConnected = subject.sensorsConnected > 0;
+          const hasAllRequiredConnections = subject.sensorsRequired > 0
+            && subject.sensorsConnected >= subject.sensorsRequired;
+          const isComplete = hasAllRequiredConnections
+            && subject.sensorsPlaced >= subject.sensorsRequired;
           const isSubjectBusy = isBusy && activeSubjectId === subject.name;
-          const buttonLabel = isComplete ? 'Subject Connected' : isConnected ? 'Place sensors' : isSubjectBusy ? 'Connecting...' : 'Connect subject';
+          const buttonLabel = isComplete
+            ? 'Subject Connected'
+            : hasAllRequiredConnections
+              ? 'Place sensors'
+              : isSubjectBusy
+                ? 'Connecting...'
+                : 'Connect subject';
           const handleSubjectAction = () => {
-            if (isComplete || isConnected) {
+            if (hasAllRequiredConnections) {
               navigate(`/assign-sensors?subjectId=${subject.id}`);
               return;
             }
 
-            discoverAndConnectForSubject(subject.name);
+            startConnection(subject.name);
           };
 
           return (
@@ -162,7 +209,7 @@ export const SessionScreen: React.FC = () => {
               <button
                 className={`panel-action-btn ${isComplete ? 'complete' : ''}`}
                 onClick={handleSubjectAction}
-                disabled={isBusy && !isConnected}
+                disabled={isBusy}
               >
                 {buttonLabel}
               </button>
@@ -176,21 +223,20 @@ export const SessionScreen: React.FC = () => {
         <button
           className="nexus-btn disconnect-btn"
           onClick={async () => {
-            setDisconnectRequested(true);
             try {
               await disconnectAll();
             } catch {
-              setDisconnectRequested(false);
+              // The hook displays the cleanup error.
             }
           }}
           disabled={isBusy || isDisconnecting}
         >
           {isDisconnecting ? 'Disconnecting sensors...' : 'Disconnect sensors'}
         </button>
-        <button className="nexus-btn secondary-btn" onClick={() => discoverAndConnect()} disabled={isBusy || isDisconnecting}>
+        <button className="nexus-btn secondary-btn" onClick={() => startConnection()} disabled={isBusy || isDisconnecting}>
           {'Connect all subjects'}
         </button>
-        <button className="nexus-btn" onClick={() => navigate('/new-activity')} disabled={!allSensorsPlaced || isDisconnecting}>
+        <button className="nexus-btn" onClick={() => navigate('/new-activity')} disabled={!allSubjectsReady || isDisconnecting}>
           Create Activity
         </button>
       </div>
@@ -201,10 +247,12 @@ export const SessionScreen: React.FC = () => {
         statusText={
           isDisconnecting
             ? 'Disconnecting sensors...'
+            : phase === 'disconnecting'
+              ? 'Disconnecting sensors...'
             : phase === 'discovering'
             ? 'Discovering sensors...'
             : phase === 'connecting'
-              ? 'Connecting to sensors...'
+              ? 'Connecting sensors...'
               : phase === 'error'
                 ? 'Sensor setup failed'
                 : disconnectError

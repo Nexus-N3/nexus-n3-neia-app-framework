@@ -7,7 +7,6 @@ from typing import Callable, List
 from fastapi import WebSocket
 
 from .base import GatewayClient
-from .lavinmq_client import LavinMQClient
 from .zeromq_client import ZeroMQClient
 from ..runtime_settings import GatewayRuntimeSettings, load_gateway_runtime_settings
 
@@ -67,9 +66,18 @@ class GatewayManager:
     async def stop(self) -> None:
         self._client.stop()
 
-    async def reconfigure_zeromq_target(self, *, target_host: str, cmd_port: int, event_port: int) -> dict[str, object]:
+    async def reconfigure_zeromq_target(
+        self,
+        *,
+        target_host: str,
+        cmd_port: int,
+        event_port: int,
+    ) -> dict[str, object]:
         if self._settings.gateway_type != "zeromq":
-            raise ValueError("Gateway target changes are only supported for zeromq deployments")
+            raise ValueError(
+                "Gateway target changes are only supported for zeromq deployments"
+            )
+
         next_settings = GatewayRuntimeSettings(
             gateway_type=self._settings.gateway_type,
             site=self._settings.site,
@@ -78,11 +86,20 @@ class GatewayManager:
             event_port=event_port,
             amqp_url=self._settings.amqp_url,
         )
+
+        print("[GatewayManager] stopping old client", flush=True)
         self._client.stop()
+        print("[GatewayManager] old client stopped", flush=True)
+
         self._settings = next_settings
         self._client = _create_gateway_client(next_settings)
+
+        print("[GatewayManager] new client created", flush=True)
+
         if self._loop:
             self._client.start(self._on_event)
+            print("[GatewayManager] new client started", flush=True)
+
         return self.gateway_settings()
 
     def send_command(self, command: dict) -> None:
@@ -105,8 +122,6 @@ def create_gateway_manager() -> GatewayManager:
 
 
 def _create_gateway_client(settings: GatewayRuntimeSettings) -> GatewayClient:
-    if settings.gateway_type == "lavinmq":
-        return LavinMQClient(site=settings.site, amqp_url=settings.amqp_url)
     return ZeroMQClient(
         cmd_connect=f"tcp://{settings.target_host}:{settings.cmd_port}",
         event_connect=f"tcp://{settings.target_host}:{settings.event_port}",

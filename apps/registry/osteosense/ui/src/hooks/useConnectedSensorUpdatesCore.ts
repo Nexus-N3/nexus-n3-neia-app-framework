@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useGatewaySocket } from './useGatewaySocket';
 import type { ConnectedSensorsMap } from './gatewaySensorTypes';
-import { getConnectedSubjectsFromPayload, getDisconnectedAddressesFromPayload } from './gatewaySensorPayloads';
+import {
+  getConnectedSubjectsFromPayload,
+  getDisconnectedAddressesFromPayload,
+  getDiscoveredSubjectsFromPayload,
+} from './gatewaySensorPayloads';
 
 export const useConnectedSensorUpdatesCore = () => {
   const { subscribe } = useGatewaySocket();
@@ -9,6 +13,21 @@ export const useConnectedSensorUpdatesCore = () => {
 
   useEffect(() => {
     const unsubscribe = subscribe((msg) => {
+      if (msg.type === 'sensors_discovered' || msg.type === 'sensors_discovered_for_subject') {
+        const subjects = getDiscoveredSubjectsFromPayload(msg.payload);
+        setConnectedSensors((prev) => {
+          if (subjects.length === 0) {
+            return {};
+          }
+          const next = { ...prev };
+          subjects.forEach((subject) => {
+            next[subject.subject_id] = [];
+          });
+          return next;
+        });
+        return;
+      }
+
       if (msg.type === 'sensor_connected') {
         const subjects = getConnectedSubjectsFromPayload(msg.payload);
         setConnectedSensors((prev) => {

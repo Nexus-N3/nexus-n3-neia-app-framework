@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "id": "cbeb9c87-6dc1-4a99-8728-60b5809b49dc",
+  "name": "FlexHab",
+  "created_at": "2026-09-29T11:20:31.568462Z",
+  "modified_at": "2026-09-29T11:20:31.568462Z",
+  "derived_from": null,
+  "subject_count": 2,
+  "subjects": {
+    "s1": [
+      {
+        "sensor_type": "Movella DOT",
+        "location": "LEFT_ANKLE",
+        "algorithms": [
+          "standard_loading_intensity"
+        ]
+      },
+      {
+        "sensor_type": "Movella DOT",
+        "location": "LEFT_WRIST",
+        "algorithms": [
+          "standard_loading_intensity"
+        ]
+      }
+    ],
+    "s2": [
+      {
+        "sensor_type": "Movella DOT",
+        "location": "LEFT_ANKLE",
+        "algorithms": [
+          "standard_loading_intensity"
+        ]
+      },
+      {
+        "sensor_type": "Movella DOT",
+        "location": "LEFT_WRIST",
+        "algorithms": [
+          "standard_loading_intensity"
+        ]
+      }
+    ]
+  },
+  "requirements": {
+    "sensors": [
+      "Movella DOT"
+    ],
+    "algorithms": [
+      "standard_loading_intensity"
+    ]
+  }
+}

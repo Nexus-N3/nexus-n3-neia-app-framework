@@ -9,6 +9,7 @@ Options:
   --no-start       Install/update without starting the service
   --force-env      Overwrite the existing installed env file
   --rebuild-venv   Recreate the application virtualenv
+  --skip-ui-build  Reuse the existing refactored neia-ui/dist build
   --help           Show this help
 EOF
 }
@@ -43,6 +44,7 @@ DESKTOP_FILE="${APPLICATIONS_ROOT}/neia.desktop"
 START_SERVICE=1
 FORCE_ENV=0
 REBUILD_VENV=0
+SKIP_UI_BUILD=0
 CREATED_ENV=0
 
 while [[ $# -gt 0 ]]; do
@@ -59,6 +61,10 @@ while [[ $# -gt 0 ]]; do
       REBUILD_VENV=1
       shift
       ;;
+    --skip-ui-build)
+      SKIP_UI_BUILD=1
+      shift
+      ;;
     --help)
       usage
       exit 0
@@ -70,6 +76,11 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+if ! id -u "${SERVICE_USER}" >/dev/null 2>&1; then
+  echo "Service user ${SERVICE_USER} does not exist." >&2
+  exit 1
+fi
 
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -85,6 +96,23 @@ require_cmd cp
 require_cmd sed
 require_cmd tar
 require_cmd chown
+require_cmd find
+require_cmd grep
+
+if [[ "${SKIP_UI_BUILD}" -eq 0 ]]; then
+  require_cmd npm
+  if [[ "${SERVICE_USER}" != "root" ]]; then
+    require_cmd sudo
+    sudo -u "${SERVICE_USER}" npm --prefix "${FRAMEWORK_ROOT}/neia-ui" run build
+  else
+    npm --prefix "${FRAMEWORK_ROOT}/neia-ui" run build
+  fi
+fi
+
+if [[ ! -f "${FRAMEWORK_ROOT}/neia-ui/dist/index.html" ]]; then
+  echo "Missing neia-ui/dist/index.html; build the refactored NEIA UI first." >&2
+  exit 1
+fi
 
 install_tree() {
   local src_rel="$1"
@@ -103,9 +131,10 @@ install_tree() {
       --exclude='neia-api/app/__pycache__' \
       --exclude='neia-ui/node_modules' \
       --exclude='neia-ui/src' \
-      --exclude='apps/*/ui/node_modules' \
-      --exclude='apps/*/ui/src' \
-      --exclude='apps/*/ui/.vite' \
+      --exclude='apps/registry/*/ui/node_modules' \
+      --exclude='apps/registry/*/ui/src' \
+      --exclude='apps/registry/*/ui/.vite' \
+      --exclude='models/ollama' \
       -cf - \
       "${src_rel}" \
     ) | (
@@ -113,11 +142,6 @@ install_tree() {
       tar -xf -
     )
 }
-
-if ! id -u "${SERVICE_USER}" >/dev/null 2>&1; then
-  echo "Service user ${SERVICE_USER} does not exist." >&2
-  exit 1
-fi
 
 if systemctl list-unit-files | grep -Fq "^${SERVICE_NAME}"; then
   systemctl stop "${SERVICE_NAME}" || true
@@ -132,9 +156,32 @@ install_tree "neia-api" "neia-api"
 install_tree "neia-ui/dist" "neia-ui/dist"
 install_tree "docs" "docs"
 install_tree "models" "models"
+install_tree "workflows" "workflows"
 
 if [[ ! -f "${STATE_ROOT}/installed.json" && -f "${FRAMEWORK_ROOT}/apps/installed.json" ]]; then
   install -o "${SERVICE_USER}" -g "${SERVICE_GROUP}" -m 0644 "${FRAMEWORK_ROOT}/apps/installed.json" "${STATE_ROOT}/installed.json"
+fi
+"${PYTHON_BIN}" - "${STATE_ROOT}/installed.json" <<'PY'
+import json
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+if path.is_file():
+    try:
+        installed = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        installed = None
+    if isinstance(installed, list) and "nexus" in installed:
+        path.write_text(
+            json.dumps([app_id for app_id in installed if app_id != "nexus"], indent=2) + "\n",
+            encoding="utf-8",
+        )
+PY
+
+mkdir -p "${STATE_ROOT}/workflows"
+if [[ -z "$(find "${STATE_ROOT}/workflows" -mindepth 1 -print -quit)" && -d "${FRAMEWORK_ROOT}/workflows" ]]; then
+  cp -R "${FRAMEWORK_ROOT}/workflows/." "${STATE_ROOT}/workflows/"
 fi
 
 if [[ "${REBUILD_VENV}" -eq 1 ]]; then
@@ -167,7 +214,11 @@ sed -i \
   -e "s|^NEIA_STATE_DIR=.*|NEIA_STATE_DIR=${STATE_ROOT}|" \
   -e "s|^NEIA_LOG_DIR=.*|NEIA_LOG_DIR=${LOG_ROOT}|" \
   -e "s|^NEIA_RUN_DIR=.*|NEIA_RUN_DIR=${RUN_ROOT}|" \
+  -e "s|^NEIA_WORKFLOWS_DIR=.*|NEIA_WORKFLOWS_DIR=${STATE_ROOT}/workflows|" \
   "${ENV_FILE}"
+if ! grep -Eq '^NEIA_WORKFLOWS_DIR=' "${ENV_FILE}"; then
+  printf 'NEIA_WORKFLOWS_DIR=%s/workflows\n' "${STATE_ROOT}" >> "${ENV_FILE}"
+fi
 if [[ "${FORCE_ENV}" -eq 1 || "${CREATED_ENV}" -eq 1 ]]; then
   sed -i \
     -e "s|^NEIA_HOST=.*|NEIA_HOST=${HOST}|" \

@@ -117,9 +117,10 @@ install_tree() {
       --exclude='neia-api/app/__pycache__' \
       --exclude='neia-ui/node_modules' \
       --exclude='neia-ui/src' \
-      --exclude='apps/*/ui/node_modules' \
-      --exclude='apps/*/ui/src' \
-      --exclude='apps/*/ui/.vite' \
+      --exclude='apps/registry/*/ui/node_modules' \
+      --exclude='apps/registry/*/ui/src' \
+      --exclude='apps/registry/*/ui/.vite' \
+      --exclude='models/ollama' \
       -cf - \
       "${src_rel}" \
     ) | (
@@ -143,6 +144,7 @@ install_tree "neia-api" "opt/nexus-n3-neia-app-framework/neia-api"
 install_tree "neia-ui/dist" "opt/nexus-n3-neia-app-framework/neia-ui/dist"
 install_tree "docs" "opt/nexus-n3-neia-app-framework/docs"
 install_tree "models" "opt/nexus-n3-neia-app-framework/models"
+install_tree "workflows" "opt/nexus-n3-neia-app-framework/workflows"
 
 install -m 0644 "${WHEEL_PATH}" "${PKG_ROOT}/opt/nexus-n3-neia-app-framework/neia-api/dist/$(basename "${WHEEL_PATH}")"
 install -m 0644 "${LINUX_DIR}/neia-desktop.env.example" "${PKG_ROOT}/etc/nexus-n3-neia-app-framework/neia-desktop.env"

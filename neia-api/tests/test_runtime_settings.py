@@ -31,3 +31,16 @@ def test_save_gateway_runtime_settings_persists_override(tmp_path: Path) -> None
 
     reloaded = load_gateway_runtime_settings(base_dir=tmp_path)
     assert reloaded.target_host == "nexus-n3-master.local"
+
+
+def test_save_gateway_runtime_settings_creates_state_directory(tmp_path: Path) -> None:
+    state_dir = tmp_path / "var" / "lib" / "neia"
+
+    save_gateway_runtime_settings(
+        target_host="localhost",
+        cmd_port=5555,
+        event_port=5556,
+        base_dir=state_dir,
+    )
+
+    assert (state_dir / ".neia_gateway_settings.json").is_file()
