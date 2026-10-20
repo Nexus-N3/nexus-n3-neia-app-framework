@@ -14,6 +14,10 @@ export const useDiscoverSensorsCore = () => {
   const [activeSubjectId, setActiveSubjectId] = useState<string | null>(null);
   const [discoveredSensors, setDiscoveredSensors] = useState<DiscoveredSensorsMap>({});
   const [connectedSensors, setConnectedSensors] = useState<ConnectedSensorsMap>({});
+  const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
+  const [warningMsg, setWarningMsg] = useState<string | null>(null);
+  const sequenceRef = useRef<string | null>(null);
+  const lastSequenceRef = useRef<string | null>(null);
   const autoConnectRef = useRef(false);
   const connectSubjectIdsRef = useRef<string[] | null>(null);
   const cleanupOperationRef = useRef<CleanupOperation | null>(null);
@@ -22,6 +26,31 @@ export const useDiscoverSensorsCore = () => {
 
   useEffect(() => {
     const unsubscribe = subscribe((msg) => {
+      const payload = msg.payload && typeof msg.payload === 'object'
+        ? msg.payload as Record<string, unknown> : {};
+      if (msg.type === 'subject_connection_progress') {
+        if (payload.correlation_id !== sequenceRef.current || !sequenceRef.current) return;
+        setActiveSubjectId(typeof payload.subject_id === 'string' ? payload.subject_id : null);
+        setActiveNodeId(typeof payload.node_id === 'string' ? payload.node_id : null);
+        if (payload.phase === 'completed' || payload.phase === 'failed') {
+          sequenceRef.current = null;
+          phaseRef.current = payload.phase === 'completed' ? 'done' : 'error';
+          setPhase(phaseRef.current);
+          if (payload.phase === 'failed') {
+            setErrorMsg(`${String(payload.operation ?? 'Connect All')}: ${String(payload.message ?? 'Subject setup failed')}`);
+          }
+        } else if (payload.phase === 'discovering' || payload.phase === 'connecting' || payload.phase === 'subject_connected') {
+          phaseRef.current = payload.phase === 'discovering' ? 'discovering' : 'connecting';
+          setPhase(phaseRef.current);
+        }
+        return;
+      }
+      if (msg.type === 'error' && payload.severity === 'warning' && payload.operation === 'identify') {
+        if (payload.correlation_id === lastSequenceRef.current) {
+          setWarningMsg(`${String(payload.subject_id ?? 'Sensor')}: ${String(payload.message ?? 'Identification failed')}`);
+        }
+        return;
+      }
       if (msg.type === 'sensor_cleanup_started' && cleanupOperationRef.current) {
         collectCleanupParticipants(cleanupOperationRef.current, msg.payload && typeof msg.payload === 'object' ? msg.payload as Record<string, unknown> : {});
         return;
@@ -80,6 +109,7 @@ export const useDiscoverSensorsCore = () => {
           return next;
         });
 
+        if (sequenceRef.current || payload.connection_sequence_id) return;
         if (autoConnectRef.current) {
           autoConnectRef.current = false;
           phaseRef.current = 'connecting';
@@ -115,6 +145,13 @@ export const useDiscoverSensorsCore = () => {
           });
           return next;
         });
+        // Single-subject Core retains the legacy terminal event. Sequence
+        // step results carry connection_sequence_id and never finish Connect All.
+        if (payload.connection_sequence_id) return;
+        if (sequenceRef.current) {
+          if (payload.correlation_id !== sequenceRef.current) return;
+          sequenceRef.current = null;
+        }
         phaseRef.current = 'done';
         setPhase('done');
         setActiveSubjectId(null);
@@ -125,6 +162,8 @@ export const useDiscoverSensorsCore = () => {
         msg.type === 'error'
         && (phaseRef.current === 'disconnecting' || phaseRef.current === 'discovering' || phaseRef.current === 'connecting')
       ) {
+        if (sequenceRef.current && payload.correlation_id !== sequenceRef.current) return;
+        sequenceRef.current = null;
         setErrorMsg(typeof msg.payload === 'string' ? msg.payload : JSON.stringify(msg.payload));
         phaseRef.current = 'error';
         setPhase('error');
@@ -157,6 +196,7 @@ export const useDiscoverSensorsCore = () => {
         await sendCommand(command);
       } catch (error) {
         console.error('[useDiscoverSensorsCore] Network error:', error);
+        sequenceRef.current = null;
         setErrorMsg('Network error sending command');
         phaseRef.current = 'error';
         setPhase('error');
@@ -172,6 +212,7 @@ export const useDiscoverSensorsCore = () => {
   );
 
   const discoverAndConnect = useCallback(() => {
+    if (sequenceRef.current || ['disconnecting', 'discovering', 'connecting'].includes(phaseRef.current)) return;
     autoConnectRef.current = true;
     connectSubjectIdsRef.current = null;
     cancelCleanupOperation(cleanupOperationRef.current);
@@ -184,6 +225,7 @@ export const useDiscoverSensorsCore = () => {
   }, [doSend]);
 
   const recoverAndConnect = useCallback((_connectedAddresses: string[]) => {
+    if (sequenceRef.current || ['disconnecting', 'discovering', 'connecting'].includes(phaseRef.current)) return;
     autoConnectRef.current = false;
     connectSubjectIdsRef.current = null;
     recoverySubjectIdsRef.current = null;
@@ -199,6 +241,7 @@ export const useDiscoverSensorsCore = () => {
   }, [doSend, beginCleanup]);
 
   const recoverAndConnectForSubject = useCallback((subjectId: string, _connectedAddresses: string[]) => {
+    if (sequenceRef.current || ['disconnecting', 'discovering', 'connecting'].includes(phaseRef.current)) return;
     autoConnectRef.current = false;
     connectSubjectIdsRef.current = [subjectId];
     recoverySubjectIdsRef.current = [subjectId];
@@ -206,6 +249,7 @@ export const useDiscoverSensorsCore = () => {
     setPhase('disconnecting');
     setErrorMsg(null);
     setActiveSubjectId(subjectId);
+    setActiveNodeId(null);
     setDiscoveredSensors((prev) => ({ ...prev, [subjectId]: [] }));
     setConnectedSensors((prev) => ({ ...prev, [subjectId]: [] }));
     cancelCleanupOperation(cleanupOperationRef.current);
@@ -218,12 +262,14 @@ export const useDiscoverSensorsCore = () => {
 
   const discoverAndConnectForSubject = useCallback(
     (subjectId: string) => {
+      if (sequenceRef.current || ['disconnecting', 'discovering', 'connecting'].includes(phaseRef.current)) return;
       autoConnectRef.current = true;
       connectSubjectIdsRef.current = [subjectId];
       phaseRef.current = 'discovering';
       setPhase('discovering');
       setErrorMsg(null);
       setActiveSubjectId(subjectId);
+      setActiveNodeId(null);
       void doSend({
         type: 'discover_sensors_for_subjects',
         payload: { subject_ids: [subjectId] },
@@ -233,6 +279,7 @@ export const useDiscoverSensorsCore = () => {
   );
 
   const discoverAll = useCallback(() => {
+    if (sequenceRef.current || ['disconnecting', 'discovering', 'connecting'].includes(phaseRef.current)) return;
     autoConnectRef.current = false;
     connectSubjectIdsRef.current = null;
     cancelCleanupOperation(cleanupOperationRef.current);
@@ -245,22 +292,31 @@ export const useDiscoverSensorsCore = () => {
   }, [doSend]);
 
   const connectAll = useCallback(() => {
+    if (sequenceRef.current || ['disconnecting', 'discovering', 'connecting'].includes(phaseRef.current)) return;
+    const correlationId = globalThis.crypto?.randomUUID?.() ?? `connect-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    sequenceRef.current = correlationId;
+    lastSequenceRef.current = correlationId;
+    autoConnectRef.current = false;
     connectSubjectIdsRef.current = null;
     phaseRef.current = 'connecting';
     setPhase('connecting');
     setErrorMsg(null);
+    setWarningMsg(null);
     setActiveSubjectId(null);
-    void doSend({ type: 'connect_all' });
+    setActiveNodeId(null);
+    void doSend({ type: 'connect_all', payload: { correlation_id: correlationId } });
   }, [doSend]);
 
   const discoverForSubject = useCallback(
     (subjectId: string) => {
+      if (sequenceRef.current || ['disconnecting', 'discovering', 'connecting'].includes(phaseRef.current)) return;
       autoConnectRef.current = false;
       connectSubjectIdsRef.current = [subjectId];
       phaseRef.current = 'discovering';
       setPhase('discovering');
       setErrorMsg(null);
       setActiveSubjectId(subjectId);
+      setActiveNodeId(null);
       void doSend({
         type: 'discover_sensors_for_subjects',
         payload: { subject_ids: [subjectId] },
@@ -270,6 +326,8 @@ export const useDiscoverSensorsCore = () => {
   );
 
   const dismiss = useCallback(() => {
+    if (sequenceRef.current) return;
+    setWarningMsg(null);
     cancelCleanupOperation(cleanupOperationRef.current);
     cleanupOperationRef.current = null;
     phaseRef.current = 'idle';
@@ -287,6 +345,8 @@ export const useDiscoverSensorsCore = () => {
     isBusy,
     errorMsg,
     activeSubjectId,
+    activeNodeId,
+    warningMsg,
     discoveredSensors,
     connectedSensors,
     discoverAndConnect,

@@ -32,6 +32,9 @@ export const SessionScreen: React.FC = () => {
     phase,
     isBusy,
     activeSubjectId,
+    activeNodeId,
+    warningMsg,
+    connectAll,
     errorMsg: discoverError,
     discoverAndConnect,
     recoverAndConnect,
@@ -110,6 +113,11 @@ export const SessionScreen: React.FC = () => {
     };
   });
 
+  const activeSubjectName = subjects.find((subject) => subject.name === activeSubjectId)?.displayName ?? activeSubjectId;
+  const progressTarget = activeSubjectName
+    ? `${activeSubjectName}${activeNodeId ? ` (${activeNodeId})` : ''}`
+    : 'sensors';
+
   const allSubjectsReady = subjects.length > 0 && subjects.every(
     (subject) => subject.sensorsRequired > 0
       && subject.sensorsConnected >= subject.sensorsRequired
@@ -117,6 +125,11 @@ export const SessionScreen: React.FC = () => {
   );
 
   const startConnection = (subjectId?: string) => {
+    if (isBusy || isDisconnecting || isDrainPending) return;
+    if (!subjectId && subjects.length > 1) {
+      connectAll();
+      return;
+    }
     if (subjectId) {
       const subjectConnectedAddresses = Array.from(new Set(
         (connectedSensors[subjectId.toLowerCase()] ?? connectedSensors[subjectId] ?? [])
@@ -182,7 +195,7 @@ export const SessionScreen: React.FC = () => {
           <button className="nexus-btn secondary-btn" onClick={() => startConnection()} disabled={!serverReady || isBusy || isDisconnecting}>
             {'Connect all subjects'}
           </button>
-          <button className="nexus-btn" onClick={() => navigate('/new-activity')} disabled={!serverReady || !allSubjectsReady || isDisconnecting}>
+          <button className="nexus-btn" onClick={() => navigate('/new-activity')} disabled={!serverReady || !allSubjectsReady || isBusy || isDisconnecting}>
             Create Activity
           </button>
         </div>
@@ -253,7 +266,7 @@ export const SessionScreen: React.FC = () => {
               <button
                 className={`panel-action-btn primary ${isComplete ? 'complete' : ''}`}
                 onClick={handleSubjectAction}
-                disabled={!serverReady || isBusy}
+                disabled={!serverReady || isBusy || isDisconnecting || isDrainPending}
               >
                 {buttonLabel}
               </button>
@@ -272,17 +285,17 @@ export const SessionScreen: React.FC = () => {
             : streamDrainState.pending
               ? streamDrainState.status ?? 'Finalizing session files...'
             : phase === 'discovering'
-            ? 'Discovering sensors...'
+            ? `Discovering ${progressTarget}…`
             : phase === 'connecting'
-              ? 'Connecting sensors...'
+              ? `Connecting ${progressTarget}…`
               : phase === 'error'
-                ? 'Sensor setup failed'
+                ? `Sensor setup failed${activeSubjectName ? ` for ${activeSubjectName}` : ''}`
                 : disconnectError
                   ? 'Disconnect failed'
                   : null
         }
-        errors={[discoverError, disconnectError]}
-        onDismiss={disconnectError ? dismissDisconnectError : phase === 'error' ? dismiss : undefined}
+        errors={[discoverError, disconnectError, warningMsg ? `Identification warning: ${warningMsg}` : null]}
+        onDismiss={disconnectError ? dismissDisconnectError : phase === 'error' || warningMsg ? dismiss : undefined}
       />
     </ScreenLayout>
   );
